@@ -3,8 +3,8 @@
   <entry>
     <title>GeekChallenge2024逆向方向wp</title>
     <url>/2024/02/22/GeekChallenge2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
-    <content><![CDATA[<h1 id="GeekChallenge-REVERSE-Writeup"><a href="#GeekChallenge-REVERSE-Writeup" class="headerlink" title="GeekChallenge_REVERSE Writeup"></a>GeekChallenge_REVERSE Writeup</h1><p>参赛id:1K0CT</p>
-<p>邮箱：<a href="mailto:&#x6f;&#x6b;&#x75;&#117;&#115;&#x75;&#107;&#117;&#64;&#x67;&#x6d;&#97;&#x69;&#x6c;&#46;&#x63;&#x6f;&#109;">&#x6f;&#x6b;&#x75;&#117;&#115;&#x75;&#107;&#117;&#64;&#x67;&#x6d;&#97;&#x69;&#x6c;&#46;&#x63;&#x6f;&#109;</a></p>
+    <content><![CDATA[<h1 id="GeekChallenge-REVERSE-Writeup"><a href="#GeekChallenge-REVERSE-Writeup" class="headerlink" title="GeekChallenge_REVERSE Writeup"></a>GeekChallenge_REVERSE Writeup</h1><p>参赛ID:1K0CT</p>
+<p>邮箱：<a href="mailto:&#x6f;&#107;&#117;&#117;&#115;&#x75;&#107;&#x75;&#x40;&#103;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#111;&#109;">&#x6f;&#107;&#117;&#117;&#115;&#x75;&#107;&#x75;&#x40;&#103;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#111;&#109;</a></p>
 <h2 id="REVERSE"><a href="#REVERSE" class="headerlink" title="REVERSE"></a>REVERSE</h2><hr>
 <h3 id="Shift-jmp-简单花指令"><a href="#Shift-jmp-简单花指令" class="headerlink" title="Shift_jmp | 简单花指令"></a>Shift_jmp | 简单花指令</h3><p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/23/20240223-011221.png" alt="image-20240223003954050"></p>
 <p>将无条件跳转和<code>loc_117A</code>patch为<code>nop</code>重构主函数</p>
@@ -172,5 +172,10 @@
       <tags>
         <tag>逆向</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>NBCTF2024逆向方向wp</title>
+    <url>/2024/02/23/NBCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
+    <content><![CDATA[]]></content>
   </entry>
 </search>
