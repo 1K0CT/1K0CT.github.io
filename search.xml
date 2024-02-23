@@ -4,7 +4,7 @@
     <title>BeginCTF2024逆向方向wp</title>
     <url>/2024/02/23/BeginCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
     <content><![CDATA[<h1 id="BeginCTF-REVERSE-Writeup"><a href="#BeginCTF-REVERSE-Writeup" class="headerlink" title="BeginCTF REVERSE Writeup"></a>BeginCTF REVERSE Writeup</h1><p>参赛ID:1K0CT</p>
-<p>email:<a href="mailto:&#111;&#107;&#117;&#x75;&#x73;&#x75;&#107;&#117;&#64;&#103;&#109;&#x61;&#105;&#x6c;&#46;&#x63;&#111;&#109;">&#111;&#107;&#117;&#x75;&#x73;&#x75;&#107;&#117;&#64;&#103;&#109;&#x61;&#105;&#x6c;&#46;&#x63;&#111;&#109;</a></p>
+<p>email:<a href="mailto:&#x6f;&#x6b;&#117;&#x75;&#x73;&#117;&#107;&#117;&#x40;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;">&#x6f;&#x6b;&#117;&#x75;&#x73;&#117;&#107;&#117;&#x40;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
 <hr>
 <span id="more"></span>
 
@@ -137,8 +137,10 @@
     <title>LACTF2024逆向方向部分wp</title>
     <url>/2024/02/23/LACTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91%E9%83%A8%E5%88%86wp/</url>
     <content><![CDATA[<h1 id="LACTF-REVERSE-Writeup"><a href="#LACTF-REVERSE-Writeup" class="headerlink" title="LACTF_REVERSE Writeup"></a>LACTF_REVERSE Writeup</h1><p>参赛ID:1K0CT</p>
-<p>email: <a href="mailto:&#x6f;&#107;&#x75;&#117;&#x73;&#117;&#x6b;&#117;&#x40;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#99;&#111;&#109;">&#x6f;&#107;&#x75;&#117;&#x73;&#117;&#x6b;&#117;&#x40;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#99;&#111;&#109;</a></p>
+<p>email: <a href="mailto:&#111;&#x6b;&#x75;&#x75;&#x73;&#117;&#x6b;&#117;&#x40;&#x67;&#109;&#97;&#x69;&#x6c;&#46;&#99;&#111;&#109;">&#111;&#x6b;&#x75;&#x75;&#x73;&#117;&#x6b;&#117;&#x40;&#x67;&#109;&#97;&#x69;&#x6c;&#46;&#99;&#111;&#109;</a></p>
 <hr>
+<span id="more"></span>
+
 <h3 id="shattered-memories"><a href="#shattered-memories" class="headerlink" title="shattered-memories"></a><strong>shattered-memories</strong></h3><p>签到题 DIE查壳 无壳64x IDA64打开直接拼flag:</p>
 <p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/23/20240223-202615.png" alt="image-20240223202112685"></p>
 <h3 id="aplet321-接轨pwn"><a href="#aplet321-接轨pwn" class="headerlink" title="aplet321 | 接轨pwn"></a><strong>aplet321</strong> | 接轨pwn</h3><p>DIE查壳 无壳64x IDA64打开:</p>
@@ -215,7 +217,7 @@
     <title>NBCTF2024逆向方向wp</title>
     <url>/2024/02/23/NBCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
     <content><![CDATA[<h1 id="NBCTF-REVERSE-Writeup"><a href="#NBCTF-REVERSE-Writeup" class="headerlink" title="NBCTF_REVERSE Writeup"></a>NBCTF_REVERSE Writeup</h1><p>参赛ID:1K0CT</p>
-<p>email: <a href="mailto:&#111;&#x6b;&#x75;&#x75;&#x73;&#x75;&#x6b;&#117;&#x40;&#103;&#109;&#97;&#105;&#x6c;&#46;&#x63;&#111;&#109;">&#111;&#x6b;&#x75;&#x75;&#x73;&#x75;&#x6b;&#117;&#x40;&#103;&#109;&#97;&#105;&#x6c;&#46;&#x63;&#111;&#109;</a></p>
+<p>email: <a href="mailto:&#x6f;&#x6b;&#x75;&#117;&#x73;&#117;&#x6b;&#117;&#64;&#103;&#109;&#x61;&#105;&#108;&#46;&#99;&#x6f;&#109;">&#x6f;&#x6b;&#x75;&#117;&#x73;&#117;&#x6b;&#117;&#64;&#103;&#109;&#x61;&#105;&#108;&#46;&#99;&#x6f;&#109;</a></p>
 <hr>
 <span id="more"></span>
 
@@ -292,7 +294,7 @@
     <title>GeekChallenge2024逆向方向wp</title>
     <url>/2024/02/22/GeekChallenge2023%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
     <content><![CDATA[<h1 id="GeekChallenge-REVERSE-Writeup"><a href="#GeekChallenge-REVERSE-Writeup" class="headerlink" title="GeekChallenge_REVERSE Writeup"></a>GeekChallenge_REVERSE Writeup</h1><p>参赛ID:1K0CT</p>
-<p>邮箱：<a href="mailto:&#x6f;&#x6b;&#117;&#117;&#115;&#117;&#x6b;&#117;&#x40;&#x67;&#x6d;&#x61;&#x69;&#108;&#x2e;&#99;&#111;&#x6d;">&#x6f;&#x6b;&#117;&#117;&#115;&#117;&#x6b;&#117;&#x40;&#x67;&#x6d;&#x61;&#x69;&#108;&#x2e;&#99;&#111;&#x6d;</a></p>
+<p>邮箱：<a href="mailto:&#x6f;&#x6b;&#117;&#x75;&#x73;&#117;&#107;&#117;&#x40;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#x2e;&#99;&#x6f;&#109;">&#x6f;&#x6b;&#117;&#x75;&#x73;&#117;&#107;&#117;&#x40;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#x2e;&#99;&#x6f;&#109;</a></p>
 <span id="more"></span>
 
 <h2 id="REVERSE"><a href="#REVERSE" class="headerlink" title="REVERSE"></a>REVERSE</h2><hr>
