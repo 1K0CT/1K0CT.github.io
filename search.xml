@@ -4,7 +4,7 @@
     <title>BeginCTF2024逆向方向wp</title>
     <url>/2024/02/23/BeginCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
     <content><![CDATA[<h1 id="BeginCTF-REVERSE-Writeup"><a href="#BeginCTF-REVERSE-Writeup" class="headerlink" title="BeginCTF REVERSE Writeup"></a>BeginCTF REVERSE Writeup</h1><p>参赛ID:1K0CT</p>
-<p>email:<a href="mailto:&#x6f;&#x6b;&#x75;&#x75;&#115;&#x75;&#x6b;&#x75;&#64;&#103;&#x6d;&#97;&#x69;&#108;&#46;&#99;&#x6f;&#x6d;">&#x6f;&#x6b;&#x75;&#x75;&#115;&#x75;&#x6b;&#x75;&#64;&#103;&#x6d;&#97;&#x69;&#108;&#46;&#99;&#x6f;&#x6d;</a></p>
+<p>email:<a href="mailto:&#111;&#x6b;&#117;&#117;&#115;&#117;&#x6b;&#x75;&#x40;&#x67;&#109;&#x61;&#x69;&#108;&#x2e;&#99;&#x6f;&#x6d;">&#111;&#x6b;&#117;&#117;&#115;&#117;&#x6b;&#x75;&#x40;&#x67;&#109;&#x61;&#x69;&#108;&#x2e;&#99;&#x6f;&#x6d;</a></p>
 <hr>
 <span id="more"></span>
 
@@ -137,7 +137,7 @@
     <title>LACTF2024逆向方向部分wp</title>
     <url>/2024/02/23/LACTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91%E9%83%A8%E5%88%86wp/</url>
     <content><![CDATA[<h1 id="LACTF-REVERSE-Writeup"><a href="#LACTF-REVERSE-Writeup" class="headerlink" title="LACTF_REVERSE Writeup"></a>LACTF_REVERSE Writeup</h1><p>参赛ID:1K0CT</p>
-<p>email: <a href="mailto:&#x6f;&#x6b;&#x75;&#117;&#x73;&#117;&#x6b;&#117;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#x6f;&#x6b;&#x75;&#117;&#x73;&#117;&#x6b;&#117;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a></p>
+<p>email: <a href="mailto:&#111;&#x6b;&#x75;&#x75;&#115;&#x75;&#107;&#117;&#x40;&#103;&#x6d;&#97;&#x69;&#108;&#46;&#99;&#x6f;&#109;">&#111;&#x6b;&#x75;&#x75;&#115;&#x75;&#107;&#117;&#x40;&#103;&#x6d;&#97;&#x69;&#108;&#46;&#99;&#x6f;&#109;</a></p>
 <hr>
 <span id="more"></span>
 
@@ -213,10 +213,68 @@
       </tags>
   </entry>
   <entry>
+    <title>古神语(Uiua)之研究</title>
+    <url>/2024/03/05/%E5%8F%A4%E7%A5%9E%E8%AF%AD%E4%B9%8B%E7%A0%94%E7%A9%B6/</url>
+    <content><![CDATA[<p>在NBCTF2023遇到了很奇怪的一坨 题目给了一个图片文件和一个<code>.ua</code>文件 那时候一直没搞懂.ua是什么 最近在DC群组遇到了出题人 他提示: </p>
+<p>[uiua.org]: uiua.org	“Uiua (wee-wuh 🔉) is a general purpose, stack-based, array-oriented programming language”</p>
+<p> 从此开启了 <del>古神语之旅</del> 一种栈机语言的研究(<del>实际上才研究了两天</del>) 视该语言后续在CTF中遇到的频率或者发现了什么独特的用途而更新该研究</p>
+<h3 id="Uiua"><a href="#Uiua" class="headerlink" title="Uiua"></a>Uiua</h3><h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><p>如官网所说 这是一种基于<code>Rust</code>的栈机语言 但是同时也是一种功能十分强大的面向数组语言(对数组的处理能力极强且完备) 同时还内置对音频和视频的生成和处理 经过这两天的研究我发现其实用性其实非常强 只是因为使用了各种奇怪的字符让人觉得不是很正经<span id="more"></span> 但是其实所有的符号都有对应的英文指令</p>
+<h4 id="基本特性"><a href="#基本特性" class="headerlink" title="基本特性"></a>基本特性</h4><p>第一个不得不提的 <del>构式</del> 特性就是对不分行(该语言对格式敏感)的一条语句解释器的阅读顺序是由右到左 对多条语句的是由上至下</p>
+<p>由于其基于栈 变量名之类的实际上不重要 但是也提供了定义变量名与相关值的相关操作 定义的变量不会储存于栈中(<code>?</code> 用于打印当前栈的信息):</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-212827.png" alt="image-20240305212820170"></p>
+<p>提供了一种类似Wasm 同时又比Wasm便捷的编程体验</p>
+<p>同时由于所有的运算都基于栈 作为操作指令参量的栈中数据在参与完运算后如果没有特殊操作都会直接销毁(并不<code>pop</code>到哪些变量中 当然也可以添加<code>pop</code>操作) </p>
+<p>例如:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-214009.png" alt="image-20240305214009805"></p>
+<p>从这里也可以看出运算的顺序是<code>op(value-second-top-to-stack) with value-top-to-stack</code> </p>
+<p>如上面所说 这是一个面向数组的语言 几乎所有功能和数组都密切相关 而Uiua提供了类似<code>numpy</code>库中的矩阵操作用以处理数组形成的矩阵</p>
+<p>对于三维矩阵若其第1, 2维的长度均超过20且第3维为3或4就可以生成对应的RGB通道或RGB-Alpha通道图片 <del>而音频 我没有研究</del></p>
+<h4 id="应用实例"><a href="#应用实例" class="headerlink" title="应用实例"></a>应用实例</h4><h5 id="NBCTF2023-rev-wee-woo"><a href="#NBCTF2023-rev-wee-woo" class="headerlink" title="[NBCTF2023&#x2F;rev&#x2F;wee-woo]"></a>[NBCTF2023&#x2F;rev&#x2F;wee-woo]</h5><p>题目给出的古神语:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Flag ← &quot;nbctf&#123;redacted&#125;&quot;</span><br><span class="line">Flag ← utf Flag</span><br><span class="line">÷ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ;⍢(: ↯:⍉:↯⌊η:↯⊟.⌈√,:⧻. ☇-×⁅ηπτ↻×⁅π,◫+⁅-⌊ητ,↻-⁅π,◿ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ:-⌊η)(&gt;-×⁅ηπτ)⁅ₙ⋅∘⍥(+,:)⌈π.⌊η×η⧻.Flag</span><br><span class="line">↯ 300_300_3</span><br><span class="line">⧻ Flag</span><br><span class="line"># 49</span><br></pre></td></tr></table></figure>
+
+<p>具体含义如下(根据官网自带的编译器以及符号含义得出 其实看着非常复杂的代码有很大一部分是混淆 即用代数运算结果来代替一些数值):</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">⍢(</span><br><span class="line">  :-1</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η◌ # 256 - Flag</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  ↻-⁅π,◿ⁿ:⌈η◌ # 右移3 - n行 n = (2, 1, 0)</span><br><span class="line">  ◫+⁅-⌊ητ,    # 构造窗口 列数为7 - n</span><br><span class="line">  -×⁅ηπτ↻×⁅π, # 上移 3n 行</span><br><span class="line">  ☇           # 铺平为1维</span><br><span class="line">  ⊟.⌈√,:⧻.    # 长度入栈交换和矩阵的位置 压入shape = [., ceil(√len)]</span><br><span class="line">  :↯          # 改变矩阵形状为shape 取尽后未填满从头再取</span><br><span class="line">  :↯⌊η</span><br><span class="line">  :⍉ # 矩阵转置</span><br><span class="line">  :↯ # 取原来的矩阵大小摊平为1维</span><br><span class="line">)(&gt;0)</span><br><span class="line">:-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">⍢(</span><br><span class="line">  ⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:</span><br><span class="line">)(≠-×⁅ηπτ)</span><br><span class="line">÷ⁿ:⌈η◌</span><br><span class="line">↯ 300_300_3</span><br></pre></td></tr></table></figure>
+
+<p>根据以上的分析 题目的古神语并没有对Flag进行任何特殊加密 只是单纯的将256与每个值相减然后进过一系列矩阵变化打乱顺序再构成RGB三通道来生成图片 同时最后输出了Flag的实际长度49</p>
+<p>那么我们可以先处理一段长49 且处理完后的值为[0~48]的顺序列表来当作下标标记处理后的值本来应该存放在flag的什么位置:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[256 255 254 253 252 251 250 249 248 247 246 245 244 243 242 241 240 239 238 237 236 235 234 233 232 231 230 229 228 227 226 225 224 223 222 221 220 219 218 217 216 215 214 213 212 211 210 209 208]</span><br><span class="line">3</span><br><span class="line">⍢(</span><br><span class="line">  :-1</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η◌ # 256 - Flag</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  ↻-⁅π,◿ⁿ:⌈η◌ # 右移3 - n行 n = (2, 1, 0)</span><br><span class="line">  ◫+⁅-⌊ητ,    # 构造窗口 列数为7 - n</span><br><span class="line">  -×⁅ηπτ↻×⁅π, # 上移 3n 行</span><br><span class="line">  ☇           # 铺平为1维</span><br><span class="line">  ⊟.⌈√,:⧻.    # 长度入栈交换和矩阵的位置 压入shape = [., ceil(√len)]</span><br><span class="line">  :↯          # 改变矩阵形状为shape 取尽后未填满从头再取</span><br><span class="line">  :↯⌊η</span><br><span class="line">  :⍉ # 矩阵转置</span><br><span class="line">  :↯ # 取原来的矩阵大小摊平为1维</span><br><span class="line">)(&gt;0)</span><br><span class="line">:-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">⍢(</span><br><span class="line">  ⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:</span><br><span class="line">)(≠-×⁅ηπτ)</span><br><span class="line">÷ⁿ:⌈η◌</span><br><span class="line">↯ 300_300_3</span><br><span class="line">☇ 0 . # 转化回原来1维方便处理</span><br></pre></td></tr></table></figure>
+
+<p>结果太长不展示</p>
+<p>然后利用题目给的图片解密:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from PIL import Image</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"># key = []</span><br><span class="line"># for i in range(49):</span><br><span class="line">#     key.append(256 - i)</span><br><span class="line"># print(str(key).replace(&quot;, &quot;, &quot; &quot; ))</span><br><span class="line"></span><br><span class="line">ind = [...]</span><br><span class="line">ind = [ind[3 * i:3 * i + 3] for i in range(len(ind) // 3)]</span><br><span class="line">flag = np.array(Image.open(&quot;flag.png&quot;))</span><br><span class="line">weiht, height = flag.shape[0], flag.shape[1]</span><br><span class="line">F = [257] * 49</span><br><span class="line">for i in range(weiht):</span><br><span class="line">    for j in range(height):</span><br><span class="line">        for k in range(3):</span><br><span class="line">            F[ind[300 * i + j][k]] = flag[i][j][k]</span><br><span class="line">            if 257 not in F:</span><br><span class="line">                F = [chr(255 - i) for i in F]</span><br><span class="line">                print(&quot;&quot;.join(F))</span><br><span class="line">                exit(0)</span><br><span class="line"># nbctf&#123;TBH_1_h4t3d_m4kin6_7h1s_ch4ll_6d1a32fe482b&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>这几天的古神语研究真的让我产生了一种”这是一种非常安全且功能强大的语言 如果能在某些语言中内联安全性一定很高”的感觉 而且官方目前依然保持高频率更新 只能说希望以后真的能实现古神语保护吧</p>
+]]></content>
+      <categories>
+        <category>杂项</category>
+      </categories>
+      <tags>
+        <tag>栈机</tag>
+        <tag>虚拟机</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>1!秒钟寄!一个算法:DFS-深度优先搜索</title>
+    <url>/2024/03/16/1-%E7%A7%92%E9%92%9F%E5%AF%84-%E4%B8%80%E4%B8%AA%E7%AE%97%E6%B3%95-DFS-%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2/</url>
+    <content><![CDATA[<h3 id="算法概述"><a href="#算法概述" class="headerlink" title="算法概述"></a>算法概述</h3><p>DFS用于找到图中从给定起点到终点所有无交点路线(我猜的) 并不保证全部路线都能找到 也不保证找到的路线是最短的</p>
+<p> 因为CTF遇到过好几次 所以学习一下</p>
+<span id="more"></span>
+
+<h3 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">dfs_iterative_paths</span>(<span class="params">graph, start, end = start</span>):</span><br><span class="line">    visited = <span class="built_in">set</span>()</span><br><span class="line">    stack = [(start, [start])]</span><br><span class="line"></span><br><span class="line">    paths = []</span><br><span class="line">    <span class="keyword">while</span> stack:</span><br><span class="line">        node, path = stack.pop()</span><br><span class="line">        visited.add(node)</span><br><span class="line">        <span class="keyword">if</span> node == end:</span><br><span class="line">            paths.append(path)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> neighbor <span class="keyword">in</span> graph[node]:</span><br><span class="line">            <span class="keyword">if</span> neighbor <span class="keyword">not</span> <span class="keyword">in</span> visited:</span><br><span class="line">                stack.append((neighbor, path + [neighbor]))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> paths</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>算法</category>
+        <category>图论</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>NBCTF2024逆向方向wp</title>
     <url>/2024/02/23/NBCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
     <content><![CDATA[<h1 id="NBCTF-REVERSE-Writeup"><a href="#NBCTF-REVERSE-Writeup" class="headerlink" title="NBCTF_REVERSE Writeup"></a>NBCTF_REVERSE Writeup</h1><p>参赛ID:1K0CT</p>
-<p>email: <a href="mailto:&#x6f;&#107;&#117;&#x75;&#x73;&#117;&#107;&#x75;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;">&#x6f;&#107;&#117;&#x75;&#x73;&#117;&#107;&#x75;&#x40;&#x67;&#x6d;&#97;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;</a></p>
+<p>email: <a href="mailto:&#x6f;&#107;&#117;&#x75;&#115;&#x75;&#x6b;&#117;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;">&#x6f;&#107;&#117;&#x75;&#115;&#x75;&#x6b;&#117;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;</a></p>
 <hr>
 <span id="more"></span>
 
@@ -294,7 +352,7 @@
     <title>osu!gamingCTF部分wp</title>
     <url>/2024/03/04/osu-gamingCTF%E9%83%A8%E5%88%86wp/</url>
     <content><![CDATA[<h1 id="osu-gamingCTF-Writeup"><a href="#osu-gamingCTF-Writeup" class="headerlink" title="osu!gamingCTF Writeup"></a>osu!gamingCTF Writeup</h1><p>参赛ID:1K0CT</p>
-<p>email: <a href="mailto:&#x6f;&#x6b;&#x75;&#x75;&#x73;&#117;&#107;&#117;&#64;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#46;&#x63;&#x6f;&#109;">&#x6f;&#x6b;&#x75;&#x75;&#x73;&#117;&#107;&#117;&#64;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#46;&#x63;&#x6f;&#109;</a></p>
+<p>email: <a href="mailto:&#111;&#107;&#117;&#x75;&#x73;&#117;&#x6b;&#117;&#64;&#103;&#x6d;&#97;&#105;&#108;&#46;&#x63;&#111;&#x6d;">&#111;&#107;&#117;&#x75;&#x73;&#117;&#x6b;&#117;&#64;&#103;&#x6d;&#97;&#105;&#108;&#46;&#x63;&#111;&#x6d;</a></p>
 <hr>
 <p>笑点解析:osu有CTF CTF有osu</p>
 <span id="more"></span>
@@ -342,64 +400,6 @@
       </categories>
       <tags>
         <tag>逆向</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>古神语(Uiua)之研究</title>
-    <url>/2024/03/05/%E5%8F%A4%E7%A5%9E%E8%AF%AD%E4%B9%8B%E7%A0%94%E7%A9%B6/</url>
-    <content><![CDATA[<p>在NBCTF2023遇到了很奇怪的一坨 题目给了一个图片文件和一个<code>.ua</code>文件 那时候一直没搞懂.ua是什么 最近在DC群组遇到了出题人 他提示: </p>
-<p>[uiua.org]: uiua.org	“Uiua (wee-wuh 🔉) is a general purpose, stack-based, array-oriented programming language”</p>
-<p> 从此开启了 <del>古神语之旅</del> 一种栈机语言的研究(<del>实际上才研究了两天</del>) 视该语言后续在CTF中遇到的频率或者发现了什么独特的用途而更新该研究</p>
-<h3 id="Uiua"><a href="#Uiua" class="headerlink" title="Uiua"></a>Uiua</h3><h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><p>如官网所说 这是一种基于<code>Rust</code>的栈机语言 但是同时也是一种功能十分强大的面向数组语言(对数组的处理能力极强且完备) 同时还内置对音频和视频的生成和处理 经过这两天的研究我发现其实用性其实非常强 只是因为使用了各种奇怪的字符让人觉得不是很正经<span id="more"></span> 但是其实所有的符号都有对应的英文指令</p>
-<h4 id="基本特性"><a href="#基本特性" class="headerlink" title="基本特性"></a>基本特性</h4><p>第一个不得不提的 <del>构式</del> 特性就是对不分行(该语言对格式敏感)的一条语句解释器的阅读顺序是由右到左 对多条语句的是由上至下</p>
-<p>由于其基于栈 变量名之类的实际上不重要 但是也提供了定义变量名与相关值的相关操作 定义的变量不会储存于栈中(<code>?</code> 用于打印当前栈的信息):</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-212827.png" alt="image-20240305212820170"></p>
-<p>提供了一种类似Wasm 同时又比Wasm便捷的编程体验</p>
-<p>同时由于所有的运算都基于栈 作为操作指令参量的栈中数据在参与完运算后如果没有特殊操作都会直接销毁(并不<code>pop</code>到哪些变量中 当然也可以添加<code>pop</code>操作) </p>
-<p>例如:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-214009.png" alt="image-20240305214009805"></p>
-<p>从这里也可以看出运算的顺序是<code>op(value-second-top-to-stack) with value-top-to-stack</code> </p>
-<p>如上面所说 这是一个面向数组的语言 几乎所有功能和数组都密切相关 而Uiua提供了类似<code>numpy</code>库中的矩阵操作用以处理数组形成的矩阵</p>
-<p>对于三维矩阵若其第1, 2维的长度均超过20且第3维为3或4就可以生成对应的RGB通道或RGB-Alpha通道图片 <del>而音频 我没有研究</del></p>
-<h4 id="应用实例"><a href="#应用实例" class="headerlink" title="应用实例"></a>应用实例</h4><h5 id="NBCTF2023-rev-wee-woo"><a href="#NBCTF2023-rev-wee-woo" class="headerlink" title="[NBCTF2023&#x2F;rev&#x2F;wee-woo]"></a>[NBCTF2023&#x2F;rev&#x2F;wee-woo]</h5><p>题目给出的古神语:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Flag ← &quot;nbctf&#123;redacted&#125;&quot;</span><br><span class="line">Flag ← utf Flag</span><br><span class="line">÷ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ;⍢(: ↯:⍉:↯⌊η:↯⊟.⌈√,:⧻. ☇-×⁅ηπτ↻×⁅π,◫+⁅-⌊ητ,↻-⁅π,◿ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ:-⌊η)(&gt;-×⁅ηπτ)⁅ₙ⋅∘⍥(+,:)⌈π.⌊η×η⧻.Flag</span><br><span class="line">↯ 300_300_3</span><br><span class="line">⧻ Flag</span><br><span class="line"># 49</span><br></pre></td></tr></table></figure>
-
-<p>具体含义如下(根据官网自带的编译器以及符号含义得出 其实看着非常复杂的代码有很大一部分是混淆 即用代数运算结果来代替一些数值):</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">⍢(</span><br><span class="line">  :-1</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η◌ # 256 - Flag</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  ↻-⁅π,◿ⁿ:⌈η◌ # 右移3 - n行 n = (2, 1, 0)</span><br><span class="line">  ◫+⁅-⌊ητ,    # 构造窗口 列数为7 - n</span><br><span class="line">  -×⁅ηπτ↻×⁅π, # 上移 3n 行</span><br><span class="line">  ☇           # 铺平为1维</span><br><span class="line">  ⊟.⌈√,:⧻.    # 长度入栈交换和矩阵的位置 压入shape = [., ceil(√len)]</span><br><span class="line">  :↯          # 改变矩阵形状为shape 取尽后未填满从头再取</span><br><span class="line">  :↯⌊η</span><br><span class="line">  :⍉ # 矩阵转置</span><br><span class="line">  :↯ # 取原来的矩阵大小摊平为1维</span><br><span class="line">)(&gt;0)</span><br><span class="line">:-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">⍢(</span><br><span class="line">  ⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:</span><br><span class="line">)(≠-×⁅ηπτ)</span><br><span class="line">÷ⁿ:⌈η◌</span><br><span class="line">↯ 300_300_3</span><br></pre></td></tr></table></figure>
-
-<p>根据以上的分析 题目的古神语并没有对Flag进行任何特殊加密 只是单纯的将256与每个值相减然后进过一系列矩阵变化打乱顺序再构成RGB三通道来生成图片 同时最后输出了Flag的实际长度49</p>
-<p>那么我们可以先处理一段长49 且处理完后的值为[0~48]的顺序列表来当作下标标记处理后的值本来应该存放在flag的什么位置:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[256 255 254 253 252 251 250 249 248 247 246 245 244 243 242 241 240 239 238 237 236 235 234 233 232 231 230 229 228 227 226 225 224 223 222 221 220 219 218 217 216 215 214 213 212 211 210 209 208]</span><br><span class="line">3</span><br><span class="line">⍢(</span><br><span class="line">  :-1</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η◌ # 256 - Flag</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  ↻-⁅π,◿ⁿ:⌈η◌ # 右移3 - n行 n = (2, 1, 0)</span><br><span class="line">  ◫+⁅-⌊ητ,    # 构造窗口 列数为7 - n</span><br><span class="line">  -×⁅ηπτ↻×⁅π, # 上移 3n 行</span><br><span class="line">  ☇           # 铺平为1维</span><br><span class="line">  ⊟.⌈√,:⧻.    # 长度入栈交换和矩阵的位置 压入shape = [., ceil(√len)]</span><br><span class="line">  :↯          # 改变矩阵形状为shape 取尽后未填满从头再取</span><br><span class="line">  :↯⌊η</span><br><span class="line">  :⍉ # 矩阵转置</span><br><span class="line">  :↯ # 取原来的矩阵大小摊平为1维</span><br><span class="line">)(&gt;0)</span><br><span class="line">:-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">⍢(</span><br><span class="line">  ⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:</span><br><span class="line">)(≠-×⁅ηπτ)</span><br><span class="line">÷ⁿ:⌈η◌</span><br><span class="line">↯ 300_300_3</span><br><span class="line">☇ 0 . # 转化回原来1维方便处理</span><br></pre></td></tr></table></figure>
-
-<p>结果太长不展示</p>
-<p>然后利用题目给的图片解密:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from PIL import Image</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"># key = []</span><br><span class="line"># for i in range(49):</span><br><span class="line">#     key.append(256 - i)</span><br><span class="line"># print(str(key).replace(&quot;, &quot;, &quot; &quot; ))</span><br><span class="line"></span><br><span class="line">ind = [...]</span><br><span class="line">ind = [ind[3 * i:3 * i + 3] for i in range(len(ind) // 3)]</span><br><span class="line">flag = np.array(Image.open(&quot;flag.png&quot;))</span><br><span class="line">weiht, height = flag.shape[0], flag.shape[1]</span><br><span class="line">F = [257] * 49</span><br><span class="line">for i in range(weiht):</span><br><span class="line">    for j in range(height):</span><br><span class="line">        for k in range(3):</span><br><span class="line">            F[ind[300 * i + j][k]] = flag[i][j][k]</span><br><span class="line">            if 257 not in F:</span><br><span class="line">                F = [chr(255 - i) for i in F]</span><br><span class="line">                print(&quot;&quot;.join(F))</span><br><span class="line">                exit(0)</span><br><span class="line"># nbctf&#123;TBH_1_h4t3d_m4kin6_7h1s_ch4ll_6d1a32fe482b&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>这几天的古神语研究真的让我产生了一种”这是一种非常安全且功能强大的语言 如果能在某些语言中内联安全性一定很高”的感觉 而且官方目前依然保持高频率更新 只能说希望以后真的能实现古神语保护吧</p>
-]]></content>
-      <categories>
-        <category>杂项</category>
-      </categories>
-      <tags>
-        <tag>栈机</tag>
-        <tag>虚拟机</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>1!秒钟寄!一个算法:DFS-深度优先搜索</title>
-    <url>/2024/03/16/1-%E7%A7%92%E9%92%9F%E5%AF%84-%E4%B8%80%E4%B8%AA%E7%AE%97%E6%B3%95-DFS-%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2/</url>
-    <content><![CDATA[<h3 id="算法概述"><a href="#算法概述" class="headerlink" title="算法概述"></a>算法概述</h3><p>DFS用于找到图中从给定起点到终点所有无交点路线(我猜的) 并不保证全部路线都能找到 也不保证找到的路线是最短的</p>
-<p> 因为CTF遇到过好几次 所以学习一下</p>
-<span id="more"></span>
-
-<h3 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">dfs_iterative_paths</span>(<span class="params">graph, start, end = start</span>):</span><br><span class="line">    visited = <span class="built_in">set</span>()</span><br><span class="line">    stack = [(start, [start])]</span><br><span class="line"></span><br><span class="line">    paths = []</span><br><span class="line">    <span class="keyword">while</span> stack:</span><br><span class="line">        node, path = stack.pop()</span><br><span class="line">        visited.add(node)</span><br><span class="line">        <span class="keyword">if</span> node == end:</span><br><span class="line">            paths.append(path)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> neighbor <span class="keyword">in</span> graph[node]:</span><br><span class="line">            <span class="keyword">if</span> neighbor <span class="keyword">not</span> <span class="keyword">in</span> visited:</span><br><span class="line">                stack.append((neighbor, path + [neighbor]))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> paths</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>算法</category>
-        <category>图论</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
       </tags>
   </entry>
   <entry>
@@ -1299,7 +1299,7 @@
     <title>GeekChallenge2023逆向方向wp</title>
     <url>/2024/02/22/GeekChallenge2023%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
     <content><![CDATA[<h1 id="GeekChallenge-REVERSE-Writeup"><a href="#GeekChallenge-REVERSE-Writeup" class="headerlink" title="GeekChallenge_REVERSE Writeup"></a>GeekChallenge_REVERSE Writeup</h1><p>参赛ID:1K0CT</p>
-<p>邮箱：<a href="mailto:&#111;&#x6b;&#x75;&#117;&#x73;&#x75;&#107;&#117;&#64;&#103;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#111;&#109;">&#111;&#x6b;&#x75;&#117;&#x73;&#x75;&#107;&#117;&#64;&#103;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#111;&#109;</a></p>
+<p>邮箱：<a href="mailto:&#x6f;&#x6b;&#x75;&#117;&#x73;&#117;&#x6b;&#x75;&#64;&#103;&#x6d;&#97;&#105;&#108;&#46;&#99;&#111;&#x6d;">&#x6f;&#x6b;&#x75;&#117;&#x73;&#117;&#x6b;&#x75;&#64;&#103;&#x6d;&#97;&#105;&#108;&#46;&#99;&#111;&#x6d;</a></p>
 <span id="more"></span>
 
 <h2 id="REVERSE"><a href="#REVERSE" class="headerlink" title="REVERSE"></a>REVERSE</h2><hr>
