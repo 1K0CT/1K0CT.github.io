@@ -211,7 +211,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2024-05-10 21:54:22 / 修改时间：21:55:33" itemprop="dateCreated datePublished" datetime="2024-05-10T21:54:22+08:00">2024-05-10</time>
+              <time title="创建时间：2024-05-10 21:54:22 / 修改时间：21:57:35" itemprop="dateCreated datePublished" datetime="2024-05-10T21:54:22+08:00">2024-05-10</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -219,7 +219,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%80%86%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">逆向</span></a>
+                  <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
                 </span>
             </span>
 
@@ -248,30 +248,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <span id="more"></span>
-
-<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><p>雷电模拟器(版本9.0.70.0)的安卓版本为Android9 处理器框架为x86_x64 建议使用</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/frida/frida/releases/download/14.2.18/frida-server-14.2.18-android-x86_64.xz">Frida Server14.2.18</a> + Python3.8 + Frida14.2.18(pip install frida&#x3D;&#x3D;14.2.18, frida-tools&#x3D;&#x3D;9.2.5)的环境配置</p>
-<p>下载完服务器后使用<code>adb</code>将其移入模拟器中:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adb -s emulator-5554 push fs \data\local\tmp</span><br><span class="line">adb -s emulator-5554 shell &quot;chmod 777 \data\local\tmp\fs&quot;</span><br></pre></td></tr></table></figure>
-
-<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><p>在模拟器上安装<code>frida-server</code>后用<code>adb</code>命令<code>adb -s deviceID shell &quot;/data/local/tmp/fs&amp;&quot;</code>启用服务器 此时再打开一个终端进行端口转发:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adb forward tcp:27042 tcp:27042</span><br><span class="line">adb forward tcp:27043 tcp:27043</span><br></pre></td></tr></table></figure>
-
-<p>现在可以使用<code>frida-ps -U</code>显示进程和包名 假设已经写好hook脚本<code>hook.js</code> 并且要hook的程序正在运行 可以使用<code>frida -U -f 包名 -l hook.js</code>将脚本注入程序中</p>
-<h2 id="hook脚本编写"><a href="#hook脚本编写" class="headerlink" title="hook脚本编写"></a>hook脚本编写</h2><h3 id="hook结果和参数-修改结果"><a href="#hook结果和参数-修改结果" class="headerlink" title="hook结果和参数 修改结果"></a>hook结果和参数 修改结果</h3><p>以以下的包为例子:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.whathappened.MyJNI;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Myjni</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.loadLibrary(<span class="string">&quot;whathappened&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">native</span> String <span class="title function_">getstr</span><span class="params">()</span> &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> <span class="title function_">func</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> x + y;</span><br><span class="line">    &#125;</span><br><span class="line">    String <span class="title function_">func</span><span class="params">(String x)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> x.toLowerCase();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><code>getstr</code>是一个JNI注册的native函数 没有参数只有返回值 可以使用这个脚本来hook结果:</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Java</span>.<span class="title function_">perform</span>(		<span class="comment">//hook脚本要执行的函数</span></span><br><span class="line">	<span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="keyword">var</span> <span class="title class_">Myjni</span> = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;com.example.whathappened.MyJNI.Myjni&quot;</span>);	<span class="comment">//找到目标类并重载到指定的变量中</span></span><br><span class="line">        <span class="keyword">var</span> result = <span class="title class_">Myjni</span>.<span class="title function_">getstr</span>();		<span class="comment">//主动调用并获取这个类中的getstr函数执行的结果</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;result: &quot;</span> + result);</span><br><span class="line">	&#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-<p>对func函数如果想打印参数和结果的话需要区分重载:</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Java</span>.<span class="title function_">perform</span>(</span><br><span class="line">	<span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="keyword">var</span> <span class="title class_">Myjni</span> = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;com.example.whathappened.MyJNI.Myjni&quot;</span>);</span><br><span class="line">        <span class="title class_">Myjni</span>.<span class="property">func</span>.<span class="title function_">overload</span>(<span class="string">&quot;int&quot;</span>, <span class="string">&quot;int&quot;</span>).<span class="property">implementation</span> = <span class="keyword">function</span>(<span class="params">x, y</span>)&#123;	<span class="comment">//明确重载类型</span></span><br><span class="line">            <span class="keyword">var</span> origin_res = <span class="variable language_">this</span>.<span class="title function_">func</span>(x, y);	<span class="comment">//调用原函数</span></span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Origin call:func(&quot;</span> + x + <span class="string">&quot;, &quot;</span> + y + <span class="string">&quot;) -&gt;&quot;</span> + origin_res);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="title class_">Myjni</span>.<span class="property">func</span>.<span class="title function_">overload</span>(<span class="string">&quot;java.lang.String&quot;</span>).<span class="property">implementation</span> = <span class="keyword">function</span>(<span class="params">s</span>)&#123;</span><br><span class="line">            <span class="keyword">var</span> newres = s.<span class="title function_">toUpperCase</span>();		<span class="comment">//修改原函数的功能</span></span><br><span class="line">            <span class="keyword">return</span> newres;</span><br><span class="line">        &#125;</span><br><span class="line">	&#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-
-
-<p>因为刚学所以只有基础知识 以后有新东西再放上来</p>
-
+          <p>记录一下学习Frida的历程</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/05/10/Frida%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -462,7 +447,7 @@
 
       
           <p>参赛ID:1K0CT, Team : 4W3, 最终排名:88th(公开赛道)</p>
-<p>email:<a href="mailto:&#x6f;&#107;&#x75;&#117;&#x73;&#x75;&#x6b;&#117;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#111;&#x6d;">&#x6f;&#107;&#x75;&#117;&#x73;&#x75;&#x6b;&#117;&#64;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#111;&#x6d;</a></p>
+<p>email:<a href="mailto:&#111;&#x6b;&#117;&#x75;&#115;&#117;&#x6b;&#117;&#64;&#x67;&#109;&#97;&#105;&#108;&#x2e;&#x63;&#111;&#109;">&#111;&#x6b;&#117;&#x75;&#115;&#117;&#x6b;&#117;&#64;&#x67;&#109;&#97;&#105;&#108;&#x2e;&#x63;&#111;&#109;</a></p>
 <p>做到flocto师傅的题真的每次都要有感而发一下 真正能让我全身心投入的赛题 给一个陌生的考点 但是不至于让你寸步难行 有种接触新东西的时候那个东西对你欲拒还迎激发探索欲的美 可能这就是flocto师傅出的题的魅力吧</p>
           <!--noindex-->
             <div class="post-button">
@@ -561,7 +546,7 @@
 
       
           <p>参赛ID:1K0CT, 无队伍</p>
-<p>email:<a href="mailto:&#x6f;&#107;&#117;&#x75;&#115;&#117;&#x6b;&#117;&#64;&#x67;&#109;&#x61;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;">&#x6f;&#107;&#117;&#x75;&#115;&#117;&#x6b;&#117;&#64;&#x67;&#109;&#x61;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;</a></p>
+<p>email:<a href="mailto:&#x6f;&#x6b;&#x75;&#x75;&#115;&#x75;&#x6b;&#x75;&#64;&#x67;&#109;&#x61;&#105;&#x6c;&#x2e;&#99;&#x6f;&#x6d;">&#x6f;&#x6b;&#x75;&#x75;&#115;&#x75;&#x6b;&#x75;&#64;&#x67;&#109;&#x61;&#105;&#x6c;&#x2e;&#99;&#x6f;&#x6d;</a></p>
 <p>解出:Fruit Deals, PES-128</p>
           <!--noindex-->
             <div class="post-button">
@@ -1034,7 +1019,7 @@
 
       
           <p>参赛ID:1K0CT</p>
-<p>email: <a href="mailto:&#x6f;&#x6b;&#117;&#117;&#x73;&#x75;&#107;&#x75;&#x40;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#109;">&#x6f;&#x6b;&#117;&#117;&#x73;&#x75;&#107;&#x75;&#x40;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#111;&#109;</a></p>
+<p>email: <a href="mailto:&#111;&#107;&#x75;&#117;&#x73;&#x75;&#107;&#117;&#64;&#103;&#109;&#97;&#x69;&#108;&#46;&#99;&#111;&#109;">&#111;&#107;&#x75;&#117;&#x73;&#x75;&#107;&#117;&#64;&#103;&#109;&#97;&#x69;&#108;&#46;&#99;&#111;&#109;</a></p>
 <p>笑点解析:osu有CTF CTF有osu</p>
           <!--noindex-->
             <div class="post-button">
@@ -1139,7 +1124,7 @@
 
       
           <p>参赛ID:1K0CT</p>
-<p>email: <a href="mailto:&#x6f;&#107;&#x75;&#x75;&#x73;&#x75;&#x6b;&#x75;&#64;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;">&#x6f;&#107;&#x75;&#x75;&#x73;&#x75;&#x6b;&#x75;&#64;&#103;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
+<p>email: <a href="mailto:&#x6f;&#107;&#x75;&#x75;&#115;&#117;&#x6b;&#x75;&#x40;&#103;&#109;&#97;&#105;&#108;&#x2e;&#x63;&#111;&#109;">&#x6f;&#107;&#x75;&#x75;&#115;&#117;&#x6b;&#x75;&#x40;&#103;&#109;&#97;&#105;&#108;&#x2e;&#x63;&#111;&#109;</a></p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2024/02/23/LACTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91%E9%83%A8%E5%88%86wp/#more" rel="contents">
