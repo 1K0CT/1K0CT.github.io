@@ -2661,7 +2661,7 @@
 
 <p>溢出的部分最多只到Caller’s EBP和Retaddr 就算原程序加载了<code>system()</code>也不够传入参数 为了扩展可用的栈空间就要用到<strong>栈迁移</strong>技术 </p>
 <h3 id="栈迁移"><a href="#栈迁移" class="headerlink" title="栈迁移"></a>栈迁移</h3><p>函数返回时执行的leave和ret指令实际上是几个指令的集合</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">leave _ mov esp,ebp</span><br><span class="line">	 |_ pop ebp</span><br><span class="line">ret   _ pop eip</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">leave _ mov esp,ebp</span><br><span class="line">     |_ pop ebp</span><br><span class="line">ret   _ pop eip</span><br></pre></td></tr></table></figure>
 
 <p>ebp是用于存放调用者ebp的地址的锚点 而从leave指令实际的两条指令可以看出 ebp和esp是完全可以互相影响的 从而eip也能被ebp控制以达到掌握控制流的目的:<code>EBP &lt;--&gt; ESP --&gt; EIP</code></p>
 <p>以这一题为例子 用缓冲区首地址<code>buf_addr - 4</code>覆盖Caller’s EBP 再用leave指令的地址覆盖返回地址 这样再次执行leave时esp就会被新锚点骗到缓冲区上 再执行ret时就会将缓冲区上的目标地址送入eip 相当于平时的栈溢出的部分扩展到缓冲区的部分 实现栈迁移</p>
