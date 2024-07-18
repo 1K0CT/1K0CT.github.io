@@ -2571,7 +2571,10 @@
   <entry>
     <title>Pwn学习记录</title>
     <url>/2024/05/22/Pwn%E5%85%A5%E9%97%A8%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/</url>
-    <content><![CDATA[<h1 id="零碎知识"><a href="#零碎知识" class="headerlink" title="零碎知识"></a>零碎知识</h1><h2 id="栈帧结构"><a href="#栈帧结构" class="headerlink" title="栈帧结构"></a>栈帧结构</h2><p>只描述方便我自己理解的 不一定标准</p>
+    <content><![CDATA[<p>记录一下入门Pwn的心路历程</p>
+<span id="more"></span>
+
+<h1 id="零碎知识"><a href="#零碎知识" class="headerlink" title="零碎知识"></a>零碎知识</h1><h2 id="栈帧结构"><a href="#栈帧结构" class="headerlink" title="栈帧结构"></a>栈帧结构</h2><p>只描述方便我自己理解的 不一定标准</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">high</span><br><span class="line"> ↑</span><br><span class="line"> 	...</span><br><span class="line"> 	Caller&#x27;s rbp</span><br><span class="line"> 	(Callee&#x27;s Registers)</span><br><span class="line">	Buf(Local variables)</span><br><span class="line"> 	Return Addr</span><br><span class="line"> ↓</span><br><span class="line">low</span><br></pre></td></tr></table></figure>
 
 <p><code>call func</code>指令执行时会先将call指令的下一条指令push入栈 退出函数时保证堆栈平衡即rsp恢复到调用程序前一行的状态 函数结束前通过leave或直接<code>add rsp, xxx</code>来达到堆栈平衡</p>
