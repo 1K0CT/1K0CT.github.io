@@ -186,7 +186,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/05/22/Pwn%E5%85%A5%E9%97%A8%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/07/18/angr%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -200,7 +200,97 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2024/05/22/Pwn%E5%85%A5%E9%97%A8%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">Pwn学习记录</a>
+            <a href="/2024/07/18/angr%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">angr学习记录</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-07-18 21:14:54" itemprop="dateCreated datePublished" datetime="2024-07-18T21:14:54+08:00">2024-07-18</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">逆向</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="Angr简介"><a href="#Angr简介" class="headerlink" title="Angr简介"></a>Angr简介</h2><p>Angr提供了一个处理二进制文件的框架 主流的指令集指令在被载入<code>CLE</code>框架后 会根据功能被抽象为中间语言(IL) Angr提供的就是处理这些被载入为IL的程序 可以用来实现自动化的程序调试 例如直接载入程序然后像模拟的标准输入流输入数据以达到直接利用原程序进行爆破的目的 同时Angr还内置了约束求解器</p>
+<h2 id="做做题"><a href="#做做题" class="headerlink" title="做做题"></a>做做题</h2><p>下面跟着[Angr-ctf][<a target="_blank" rel="noopener" href="https://github.com/jakespringer/angr_ctf]%E9%87%8C%E7%9A%84%E9%A2%98%E7%9B%AE%E5%AD%A6%E4%B9%A0Angr%E7%9A%84%E5%9F%BA%E7%A1%80%E5%BA%94%E7%94%A8">https://github.com/jakespringer/angr_ctf]里的题目学习Angr的基础应用</a></p>
+<h3 id="angr-find"><a href="#angr-find" class="headerlink" title="angr_find"></a>angr_find</h3><p>IDA加载附件看一下代码:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl <span class="title function_">complex_function</span><span class="params">(<span class="type">int</span> a1, <span class="type">int</span> a2)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> ( a1 &lt;= <span class="number">64</span> || a1 &gt; <span class="number">90</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Try again.&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> (<span class="number">3</span> * a2 + a1 - <span class="number">65</span>) % <span class="number">26</span> + <span class="number">65</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> __cdecl <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [esp+1Ch] [ebp-1Ch]</span></span><br><span class="line">  <span class="type">char</span> s1[<span class="number">9</span>]; <span class="comment">// [esp+23h] [ebp-15h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v6; <span class="comment">// [esp+2Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  v6 = __readgsdword(<span class="number">0x14</span>u);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter the password: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%8s&quot;</span>, s1);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">7</span>; ++i )</span><br><span class="line">    s1[i] = complex_function(s1[i], i);</span><br><span class="line">  <span class="keyword">if</span> ( !<span class="built_in">strcmp</span>(s1, <span class="string">&quot;JACEJGCS&quot;</span>) )</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Good Job.&quot;</span>);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Try again.&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>显然目标是要进入输出”Good Job.”的分支</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/07/18/20240718-201751.png" alt="image-20240718201531013"></p>
+<p>用angr爆破:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"></span><br><span class="line">proj = angr.Project(<span class="string">&#x27;00_angr_find&#x27;</span>, load_options=&#123;<span class="string">&#x27;auto_load_libs&#x27;</span>: <span class="literal">False</span>&#125;)</span><br><span class="line"><span class="comment">#载入二进制程序 并且禁用自动加载外部动态连接选项 得到project对象</span></span><br><span class="line">state = proj.factory.entry_state()</span><br><span class="line"><span class="comment">#然后获取当前的模拟程序对象(SimState) factory成员拥有一系列载入二进制文件的属性和处理方法 而simstate则包含调试过程中的寄存器, 内存等信息</span></span><br><span class="line">simg = proj.factory.simgr(state)</span><br><span class="line"><span class="comment">#开始符号执行载入的程序</span></span><br><span class="line">simg.explore(find=<span class="number">0x8048675</span>, avoid=<span class="number">0x8048663</span>)</span><br><span class="line"><span class="comment">#设定程序预期到达的地址和预期避免的地址</span></span><br><span class="line"><span class="built_in">print</span>(simg.found[<span class="number">0</span>].posix.dumps(<span class="number">0</span>))</span><br><span class="line"><span class="comment">#从标准输入流获取结果</span></span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/05/22/Pwn%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/05/22/Pwn%E5%85%A5%E9%97%A8/" class="post-title-link" itemprop="url">Pwn学习记录</a>
         </h2>
 
         <div class="post-meta">
@@ -261,7 +351,7 @@
           <p>记录一下入门Pwn的心路历程</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2024/05/22/Pwn%E5%85%A5%E9%97%A8%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/#more" rel="contents">
+              <a class="btn" href="/2024/05/22/Pwn%E5%85%A5%E9%97%A8/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -546,7 +636,7 @@
 
       
           <p>参赛ID:1K0CT, Team : 4W3, 最终排名:88th(公开赛道)</p>
-<p>email:<a href="mailto:&#x6f;&#107;&#117;&#x75;&#115;&#x75;&#x6b;&#117;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#x63;&#x6f;&#x6d;">&#x6f;&#107;&#117;&#x75;&#115;&#x75;&#x6b;&#117;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#x63;&#x6f;&#x6d;</a></p>
+<p>email:<a href="mailto:&#x6f;&#107;&#117;&#117;&#x73;&#x75;&#x6b;&#117;&#x40;&#x67;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;">&#x6f;&#107;&#117;&#117;&#x73;&#x75;&#x6b;&#117;&#x40;&#x67;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
 <p>做到flocto师傅的题真的每次都要有感而发一下 真正能让我全身心投入的赛题 给一个陌生的考点 但是不至于让你寸步难行 有种接触新东西的时候那个东西对你欲拒还迎激发探索欲的美 可能这就是flocto师傅出的题的魅力吧</p>
           <!--noindex-->
             <div class="post-button">
@@ -645,7 +735,7 @@
 
       
           <p>参赛ID:1K0CT, 无队伍</p>
-<p>email:<a href="mailto:&#x6f;&#107;&#117;&#x75;&#115;&#117;&#107;&#117;&#x40;&#103;&#x6d;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;">&#x6f;&#107;&#117;&#x75;&#115;&#117;&#107;&#117;&#x40;&#103;&#x6d;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;</a></p>
+<p>email:<a href="mailto:&#x6f;&#107;&#117;&#117;&#x73;&#117;&#107;&#x75;&#x40;&#103;&#109;&#97;&#x69;&#108;&#46;&#99;&#x6f;&#x6d;">&#x6f;&#107;&#117;&#117;&#x73;&#117;&#107;&#x75;&#x40;&#103;&#109;&#97;&#x69;&#108;&#46;&#99;&#x6f;&#x6d;</a></p>
 <p>解出:Fruit Deals, PES-128</p>
           <!--noindex-->
             <div class="post-button">
@@ -1037,111 +1127,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/03/04/osu-gamingCTF%E9%83%A8%E5%88%86wp/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="1K0CT B14s">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ikoct的饮冰室">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/03/04/osu-gamingCTF%E9%83%A8%E5%88%86wp/" class="post-title-link" itemprop="url">osu!gamingCTF部分wp</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-03-04 19:58:52" itemprop="dateCreated datePublished" datetime="2024-03-04T19:58:52+08:00">2024-03-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-04-30 00:01:45" itemprop="dateModified" datetime="2024-04-30T00:01:45+08:00">2024-04-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/CTF/" itemprop="url" rel="index"><span itemprop="name">CTF</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/CTF/REV/" itemprop="url" rel="index"><span itemprop="name">REV</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/CTF/REV/WPs/" itemprop="url" rel="index"><span itemprop="name">WPs</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>14k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>13 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>参赛ID:1K0CT</p>
-<p>email: <a href="mailto:&#x6f;&#x6b;&#x75;&#117;&#115;&#117;&#x6b;&#117;&#x40;&#103;&#109;&#x61;&#105;&#108;&#46;&#99;&#111;&#109;">&#x6f;&#x6b;&#x75;&#117;&#115;&#117;&#x6b;&#117;&#x40;&#103;&#109;&#x61;&#105;&#108;&#46;&#99;&#111;&#109;</a></p>
-<p>笑点解析:osu有CTF CTF有osu</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/03/04/osu-gamingCTF%E9%83%A8%E5%88%86wp/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1211,20 +1196,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-count">15</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1261,12 +1246,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">259k</span>
+    <span title="站点总字数">260k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:56</span>
+    <span title="站点阅读时长">3:57</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
   </div>
