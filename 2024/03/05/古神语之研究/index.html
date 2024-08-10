@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-flat-top.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="在NBCTF2023遇到了很奇怪的一坨 题目给了一个图片文件和一个.ua文件 那时候一直没搞懂.ua是什么 最近在DC群组遇到了出题人 他提示:  [uiua.org]: uiua.org	“Uiua (wee-wuh 🔉) is a general purpose, stack-based, array-oriented programming language”  从此开启了 古神语之旅 一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="古神语(Uiua)之研究">
+<meta property="og:url" content="https://ikoct.com/2024/03/05/%E5%8F%A4%E7%A5%9E%E8%AF%AD%E4%B9%8B%E7%A0%94%E7%A9%B6/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="在NBCTF2023遇到了很奇怪的一坨 题目给了一个图片文件和一个.ua文件 那时候一直没搞懂.ua是什么 最近在DC群组遇到了出题人 他提示:  [uiua.org]: uiua.org	“Uiua (wee-wuh 🔉) is a general purpose, stack-based, array-oriented programming language”  从此开启了 古神语之旅 一">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-212827.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-214009.png">
+<meta property="article:published_time" content="2024-03-05T14:41:55.000Z">
+<meta property="article:modified_time" content="2024-04-04T04:20:48.705Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="栈机">
+<meta property="article:tag" content="虚拟机">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-212827.png">
+
+<link rel="canonical" href="https://ikoct.com/2024/03/05/%E5%8F%A4%E7%A5%9E%E8%AF%AD%E4%B9%8B%E7%A0%94%E7%A9%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>古神语(Uiua)之研究 | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/03/05/%E5%8F%A4%E7%A5%9E%E8%AF%AD%E4%B9%8B%E7%A0%94%E7%A9%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          古神语(Uiua)之研究
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-03-05 22:41:55" itemprop="dateCreated datePublished" datetime="2024-03-05T22:41:55+08:00">2024-03-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-04-04 12:20:48" itemprop="dateModified" datetime="2024-04-04T12:20:48+08:00">2024-04-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9D%82%E9%A1%B9/" itemprop="url" rel="index"><span itemprop="name">杂项</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在NBCTF2023遇到了很奇怪的一坨 题目给了一个图片文件和一个<code>.ua</code>文件 那时候一直没搞懂.ua是什么 最近在DC群组遇到了出题人 他提示: </p>
+<p>[uiua.org]: uiua.org	“Uiua (wee-wuh 🔉) is a general purpose, stack-based, array-oriented programming language”</p>
+<p> 从此开启了 <del>古神语之旅</del> 一种栈机语言的研究(<del>实际上才研究了两天</del>) 视该语言后续在CTF中遇到的频率或者发现了什么独特的用途而更新该研究</p>
+<span id="more"></span>
+
+<h3 id="Uiua"><a href="#Uiua" class="headerlink" title="Uiua"></a>Uiua</h3><h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><p>如官网所说 这是一种基于<code>Rust</code>的栈机语言 但是同时也是一种功能十分强大的面向数组语言(对数组的处理能力极强且完备) 同时还内置对音频和视频的生成和处理 经过这两天的研究我发现其实用性其实非常强 只是因为使用了各种奇怪的字符让人觉得不是很正经 但是其实所有的符号都有对应的英文指令</p>
+<h4 id="基本特性"><a href="#基本特性" class="headerlink" title="基本特性"></a>基本特性</h4><p>第一个不得不提的 <del>构式</del> 特性就是对不分行(该语言对格式敏感)的一条语句解释器的阅读顺序是由右到左 对多条语句的是由上至下</p>
+<p>由于其基于栈 变量名之类的实际上不重要 但是也提供了定义变量名与相关值的相关操作 定义的变量不会储存于栈中(<code>?</code> 用于打印当前栈的信息):</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-212827.png" alt="image-20240305212820170"></p>
+<p>提供了一种类似Wasm 同时又比Wasm便捷的编程体验</p>
+<p>同时由于所有的运算都基于栈 作为操作指令参量的栈中数据在参与完运算后如果没有特殊操作都会直接销毁(并不<code>pop</code>到哪些变量中 当然也可以添加<code>pop</code>操作) </p>
+<p>例如:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/03/05/20240305-214009.png" alt="image-20240305214009805"></p>
+<p>从这里也可以看出运算的顺序是<code>op(value-second-top-to-stack) with value-top-to-stack</code> </p>
+<p>如上面所说 这是一个面向数组的语言 几乎所有功能和数组都密切相关 而Uiua提供了类似<code>numpy</code>库中的矩阵操作用以处理数组形成的矩阵</p>
+<p>对于三维矩阵若其第1, 2维的长度均超过20且第3维为3或4就可以生成对应的RGB通道或RGB-Alpha通道图片 <del>而音频 我没有研究</del></p>
+<h4 id="应用实例"><a href="#应用实例" class="headerlink" title="应用实例"></a>应用实例</h4><h5 id="NBCTF2023-rev-wee-woo"><a href="#NBCTF2023-rev-wee-woo" class="headerlink" title="[NBCTF2023&#x2F;rev&#x2F;wee-woo]"></a>[NBCTF2023&#x2F;rev&#x2F;wee-woo]</h5><p>题目给出的古神语:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Flag ← &quot;nbctf&#123;redacted&#125;&quot;</span><br><span class="line">Flag ← utf Flag</span><br><span class="line">÷ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ;⍢(: ↯:⍉:↯⌊η:↯⊟.⌈√,:⧻. ☇-×⁅ηπτ↻×⁅π,◫+⁅-⌊ητ,↻-⁅π,◿ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η;⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ):-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ:-⌊η)(&gt;-×⁅ηπτ)⁅ₙ⋅∘⍥(+,:)⌈π.⌊η×η⧻.Flag</span><br><span class="line">↯ 300_300_3</span><br><span class="line">⧻ Flag</span><br><span class="line"># 49</span><br></pre></td></tr></table></figure>
+
+<p>具体含义如下(根据官网自带的编译器以及符号含义得出 其实看着非常复杂的代码有很大一部分是混淆 即用代数运算结果来代替一些数值):</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">⍢(</span><br><span class="line">  :-1</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η◌ # 256 - Flag</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  ↻-⁅π,◿ⁿ:⌈η◌ # 右移3 - n行 n = (2, 1, 0)</span><br><span class="line">  ◫+⁅-⌊ητ,    # 构造窗口 列数为7 - n</span><br><span class="line">  -×⁅ηπτ↻×⁅π, # 上移 3n 行</span><br><span class="line">  ☇           # 铺平为1维</span><br><span class="line">  ⊟.⌈√,:⧻.    # 长度入栈交换和矩阵的位置 压入shape = [., ceil(√len)]</span><br><span class="line">  :↯          # 改变矩阵形状为shape 取尽后未填满从头再取</span><br><span class="line">  :↯⌊η</span><br><span class="line">  :⍉ # 矩阵转置</span><br><span class="line">  :↯ # 取原来的矩阵大小摊平为1维</span><br><span class="line">)(&gt;0)</span><br><span class="line">:-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">⍢(</span><br><span class="line">  ⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:</span><br><span class="line">)(≠-×⁅ηπτ)</span><br><span class="line">÷ⁿ:⌈η◌</span><br><span class="line">↯ 300_300_3</span><br></pre></td></tr></table></figure>
+
+<p>根据以上的分析 题目的古神语并没有对Flag进行任何特殊加密 只是单纯的将256与每个值相减然后进过一系列矩阵变化打乱顺序再构成RGB三通道来生成图片 同时最后输出了Flag的实际长度49</p>
+<p>那么我们可以先处理一段长49 且处理完后的值为[0~48]的顺序列表来当作下标标记处理后的值本来应该存放在flag的什么位置:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">[256 255 254 253 252 251 250 249 248 247 246 245 244 243 242 241 240 239 238 237 236 235 234 233 232 231 230 229 228 227 226 225 224 223 222 221 220 219 218 217 216 215 214 213 212 211 210 209 208]</span><br><span class="line">3</span><br><span class="line">⍢(</span><br><span class="line">  :-1</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  :-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ-:ⁿ:⌈η◌ # 256 - Flag</span><br><span class="line">  ⍢(⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:)(≠-×⁅ηπτ)</span><br><span class="line">  ↻-⁅π,◿ⁿ:⌈η◌ # 右移3 - n行 n = (2, 1, 0)</span><br><span class="line">  ◫+⁅-⌊ητ,    # 构造窗口 列数为7 - n</span><br><span class="line">  -×⁅ηπτ↻×⁅π, # 上移 3n 行</span><br><span class="line">  ☇           # 铺平为1维</span><br><span class="line">  ⊟.⌈√,:⧻.    # 长度入栈交换和矩阵的位置 压入shape = [., ceil(√len)]</span><br><span class="line">  :↯          # 改变矩阵形状为shape 取尽后未填满从头再取</span><br><span class="line">  :↯⌊η</span><br><span class="line">  :⍉ # 矩阵转置</span><br><span class="line">  :↯ # 取原来的矩阵大小摊平为1维</span><br><span class="line">)(&gt;0)</span><br><span class="line">:-×⁅ηπτ⋅∘⍥(+,:)⋅∘⍥(+,:)⌊τ..⌊η-×⁅ηπτ</span><br><span class="line">⍢(</span><br><span class="line">  ⌊÷⁅ⁿ⌈ηπ:+◿⁅ⁿ⌈ηπ,:</span><br><span class="line">)(≠-×⁅ηπτ)</span><br><span class="line">÷ⁿ:⌈η◌</span><br><span class="line">↯ 300_300_3</span><br><span class="line">☇ 0 . # 转化回原来1维方便处理</span><br></pre></td></tr></table></figure>
+
+<p>结果太长不展示</p>
+<p>然后利用题目给的图片解密:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">from PIL import Image</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"># key = []</span><br><span class="line"># for i in range(49):</span><br><span class="line">#     key.append(256 - i)</span><br><span class="line"># print(str(key).replace(&quot;, &quot;, &quot; &quot; ))</span><br><span class="line"></span><br><span class="line">ind = [...]</span><br><span class="line">ind = [ind[3 * i:3 * i + 3] for i in range(len(ind) // 3)]</span><br><span class="line">flag = np.array(Image.open(&quot;flag.png&quot;))</span><br><span class="line">weiht, height = flag.shape[0], flag.shape[1]</span><br><span class="line">F = [257] * 49</span><br><span class="line">for i in range(weiht):</span><br><span class="line">    for j in range(height):</span><br><span class="line">        for k in range(3):</span><br><span class="line">            F[ind[300 * i + j][k]] = flag[i][j][k]</span><br><span class="line">            if 257 not in F:</span><br><span class="line">                F = [chr(255 - i) for i in F]</span><br><span class="line">                print(&quot;&quot;.join(F))</span><br><span class="line">                exit(0)</span><br><span class="line"># nbctf&#123;TBH_1_h4t3d_m4kin6_7h1s_ch4ll_6d1a32fe482b&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>这几天的古神语研究真的让我产生了一种”这是一种非常安全且功能强大的语言 如果能在某些语言中内联安全性一定很高”的感觉 而且官方目前依然保持高频率更新 只能说希望以后真的能实现古神语保护吧</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%A0%88%E6%9C%BA/" rel="tag"># 栈机</a>
+              <a href="/tags/%E8%99%9A%E6%8B%9F%E6%9C%BA/" rel="tag"># 虚拟机</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/03/04/osu-gamingCTF%E9%83%A8%E5%88%86wp/" rel="prev" title="osu!gamingCTF部分wp">
+      <i class="fa fa-chevron-left"></i> osu!gamingCTF部分wp
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/03/16/ELF%E6%96%87%E4%BB%B6%E5%A4%B4/" rel="next" title="ELF文件头">
+      ELF文件头 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Uiua"><span class="nav-number">1.</span> <span class="nav-text">Uiua</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%89%B9%E6%80%A7"><span class="nav-number">1.2.</span> <span class="nav-text">基本特性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E5%AE%9E%E4%BE%8B"><span class="nav-number">1.3.</span> <span class="nav-text">应用实例</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#NBCTF2023-rev-wee-woo"><span class="nav-number">1.3.1.</span> <span class="nav-text">[NBCTF2023&#x2F;rev&#x2F;wee-woo]</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E8%AE%B0"><span class="nav-number">2.</span> <span class="nav-text">后记</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">305k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:37</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

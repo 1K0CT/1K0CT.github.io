@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-flat-top.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="记录一下学习Frida的历程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Frida学习记录">
+<meta property="og:url" content="https://ikoct.com/2024/05/10/Frida%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="记录一下学习Frida的历程">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-05-10T13:54:22.000Z">
+<meta property="article:modified_time" content="2024-05-10T13:57:35.253Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="逆向">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="Frida">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://ikoct.com/2024/05/10/Frida%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Frida学习记录 | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/05/10/Frida%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Frida学习记录
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-05-10 21:54:22 / 修改时间：21:57:35" itemprop="dateCreated datePublished" datetime="2024-05-10T21:54:22+08:00">2024-05-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>记录一下学习Frida的历程</p>
+<span id="more"></span>
+
+<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><p>雷电模拟器(版本9.0.70.0)的安卓版本为Android9 处理器框架为x86_x64 建议使用</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/frida/frida/releases/download/14.2.18/frida-server-14.2.18-android-x86_64.xz">Frida Server14.2.18</a> + Python3.8 + Frida14.2.18(pip install frida&#x3D;&#x3D;14.2.18, frida-tools&#x3D;&#x3D;9.2.5)的环境配置</p>
+<p>下载完服务器后使用<code>adb</code>将其移入模拟器中:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adb -s emulator-5554 push fs \data\local\tmp</span><br><span class="line">adb -s emulator-5554 shell &quot;chmod 777 \data\local\tmp\fs&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><p>在模拟器上安装<code>frida-server</code>后用<code>adb</code>命令<code>adb -s deviceID shell &quot;/data/local/tmp/fs&amp;&quot;</code>启用服务器 此时再打开一个终端进行端口转发:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adb forward tcp:27042 tcp:27042</span><br><span class="line">adb forward tcp:27043 tcp:27043</span><br></pre></td></tr></table></figure>
+
+<p>现在可以使用<code>frida-ps -U</code>显示进程和包名 假设已经写好hook脚本<code>hook.js</code> 并且要hook的程序正在运行 可以使用<code>frida -U -f 包名 -l hook.js</code>将脚本注入程序中</p>
+<h2 id="hook脚本编写"><a href="#hook脚本编写" class="headerlink" title="hook脚本编写"></a>hook脚本编写</h2><h3 id="hook结果和参数-修改结果"><a href="#hook结果和参数-修改结果" class="headerlink" title="hook结果和参数 修改结果"></a>hook结果和参数 修改结果</h3><p>以以下的包为例子:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.whathappened.MyJNI;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Myjni</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.loadLibrary(<span class="string">&quot;whathappened&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">native</span> String <span class="title function_">getstr</span><span class="params">()</span> &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> <span class="title function_">func</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> x + y;</span><br><span class="line">    &#125;</span><br><span class="line">    String <span class="title function_">func</span><span class="params">(String x)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> x.toLowerCase();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>getstr</code>是一个JNI注册的native函数 没有参数只有返回值 可以使用这个脚本来hook结果:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Java</span>.<span class="title function_">perform</span>(		<span class="comment">//hook脚本要执行的函数</span></span><br><span class="line">	<span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="keyword">var</span> <span class="title class_">Myjni</span> = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;com.example.whathappened.MyJNI.Myjni&quot;</span>);	<span class="comment">//找到目标类并重载到指定的变量中</span></span><br><span class="line">        <span class="keyword">var</span> result = <span class="title class_">Myjni</span>.<span class="title function_">getstr</span>();		<span class="comment">//主动调用并获取这个类中的getstr函数执行的结果</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;result: &quot;</span> + result);</span><br><span class="line">	&#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>对func函数如果想打印参数和结果的话需要区分重载:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Java</span>.<span class="title function_">perform</span>(</span><br><span class="line">	<span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="keyword">var</span> <span class="title class_">Myjni</span> = <span class="title class_">Java</span>.<span class="title function_">use</span>(<span class="string">&quot;com.example.whathappened.MyJNI.Myjni&quot;</span>);</span><br><span class="line">        <span class="title class_">Myjni</span>.<span class="property">func</span>.<span class="title function_">overload</span>(<span class="string">&quot;int&quot;</span>, <span class="string">&quot;int&quot;</span>).<span class="property">implementation</span> = <span class="keyword">function</span>(<span class="params">x, y</span>)&#123;	<span class="comment">//明确重载类型</span></span><br><span class="line">            <span class="keyword">var</span> origin_res = <span class="variable language_">this</span>.<span class="title function_">func</span>(x, y);	<span class="comment">//调用原函数</span></span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Origin call:func(&quot;</span> + x + <span class="string">&quot;, &quot;</span> + y + <span class="string">&quot;) -&gt;&quot;</span> + origin_res);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="title class_">Myjni</span>.<span class="property">func</span>.<span class="title function_">overload</span>(<span class="string">&quot;java.lang.String&quot;</span>).<span class="property">implementation</span> = <span class="keyword">function</span>(<span class="params">s</span>)&#123;</span><br><span class="line">            <span class="keyword">var</span> newres = s.<span class="title function_">toUpperCase</span>();		<span class="comment">//修改原函数的功能</span></span><br><span class="line">            <span class="keyword">return</span> newres;</span><br><span class="line">        &#125;</span><br><span class="line">	&#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>因为刚学所以只有基础知识 以后有新东西再放上来</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%80%86%E5%90%91/" rel="tag"># 逆向</a>
+              <a href="/tags/Android/" rel="tag"># Android</a>
+              <a href="/tags/Frida/" rel="tag"># Frida</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/04/29/Windows%E5%B7%AE%E5%BC%82%E5%8C%96%E8%A1%A5%E4%B8%81MSDelta%E4%B9%8B%E7%A0%94%E7%A9%B6/" rel="prev" title="Windows差异化补丁MSDelta之研究">
+      <i class="fa fa-chevron-left"></i> Windows差异化补丁MSDelta之研究
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/05/22/Pwn%E5%85%A5%E9%97%A8/" rel="next" title="Pwn学习记录">
+      Pwn学习记录 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="nav-number">1.</span> <span class="nav-text">环境配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-number">2.</span> <span class="nav-text">常用命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hook%E8%84%9A%E6%9C%AC%E7%BC%96%E5%86%99"><span class="nav-number">3.</span> <span class="nav-text">hook脚本编写</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#hook%E7%BB%93%E6%9E%9C%E5%92%8C%E5%8F%82%E6%95%B0-%E4%BF%AE%E6%94%B9%E7%BB%93%E6%9E%9C"><span class="nav-number">3.1.</span> <span class="nav-text">hook结果和参数 修改结果</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">305k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:37</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

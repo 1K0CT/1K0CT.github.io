@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-flat-top.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="概述ELF文件头包含了该可执行文件的一些系统级信息: 1234567891011121314e_ident[16]:ELF文件的标识 包括魔数和其他信息e_type:		文件类型 例如可执行文件, 目标文件, 共享目标文件等e_machine:	文件运行的CPU体系结构e_version:	ELF文件的版本号e_entry:	程序的入口点地址e_phoff:	程序头表在文件中的偏移量e_shoff">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ELF文件头">
+<meta property="og:url" content="https://ikoct.com/2024/03/16/ELF%E6%96%87%E4%BB%B6%E5%A4%B4/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="概述ELF文件头包含了该可执行文件的一些系统级信息: 1234567891011121314e_ident[16]:ELF文件的标识 包括魔数和其他信息e_type:		文件类型 例如可执行文件, 目标文件, 共享目标文件等e_machine:	文件运行的CPU体系结构e_version:	ELF文件的版本号e_entry:	程序的入口点地址e_phoff:	程序头表在文件中的偏移量e_shoff">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/26/20240226-165216.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/26/20240226-195321.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/26/20240226-195519.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/26/20240226-200148.png">
+<meta property="article:published_time" content="2024-03-16T03:04:34.000Z">
+<meta property="article:modified_time" content="2024-03-16T03:04:34.939Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="文件格式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/26/20240226-165216.png">
+
+<link rel="canonical" href="https://ikoct.com/2024/03/16/ELF%E6%96%87%E4%BB%B6%E5%A4%B4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>ELF文件头 | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/03/16/ELF%E6%96%87%E4%BB%B6%E5%A4%B4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ELF文件头
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-03-16 11:04:34" itemprop="dateCreated datePublished" datetime="2024-03-16T11:04:34+08:00">2024-03-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9D%82%E9%A1%B9/" itemprop="url" rel="index"><span itemprop="name">杂项</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>16k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>14 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>ELF文件头包含了该可执行文件的一些系统级信息:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">e_ident[16]:ELF文件的标识 包括魔数和其他信息</span><br><span class="line">e_type:		文件类型 例如可执行文件, 目标文件, 共享目标文件等</span><br><span class="line">e_machine:	文件运行的CPU体系结构</span><br><span class="line">e_version:	ELF文件的版本号</span><br><span class="line">e_entry:	程序的入口点地址</span><br><span class="line">e_phoff:	程序头表在文件中的偏移量</span><br><span class="line">e_shoff:	节头表在文件中的偏移量</span><br><span class="line">e_flags:	处理器专用标志</span><br><span class="line">e_ehsize:	ELF文件头的大小</span><br><span class="line">e_phentsize:程序头表中每个条目的大小</span><br><span class="line">e_phnum:	程序头表中条目的数量</span><br><span class="line">e_shentsize:节头表中每个条目的大小</span><br><span class="line">e_shnum:	节头表中条目的数量</span><br><span class="line">e_shstrndx:	节头字符串表的索引</span><br></pre></td></tr></table></figure>
+
+<p>更改其中的某些数据 例如程序入口点, 操作系统位数, 大小端序等 会导致程序运行流程改变 从而使得文件无法被工具识别 达到隐藏程序主要功能的目的</p>
+<span id="more"></span>
+
+<h3 id="文件头结构"><a href="#文件头结构" class="headerlink" title="文件头结构"></a>文件头结构</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> EI_NIDENT 16</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">char</span>   e_ident[EI_NIDENT];</span><br><span class="line">        Elf32_Half      e_type;</span><br><span class="line">        Elf32_Half      e_machine;</span><br><span class="line">        Elf32_Word      e_version;</span><br><span class="line">        Elf32_Addr      e_entry;</span><br><span class="line">        Elf32_Off       e_phoff;</span><br><span class="line">        Elf32_Off       e_shoff;</span><br><span class="line">        Elf32_Word      e_flags;</span><br><span class="line">        Elf32_Half      e_ehsize;</span><br><span class="line">        Elf32_Half      e_phentsize;</span><br><span class="line">        Elf32_Half      e_phnum;</span><br><span class="line">        Elf32_Half      e_shentsize;</span><br><span class="line">        Elf32_Half      e_shnum;</span><br><span class="line">        Elf32_Half      e_shstrndx;</span><br><span class="line">&#125; Elf32_Ehdr;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">char</span>   e_ident[EI_NIDENT];</span><br><span class="line">        Elf64_Half      e_type;</span><br><span class="line">        Elf64_Half      e_machine;</span><br><span class="line">        Elf64_Word      e_version;</span><br><span class="line">        Elf64_Addr      e_entry;</span><br><span class="line">        Elf64_Off       e_phoff;</span><br><span class="line">        Elf64_Off       e_shoff;</span><br><span class="line">        Elf64_Word      e_flags;</span><br><span class="line">        Elf64_Half      e_ehsize;</span><br><span class="line">        Elf64_Half      e_phentsize;</span><br><span class="line">        Elf64_Half      e_phnum;</span><br><span class="line">        Elf64_Half      e_shentsize;</span><br><span class="line">        Elf64_Half      e_shnum;</span><br><span class="line">        Elf64_Half      e_shstrndx;</span><br><span class="line">&#125; Elf64_Ehdr;</span><br></pre></td></tr></table></figure>
+
+<p>其中各个字段所占字节数如下:</p>
+<table>
+<thead>
+<tr>
+<th align="left"></th>
+<th>In ELF32&#x2F;bytes</th>
+<th>In ELF64&#x2F;bytes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">e_ident[16]</td>
+<td>16</td>
+<td>16</td>
+</tr>
+<tr>
+<td align="left">e_type</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td align="left">e_machine</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td align="left">e_version</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td align="left">e_entry</td>
+<td>4</td>
+<td>8</td>
+</tr>
+<tr>
+<td align="left">e_phoff</td>
+<td>4</td>
+<td>8</td>
+</tr>
+<tr>
+<td align="left">e_shoff</td>
+<td>4</td>
+<td>8</td>
+</tr>
+<tr>
+<td align="left">e_flags</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td align="left">e_ehsize</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td align="left">e_phentsize</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td align="left">e_phnum</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td align="left">e_shentsize</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td align="left">e_shnum</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td align="left">e_shstrndx</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td align="left">Total</td>
+<td>52</td>
+<td>64</td>
+</tr>
+</tbody></table>
+<h3 id="各个字段所含值的含义"><a href="#各个字段所含值的含义" class="headerlink" title="各个字段所含值的含义"></a>各个字段所含值的含义</h3><h4 id="e-ident"><a href="#e-ident" class="headerlink" title="e_ident"></a>e_ident</h4><p>参考信息:<a target="_blank" rel="noopener" href="https://refspecs.linuxfoundation.org/elf/gabi4+/ch4.eheader.html#elfid">https://refspecs.linuxfoundation.org/elf/gabi4+/ch4.eheader.html#elfid</a></p>
+<p>其中索引对应的信息如下:</p>
+<table>
+<thead>
+<tr>
+<th><strong>Name</strong></th>
+<th><strong>Value</strong></th>
+<th><strong>Purpose</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>EI_MAG0</code></td>
+<td><code>0</code></td>
+<td>File identification</td>
+</tr>
+<tr>
+<td><code>EI_MAG1</code></td>
+<td><code>1</code></td>
+<td>File identification</td>
+</tr>
+<tr>
+<td><code>EI_MAG2</code></td>
+<td><code>2</code></td>
+<td>File identification</td>
+</tr>
+<tr>
+<td><code>EI_MAG3</code></td>
+<td><code>3</code></td>
+<td>File identification</td>
+</tr>
+<tr>
+<td><code>EI_CLASS</code></td>
+<td><code>4</code></td>
+<td>File class</td>
+</tr>
+<tr>
+<td><code>EI_DATA</code></td>
+<td><code>5</code></td>
+<td>Data encoding</td>
+</tr>
+<tr>
+<td><code>EI_VERSION</code></td>
+<td><code>6</code></td>
+<td>File version</td>
+</tr>
+<tr>
+<td><code>EI_OSABI</code></td>
+<td><code>7</code></td>
+<td>Operating system&#x2F;ABI identification</td>
+</tr>
+<tr>
+<td><code>EI_ABIVERSION</code></td>
+<td><code>8</code></td>
+<td>ABI version</td>
+</tr>
+<tr>
+<td><code>EI_PAD</code></td>
+<td><code>9</code></td>
+<td>Start of padding bytes</td>
+</tr>
+<tr>
+<td><code>EI_NIDENT</code></td>
+<td><code>16</code></td>
+<td>Size of <code>e_ident[]</code></td>
+</tr>
+</tbody></table>
+<p>前4字节通常是<code>b&quot;\x7fELF&quot;</code></p>
+<p>e_ident[CLASS]指定了该程序为多少位程序:</p>
+<table>
+<thead>
+<tr>
+<th><strong>Name</strong></th>
+<th><strong>Value</strong></th>
+<th><strong>Meaning</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ELFCLASSNONE</code></td>
+<td><code>0</code></td>
+<td>Invalid class</td>
+</tr>
+<tr>
+<td><code>ELFCLASS32</code></td>
+<td><code>1</code></td>
+<td>32-bit objects</td>
+</tr>
+<tr>
+<td><code>ELFCLASS64</code></td>
+<td><code>2</code></td>
+<td>64-bit objects</td>
+</tr>
+</tbody></table>
+<p>e_ident[DATA]制定了该程序中数据的编码方式:</p>
+<table>
+<thead>
+<tr>
+<th><strong>Name</strong></th>
+<th><strong>Value</strong></th>
+<th><strong>Meaning</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ELFDATANONE</code></td>
+<td><code>0</code></td>
+<td>Invalid data encoding</td>
+</tr>
+<tr>
+<td><code>ELFDATA2LSB</code></td>
+<td><code>1</code></td>
+<td>Little ending</td>
+</tr>
+<tr>
+<td><code>ELFDATA2MSB</code></td>
+<td><code>2</code></td>
+<td>Big ending</td>
+</tr>
+</tbody></table>
+<p>e_ident[VERSION]指定当前ELF的版本 必须为EV_CURRENT  EV_CURRENT宏(正常为1)会根据未经更改的ELF文件版本确定</p>
+<p>e_ident[OSABI]制定了程序在哪种平台上运行 使用哪种ABI(<code>ABI 是一个接口标准 用于定义二进制接口的规范 包括函数调用约定, 数据类型大小, 系统调用等方面的规定</code>):</p>
+<table>
+<thead>
+<tr>
+<th><strong>Name</strong></th>
+<th><strong>Value</strong></th>
+<th><strong>Meaning</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ELFOSABI_NONE</code></td>
+<td><code>0</code></td>
+<td>No extensions or unspecified</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_HPUX</code></td>
+<td><code>1</code></td>
+<td>Hewlett-Packard HP-UX</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_NETBSD</code></td>
+<td><code>2</code></td>
+<td>NetBSD</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_LINUX</code></td>
+<td><code>3</code></td>
+<td>Linux</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_SOLARIS</code></td>
+<td><code>6</code></td>
+<td>Sun Solaris</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_AIX</code></td>
+<td><code>7</code></td>
+<td>AIX</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_IRIX</code></td>
+<td><code>8</code></td>
+<td>IRIX</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_FREEBSD</code></td>
+<td><code>9</code></td>
+<td>FreeBSD</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_TRU64</code></td>
+<td><code>10</code></td>
+<td>Compaq TRU64 UNIX</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_MODESTO</code></td>
+<td><code>11</code></td>
+<td>Novell Modesto</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_OPENBSD</code></td>
+<td><code>12</code></td>
+<td>Open BSD</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_OPENVMS</code></td>
+<td><code>13</code></td>
+<td>Open VMS</td>
+</tr>
+<tr>
+<td><code>ELFOSABI_NSK</code></td>
+<td><code>14</code></td>
+<td>Hewlett-Packard Non-Stop Kernel</td>
+</tr>
+<tr>
+<td></td>
+<td><code>64-255</code></td>
+<td>Architecture-specific value range</td>
+</tr>
+</tbody></table>
+<p>e_ident[EI_ABIVERSION]指定了所使用的ABI版本 区分不兼容的版本</p>
+<p>e_ident[EI_PAD]制定了e_ident未使用的字节数 一开始为0 在未来使用了这些未使用的字节数时会改变</p>
+<p>以64位Ubuntu的ls程序为例:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/26/20240226-165216.png" alt="QQ截图20240226163704"></p>
+<h4 id="e-type"><a href="#e-type" class="headerlink" title="e_type"></a>e_type</h4><p>标记该文件具体类型:</p>
+<table>
+<thead>
+<tr>
+<th><strong>Name</strong></th>
+<th><strong>Value</strong></th>
+<th><strong>Meaning</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ET_NONE</code></td>
+<td><code>0</code></td>
+<td>No file type</td>
+</tr>
+<tr>
+<td><code>ET_REL</code></td>
+<td><code>1</code></td>
+<td>Relocatable file</td>
+</tr>
+<tr>
+<td><code>ET_EXEC</code></td>
+<td><code>2</code></td>
+<td>Executable file</td>
+</tr>
+<tr>
+<td><code>ET_DYN</code></td>
+<td><code>3</code></td>
+<td>Shared object file</td>
+</tr>
+<tr>
+<td><code>ET_CORE</code></td>
+<td><code>4</code></td>
+<td>Core file</td>
+</tr>
+<tr>
+<td><code>ET_LOOS</code></td>
+<td><code>0xfe00</code></td>
+<td>Operating system-specific</td>
+</tr>
+<tr>
+<td><code>ET_HIOS</code></td>
+<td><code>0xfeff</code></td>
+<td>Operating system-specific</td>
+</tr>
+<tr>
+<td><code>ET_LOPROC</code></td>
+<td><code>0xff00</code></td>
+<td>Processor-specific</td>
+</tr>
+<tr>
+<td><code>ET_HIPROC</code></td>
+<td><code>0xffff</code></td>
+<td>Processor-specific</td>
+</tr>
+</tbody></table>
+<p>对于ls 这个值是<code>03 00</code>也就是小端序的<code>3</code></p>
+<h4 id="e-machine"><a href="#e-machine" class="headerlink" title="e_machine"></a>e_machine</h4><p>指定了程序机器码所使用的汇编体系:</p>
+<table>
+<thead>
+<tr>
+<th><strong>Name</strong></th>
+<th><strong>Value</strong></th>
+<th><strong>Meaning</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>EM_NONE</code></td>
+<td><code>0</code></td>
+<td>No machine</td>
+</tr>
+<tr>
+<td><code>EM_M32</code></td>
+<td><code>1</code></td>
+<td>AT&amp;T WE 32100</td>
+</tr>
+<tr>
+<td><code>EM_SPARC</code></td>
+<td><code>2</code></td>
+<td>SPARC</td>
+</tr>
+<tr>
+<td><code>EM_386</code></td>
+<td><code>3</code></td>
+<td>Intel 80386</td>
+</tr>
+<tr>
+<td><code>EM_68K</code></td>
+<td><code>4</code></td>
+<td>Motorola 68000</td>
+</tr>
+<tr>
+<td><code>EM_88K</code></td>
+<td><code>5</code></td>
+<td>Motorola 88000</td>
+</tr>
+<tr>
+<td>reserved</td>
+<td><code>6</code></td>
+<td>Reserved for future use (was <code>EM_486</code>)</td>
+</tr>
+<tr>
+<td><code>EM_860</code></td>
+<td><code>7</code></td>
+<td>Intel 80860</td>
+</tr>
+<tr>
+<td><code>EM_MIPS</code></td>
+<td><code>8</code></td>
+<td>MIPS I Architecture</td>
+</tr>
+<tr>
+<td><code>EM_S370</code></td>
+<td><code>9</code></td>
+<td>IBM System&#x2F;370 Processor</td>
+</tr>
+<tr>
+<td><code>EM_MIPS_RS3_LE</code></td>
+<td><code>10</code></td>
+<td>MIPS RS3000 Little-endian</td>
+</tr>
+<tr>
+<td>reserved</td>
+<td><code>11-14</code></td>
+<td>Reserved for future use</td>
+</tr>
+<tr>
+<td><code>EM_PARISC</code></td>
+<td><code>15</code></td>
+<td>Hewlett-Packard PA-RISC</td>
+</tr>
+<tr>
+<td>reserved</td>
+<td><code>16</code></td>
+<td>Reserved for future use</td>
+</tr>
+<tr>
+<td><code>EM_VPP500</code></td>
+<td><code>17</code></td>
+<td>Fujitsu VPP500</td>
+</tr>
+<tr>
+<td><code>EM_SPARC32PLUS</code></td>
+<td><code>18</code></td>
+<td>Enhanced instruction set SPARC</td>
+</tr>
+<tr>
+<td><code>EM_960</code></td>
+<td><code>19</code></td>
+<td>Intel 80960</td>
+</tr>
+<tr>
+<td><code>EM_PPC</code></td>
+<td><code>20</code></td>
+<td>PowerPC</td>
+</tr>
+<tr>
+<td><code>EM_PPC64</code></td>
+<td><code>21</code></td>
+<td>64-bit PowerPC</td>
+</tr>
+<tr>
+<td><code>EM_S390</code></td>
+<td><code>22</code></td>
+<td>IBM System&#x2F;390 Processor</td>
+</tr>
+<tr>
+<td>reserved</td>
+<td><code>23-35</code></td>
+<td>Reserved for future use</td>
+</tr>
+<tr>
+<td><code>EM_V800</code></td>
+<td><code>36</code></td>
+<td>NEC V800</td>
+</tr>
+<tr>
+<td><code>EM_FR20</code></td>
+<td><code>37</code></td>
+<td>Fujitsu FR20</td>
+</tr>
+<tr>
+<td><code>EM_RH32</code></td>
+<td><code>38</code></td>
+<td>TRW RH-32</td>
+</tr>
+<tr>
+<td><code>EM_RCE</code></td>
+<td><code>39</code></td>
+<td>Motorola RCE</td>
+</tr>
+<tr>
+<td><code>EM_ARM</code></td>
+<td><code>40</code></td>
+<td>Advanced RISC Machines ARM</td>
+</tr>
+<tr>
+<td><code>EM_ALPHA</code></td>
+<td><code>41</code></td>
+<td>Digital Alpha</td>
+</tr>
+<tr>
+<td><code>EM_SH</code></td>
+<td><code>42</code></td>
+<td>Hitachi SH</td>
+</tr>
+<tr>
+<td><code>EM_SPARCV9</code></td>
+<td><code>43</code></td>
+<td>SPARC Version 9</td>
+</tr>
+<tr>
+<td><code>EM_TRICORE</code></td>
+<td><code>44</code></td>
+<td>Siemens TriCore embedded processor</td>
+</tr>
+<tr>
+<td><code>EM_ARC</code></td>
+<td><code>45</code></td>
+<td>Argonaut RISC Core, Argonaut Technologies Inc.</td>
+</tr>
+<tr>
+<td><code>EM_H8_300</code></td>
+<td><code>46</code></td>
+<td>Hitachi H8&#x2F;300</td>
+</tr>
+<tr>
+<td><code>EM_H8_300H</code></td>
+<td><code>47</code></td>
+<td>Hitachi H8&#x2F;300H</td>
+</tr>
+<tr>
+<td><code>EM_H8S</code></td>
+<td><code>48</code></td>
+<td>Hitachi H8S</td>
+</tr>
+<tr>
+<td><code>EM_H8_500</code></td>
+<td><code>49</code></td>
+<td>Hitachi H8&#x2F;500</td>
+</tr>
+<tr>
+<td><code>EM_IA_64</code></td>
+<td><code>50</code></td>
+<td>Intel IA-64 processor architecture</td>
+</tr>
+<tr>
+<td><code>EM_MIPS_X</code></td>
+<td><code>51</code></td>
+<td>Stanford MIPS-X</td>
+</tr>
+<tr>
+<td><code>EM_COLDFIRE</code></td>
+<td><code>52</code></td>
+<td>Motorola ColdFire</td>
+</tr>
+<tr>
+<td><code>EM_68HC12</code></td>
+<td><code>53</code></td>
+<td>Motorola M68HC12</td>
+</tr>
+<tr>
+<td><code>EM_MMA</code></td>
+<td><code>54</code></td>
+<td>Fujitsu MMA Multimedia Accelerator</td>
+</tr>
+<tr>
+<td><code>EM_PCP</code></td>
+<td><code>55</code></td>
+<td>Siemens PCP</td>
+</tr>
+<tr>
+<td><code>EM_NCPU</code></td>
+<td><code>56</code></td>
+<td>Sony nCPU embedded RISC processor</td>
+</tr>
+<tr>
+<td><code>EM_NDR1</code></td>
+<td><code>57</code></td>
+<td>Denso NDR1 microprocessor</td>
+</tr>
+<tr>
+<td><code>EM_STARCORE</code></td>
+<td><code>58</code></td>
+<td>Motorola Star*Core processor</td>
+</tr>
+<tr>
+<td><code>EM_ME16</code></td>
+<td><code>59</code></td>
+<td>Toyota ME16 processor</td>
+</tr>
+<tr>
+<td><code>EM_ST100</code></td>
+<td><code>60</code></td>
+<td>STMicroelectronics ST100 processor</td>
+</tr>
+<tr>
+<td><code>EM_TINYJ</code></td>
+<td><code>61</code></td>
+<td>Advanced Logic Corp. TinyJ embedded processor family</td>
+</tr>
+<tr>
+<td><code>EM_X86_64</code></td>
+<td><code>62</code></td>
+<td>AMD x86-64 architecture</td>
+</tr>
+<tr>
+<td><code>EM_PDSP</code></td>
+<td><code>63</code></td>
+<td>Sony DSP Processor</td>
+</tr>
+<tr>
+<td><code>EM_PDP10</code></td>
+<td><code>64</code></td>
+<td>Digital Equipment Corp. PDP-10</td>
+</tr>
+<tr>
+<td><code>EM_PDP11</code></td>
+<td><code>65</code></td>
+<td>Digital Equipment Corp. PDP-11</td>
+</tr>
+<tr>
+<td><code>EM_FX66</code></td>
+<td><code>66</code></td>
+<td>Siemens FX66 microcontroller</td>
+</tr>
+<tr>
+<td><code>EM_ST9PLUS</code></td>
+<td><code>67</code></td>
+<td>STMicroelectronics ST9+ 8&#x2F;16 bit microcontroller</td>
+</tr>
+<tr>
+<td><code>EM_ST7</code></td>
+<td><code>68</code></td>
+<td>STMicroelectronics ST7 8-bit microcontroller</td>
+</tr>
+<tr>
+<td><code>EM_68HC16</code></td>
+<td><code>69</code></td>
+<td>Motorola MC68HC16 Microcontroller</td>
+</tr>
+<tr>
+<td><code>EM_68HC11</code></td>
+<td><code>70</code></td>
+<td>Motorola MC68HC11 Microcontroller</td>
+</tr>
+<tr>
+<td><code>EM_68HC08</code></td>
+<td><code>71</code></td>
+<td>Motorola MC68HC08 Microcontroller</td>
+</tr>
+<tr>
+<td><code>EM_68HC05</code></td>
+<td><code>72</code></td>
+<td>Motorola MC68HC05 Microcontroller</td>
+</tr>
+<tr>
+<td><code>EM_SVX</code></td>
+<td><code>73</code></td>
+<td>Silicon Graphics SVx</td>
+</tr>
+<tr>
+<td><code>EM_ST19</code></td>
+<td><code>74</code></td>
+<td>STMicroelectronics ST19 8-bit microcontroller</td>
+</tr>
+<tr>
+<td><code>EM_VAX</code></td>
+<td><code>75</code></td>
+<td>Digital VAX</td>
+</tr>
+<tr>
+<td><code>EM_CRIS</code></td>
+<td><code>76</code></td>
+<td>Axis Communications 32-bit embedded processor</td>
+</tr>
+<tr>
+<td><code>EM_JAVELIN</code></td>
+<td><code>77</code></td>
+<td>Infineon Technologies 32-bit embedded processor</td>
+</tr>
+<tr>
+<td><code>EM_FIREPATH</code></td>
+<td><code>78</code></td>
+<td>Element 14 64-bit DSP Processor</td>
+</tr>
+<tr>
+<td><code>EM_ZSP</code></td>
+<td><code>79</code></td>
+<td>LSI Logic 16-bit DSP Processor</td>
+</tr>
+<tr>
+<td><code>EM_MMIX</code></td>
+<td><code>80</code></td>
+<td>Donald Knuth’s educational 64-bit processor</td>
+</tr>
+<tr>
+<td><code>EM_HUANY</code></td>
+<td><code>81</code></td>
+<td>Harvard University machine-independent object files</td>
+</tr>
+<tr>
+<td><code>EM_PRISM</code></td>
+<td><code>82</code></td>
+<td>SiTera Prism</td>
+</tr>
+<tr>
+<td><code>EM_AVR</code></td>
+<td><code>83</code></td>
+<td>Atmel AVR 8-bit microcontroller</td>
+</tr>
+<tr>
+<td><code>EM_FR30</code></td>
+<td><code>84</code></td>
+<td>Fujitsu FR30</td>
+</tr>
+<tr>
+<td><code>EM_D10V</code></td>
+<td><code>85</code></td>
+<td>Mitsubishi D10V</td>
+</tr>
+<tr>
+<td><code>EM_D30V</code></td>
+<td><code>86</code></td>
+<td>Mitsubishi D30V</td>
+</tr>
+<tr>
+<td><code>EM_V850</code></td>
+<td><code>87</code></td>
+<td>NEC v850</td>
+</tr>
+<tr>
+<td><code>EM_M32R</code></td>
+<td><code>88</code></td>
+<td>Mitsubishi M32R</td>
+</tr>
+<tr>
+<td><code>EM_MN10300</code></td>
+<td><code>89</code></td>
+<td>Matsushita MN10300</td>
+</tr>
+<tr>
+<td><code>EM_MN10200</code></td>
+<td><code>90</code></td>
+<td>Matsushita MN10200</td>
+</tr>
+<tr>
+<td><code>EM_PJ</code></td>
+<td><code>91</code></td>
+<td>picoJava</td>
+</tr>
+<tr>
+<td><code>EM_OPENRISC</code></td>
+<td><code>92</code></td>
+<td>OpenRISC 32-bit embedded processor</td>
+</tr>
+<tr>
+<td><code>EM_ARC_A5</code></td>
+<td><code>93</code></td>
+<td>ARC Cores Tangent-A5</td>
+</tr>
+<tr>
+<td><code>EM_XTENSA</code></td>
+<td><code>94</code></td>
+<td>Tensilica Xtensa Architecture</td>
+</tr>
+<tr>
+<td><code>EM_VIDEOCORE</code></td>
+<td><code>95</code></td>
+<td>Alphamosaic VideoCore processor</td>
+</tr>
+<tr>
+<td><code>EM_TMM_GPP</code></td>
+<td><code>96</code></td>
+<td>Thompson Multimedia General Purpose Processor</td>
+</tr>
+<tr>
+<td><code>EM_NS32K</code></td>
+<td><code>97</code></td>
+<td>National Semiconductor 32000 series</td>
+</tr>
+<tr>
+<td><code>EM_TPC</code></td>
+<td><code>98</code></td>
+<td>Tenor Network TPC processor</td>
+</tr>
+<tr>
+<td><code>EM_SNP1K</code></td>
+<td><code>99</code></td>
+<td>Trebia SNP 1000 processor</td>
+</tr>
+<tr>
+<td><code>EM_ST200</code></td>
+<td><code>100</code></td>
+<td>STMicroelectronics (<a target="_blank" rel="noopener" href="http://www.st.com/">www.st.com</a>) ST200 microcontroller</td>
+</tr>
+</tbody></table>
+<p>在ls中这个值位<code>3E 00</code>即<code>EM_X86_64</code></p>
+<h4 id="e-version"><a href="#e-version" class="headerlink" title="e_version"></a>e_version</h4><p>如上述e_ident[VERSION]所说 标记当前程序版本号</p>
+<table>
+<thead>
+<tr>
+<th><strong>Name</strong></th>
+<th><strong>Value</strong></th>
+<th><strong>Meaning</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>EV_NONE</code></td>
+<td><code>0</code></td>
+<td>Invalid version</td>
+</tr>
+<tr>
+<td><code>EV_CURRENT</code></td>
+<td><code>1</code></td>
+<td>Current version</td>
+</tr>
+</tbody></table>
+<p>在ls中这个值为<code>01 00 00 00</code></p>
+<h4 id="e-entry"><a href="#e-entry" class="headerlink" title="e_entry"></a>e_entry</h4><p>指定一个虚拟地址来让系统从这个相对文件头的这个偏移地址开始翻译机器码并生成进程 要修改程序功能主要就是通过修改这个值</p>
+<p>在ls中 这个值为<code>A0 6A 00 00 00 00 00 00 00</code> 意味着ls的程序入口点是<code>0x6AA0</code></p>
+<h4 id="e-phoff-e-shoff"><a href="#e-phoff-e-shoff" class="headerlink" title="e_phoff &amp; e_shoff"></a>e_phoff &amp; e_shoff</h4><p>分别指定了程序头表和段表的偏移量 若没有则为0</p>
+<h4 id="e-flags"><a href="#e-flags" class="headerlink" title="e_flags"></a>e_flags</h4><p>储存了决定处理器如何处理程序的标志 对不同处理器有不同的含义 常见的如下:</p>
+<ol>
+<li><strong>执行模式标志</strong>:  指示程序运行的特定执行模式或特权级别 如用户模式 , 内核模式等 </li>
+<li><strong>处理器特性</strong>:  指示处理器的一些特定特性或功能 如浮点运算支持 , 多核处理器等 </li>
+<li><strong>优化标志</strong>:  指示编译器在生成代码时应该使用的优化级别或优化策略 </li>
+<li><strong>安全标志</strong>:  指示一些安全特性或安全策略 如栈保护 , 内存保护等 </li>
+<li><strong>ABI 版本标志</strong>:  指示使用的 ABI 版本或兼容性标志 用于指定程序与操作系统或其他库的兼容性</li>
+</ol>
+<h4 id="e-ehsize"><a href="#e-ehsize" class="headerlink" title="e_ehsize"></a>e_ehsize</h4><p>(<del>eh 是那个eh吗</del>)标记了文件头的大小 正如上面统计的 ls中这个值为<code>40 00</code>即64</p>
+<h4 id="e-phentsize"><a href="#e-phentsize" class="headerlink" title="e_phentsize"></a>e_phentsize</h4><p>标记了程序头表中每个字段的字节大小(每个字段的大小相同) 在ls中为<code>38 00</code></p>
+<h4 id="e-phnum"><a href="#e-phnum" class="headerlink" title="e_phnum"></a>e_phnum</h4><p>标记了程序头表的个数 与<code>e_phentsize</code>的成绩就是程序头表的大小 若没有则为0 在ls中为<code>0D 00</code></p>
+<h4 id="e-shentsize-e-shnum"><a href="#e-shentsize-e-shnum" class="headerlink" title="e_shentsize &amp; e_shnum"></a>e_shentsize &amp; e_shnum</h4><p>标记段信息 与上述两个同理 不同的是段头表的数量如果超出了预留索引值<code>0xff00</code>的话<code>e_shnum</code>的值会被设为0 并将真正的值放入段头表的<code>sh_size</code>数组的索引为0的位置</p>
+<h4 id="e-shstrndx"><a href="#e-shstrndx" class="headerlink" title="e_shstrndx"></a>e_shstrndx</h4><p>与段名表一同标记段头表的入口索引 如果没有段名表则储存<code>SHN_UNDEF</code> 与段头表数量类似超出<code>0xff00</code>的话会储存在段头表的<code>sh_link</code>数组的索引为0的位置</p>
+<h3 id="应用场合"><a href="#应用场合" class="headerlink" title="应用场合"></a>应用场合</h3><p>修改某些与程序运行无关信息不会导致程序无法运行 同时可以干扰分析软件对其的识别 同时改变程序入口点还会导致程序跳过某段机器码 从而隐藏真实操作 例如:</p>
+<h4 id="LACTF2024-rev-technically-correct-魔改ELF文件头"><a href="#LACTF2024-rev-technically-correct-魔改ELF文件头" class="headerlink" title="LACTF2024&#x2F;rev&#x2F;technically_correct | 魔改ELF文件头"></a>LACTF2024&#x2F;rev&#x2F;technically_correct | 魔改ELF文件头</h4><p>(<del>没错我就是为了这碗醋包的饺子</del>)DIE无法检测到可执行文件信息 binwalk识别错误 直接010打开 与ls做一下对比:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/26/20240226-195321.png" alt="image-20240226195321494"></p>
+<p>不难看出文件头已经被改得很抽象了</p>
+<p>用IDA打开也提示入口错误:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/26/20240226-195519.png" alt="image-20240226195519637"></p>
+<p>对比多个ELF文件的入口点可以发现以下特征:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024/02/26/20240226-200148.png" alt="image-20240226200148494"></p>
+<p>可以看得出来其实这是个64位程序 再根据表头等偏移也可以看出实际上这应该是一个小端序ELF 更改文件头中对应的标志位 再次打开IDA可以看到<code>start</code>入口:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">LOAD:000005C7D084C137                               start:</span><br><span class="line">LOAD:000005C7D084C137 48 8D 35 32 04 00 00          lea     rsi, unk_5C7D084C570</span><br><span class="line">LOAD:000005C7D084C13E 48 C7 C1 14 00 00 00          mov     rcx, 14h</span><br><span class="line">LOAD:000005C7D084C145 49 B8 F7 51 A4 C4 C0 28 FC 8F mov     r8, 8FFC28C0C4A451F7h</span><br><span class="line">LOAD:000005C7D084C145</span><br><span class="line">LOAD:000005C7D084C14F</span><br><span class="line">LOAD:000005C7D084C14F                               loc_5C7D084C14F:                        ; CODE XREF: LOAD:000005C7D084C156↓j</span><br><span class="line">LOAD:000005C7D084C14F 4C 31 06                      xor     [rsi], r8</span><br><span class="line">LOAD:000005C7D084C152 48 83 C6 08                   add     rsi, 8</span><br><span class="line">LOAD:000005C7D084C156 E2 F7                         loop    loc_5C7D084C14F</span><br><span class="line">LOAD:000005C7D084C156</span><br><span class="line">LOAD:000005C7D084C158 E9 13 04 00 00                jmp     near ptr unk_5C7D084C570</span><br></pre></td></tr></table></figure>
+
+<p>可以看到是一个SMC 再通过<code>strace</code>指令可以看到启用了<code>ptrace</code>反调试:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">execve(&quot;./technically_correct&quot;, [&quot;./technically_correct&quot;], 0x7ffde09bb8d8 /* 32 vars */) = 0</span><br><span class="line">ptrace(PTRACE_TRACEME)                  = -1 EPERM (Operation not permitted)</span><br><span class="line">exit(0)                                 = ?</span><br><span class="line">+++ exited with 0 +++</span><br></pre></td></tr></table></figure>
+
+<p>所以编写一个脚本来进行SMC:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> idc</span><br><span class="line"><span class="keyword">import</span> ida_idaapi</span><br><span class="line"></span><br><span class="line">start = <span class="number">0x5C7D084C570</span></span><br><span class="line">xorkey = <span class="number">0x8FFC28C0C4A451F7</span></span><br><span class="line"><span class="built_in">round</span> = <span class="number">0x14</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">round</span>):</span><br><span class="line">    idc.patch_qword(start + <span class="number">8</span> * i, idc.get_qword(start + <span class="number">8</span> * i) ^ xorkey)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Round %d: 0x%016X&quot;</span> % (i, start + <span class="number">8</span> * i))</span><br></pre></td></tr></table></figure>
+
+<p>得到处理后的汇编代码:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line">LOAD:000005C7D084C570                               loc_5C7D084C570:                        ; CODE XREF: LOAD:000005C7D084C158↑j</span><br><span class="line">LOAD:000005C7D084C570                                                                       ; DATA XREF: LOAD:start↑o</span><br><span class="line">LOAD:000005C7D084C570 90                            nop                                     ; Keypatch filled range [0x5C7D084C570:0x5C7D084C576] (7 bytes), replaced:</span><br><span class="line">LOAD:000005C7D084C570                                                                       ;   mov eax, 65h</span><br><span class="line">LOAD:000005C7D084C570                                                                       ;   syscall</span><br><span class="line">LOAD:000005C7D084C571 90                            nop</span><br><span class="line">LOAD:000005C7D084C572 90                            nop</span><br><span class="line">LOAD:000005C7D084C573 90                            nop</span><br><span class="line">LOAD:000005C7D084C574 90                            nop</span><br><span class="line">LOAD:000005C7D084C575 90                            nop</span><br><span class="line">LOAD:000005C7D084C576 90                            nop</span><br><span class="line">LOAD:000005C7D084C577 85 C0                         test    eax, eax</span><br><span class="line">LOAD:000005C7D084C579 0F 85 84 00 00 00             jnz     loc_5C7D084C603</span><br><span class="line">LOAD:000005C7D084C579</span><br><span class="line">LOAD:000005C7D084C57F 5E                            pop     rsi</span><br><span class="line">LOAD:000005C7D084C580 48 83 FE 02                   cmp     rsi, 2</span><br><span class="line">LOAD:000005C7D084C584 7C 58                         jl      short no                        ; no</span><br><span class="line">LOAD:000005C7D084C584</span><br><span class="line">LOAD:000005C7D084C586 5E                            pop     rsi</span><br><span class="line">LOAD:000005C7D084C587 5E                            pop     rsi</span><br><span class="line">LOAD:000005C7D084C588 48 BB E8 88 1F BC 84 0F 00 00 mov     rbx, 0F84BC1F88E8h</span><br><span class="line">LOAD:000005C7D084C588</span><br><span class="line">LOAD:000005C7D084C592</span><br><span class="line">LOAD:000005C7D084C592                               loc_5C7D084C592:                        ; CODE XREF: LOAD:000005C7D084C5CD↓j</span><br><span class="line">LOAD:000005C7D084C592 0F B6 06                      movzx   eax, byte ptr [rsi]             ; get input</span><br><span class="line">LOAD:000005C7D084C595 3C 0A                         cmp     al, 0Ah</span><br><span class="line">LOAD:000005C7D084C597 74 36                         jz      short yes_1</span><br><span class="line">LOAD:000005C7D084C597</span><br><span class="line">LOAD:000005C7D084C599 3C 00                         cmp     al, 0</span><br><span class="line">LOAD:000005C7D084C59B 74 32                         jz      short yes_1</span><br><span class="line">LOAD:000005C7D084C59B</span><br><span class="line">LOAD:000005C7D084C59D 3C 7E                         cmp     al, 7Eh ; &#x27;~&#x27;</span><br><span class="line">LOAD:000005C7D084C59F 77 3D                         ja      short no                        ; no</span><br><span class="line">LOAD:000005C7D084C59F</span><br><span class="line">LOAD:000005C7D084C5A1 2C 20                         sub     al, 20h ; &#x27; &#x27;</span><br><span class="line">LOAD:000005C7D084C5A3 72 39                         jb      short no                        ; no</span><br><span class="line">LOAD:000005C7D084C5A3</span><br><span class="line">LOAD:000005C7D084C5A5</span><br><span class="line">LOAD:000005C7D084C5A5                               loc_5C7D084C5A5:                        ; CODE XREF: LOAD:000005C7D084C60C↓j</span><br><span class="line">LOAD:000005C7D084C5A5 48 8D 14 C3                   lea     rdx, [rbx+rax*8]                ; 0xF84BC1F88E8 + input[i]</span><br><span class="line">LOAD:000005C7D084C5A9 48 8B 1A                      mov     rbx, [rdx]                      ; mem[0xF84BC1F88E8 + input[i]]</span><br><span class="line">LOAD:000005C7D084C5AC 48 31 D3                      xor     rbx, rdx                        ; 0xF84BC1F88E8 + input[i] ^ mem[0xF84BC1F88E8 + input[i]]</span><br><span class="line">LOAD:000005C7D084C5AF 49 B8 93 E6 C1 48 3C CB 16 B2 mov     r8, 0B216CB3C48C1E693h</span><br><span class="line">LOAD:000005C7D084C5B9 49 0F AF D8                   imul    rbx, r8                         ;  0xF84BC1F88E8 + input[i] ^ mem[0xF84BC1F88E8 + input[i]] * 0xB216CB3C48C1E693</span><br><span class="line">LOAD:000005C7D084C5BD 49 B8 9D 52 7C 26 D3 C6 00 C2 mov     r8, 0C200C6D3267C529Dh</span><br><span class="line">LOAD:000005C7D084C5C7 4C 01 C3                      add     rbx, r8                         ;  0xF84BC1F88E8 + input[i] ^ mem[0xF84BC1F88E8 + input[i]] * 0xB216CB3C48C1E693 + 0xC200C6D3267C529D</span><br><span class="line">LOAD:000005C7D084C5CA 48 FF C6                      inc     rsi                             ; i++</span><br><span class="line">LOAD:000005C7D084C5CD EB C3                         jmp     short loc_5C7D084C592           ; get input</span><br><span class="line">LOAD:000005C7D084C5CD</span><br><span class="line">LOAD:000005C7D084C5CF                               ; ---------------------------------------------------------------------------</span><br><span class="line">LOAD:000005C7D084C5CF</span><br><span class="line">LOAD:000005C7D084C5CF                               yes_1:                                  ; CODE XREF: LOAD:000005C7D084C597↑j</span><br><span class="line">LOAD:000005C7D084C5CF                                                                       ; LOAD:000005C7D084C59B↑j</span><br><span class="line">LOAD:000005C7D084C5CF 48 B9 E0 0B C0 8F 03 07 00 00 mov     rcx, 7038FC00BE0h</span><br><span class="line">LOAD:000005C7D084C5D9 48 39 CB                      cmp     rbx, rcx</span><br><span class="line">LOAD:000005C7D084C5DC 74 0C                         jz      short yes                       ; yes</span><br><span class="line">LOAD:000005C7D084C5DC</span><br><span class="line">LOAD:000005C7D084C5DE</span><br><span class="line">LOAD:000005C7D084C5DE                               no:                                     ; CODE XREF: LOAD:000005C7D084C584↑j</span><br><span class="line">LOAD:000005C7D084C5DE                                                                       ; LOAD:000005C7D084C59F↑j</span><br><span class="line">LOAD:000005C7D084C5DE                                                                       ; LOAD:000005C7D084C5A3↑j</span><br><span class="line">LOAD:000005C7D084C5DE 68 6E 6F 0A 00                push    0A6F6Eh                         ; no</span><br><span class="line">LOAD:000005C7D084C5E3 BA 03 00 00 00                mov     edx, 3</span><br><span class="line">LOAD:000005C7D084C5E8 EB 0A                         jmp     short loc_5C7D084C5F4</span><br><span class="line">LOAD:000005C7D084C5E8</span><br><span class="line">LOAD:000005C7D084C5EA                               ; ---------------------------------------------------------------------------</span><br><span class="line">LOAD:000005C7D084C5EA</span><br><span class="line">LOAD:000005C7D084C5EA                               yes:                                    ; CODE XREF: LOAD:000005C7D084C5DC↑j</span><br><span class="line">LOAD:000005C7D084C5EA 68 79 65 73 0A                push    0A736579h                       ; yes</span><br><span class="line">LOAD:000005C7D084C5EF BA 04 00 00 00                mov     edx, 4</span><br><span class="line">LOAD:000005C7D084C5EF</span><br><span class="line">LOAD:000005C7D084C5F4</span><br><span class="line">LOAD:000005C7D084C5F4                               loc_5C7D084C5F4:                        ; CODE XREF: LOAD:000005C7D084C5E8↑j</span><br><span class="line">LOAD:000005C7D084C5F4 B8 01 00 00 00                mov     eax, 1</span><br><span class="line">LOAD:000005C7D084C5F9 BF 01 00 00 00                mov     edi, 1</span><br><span class="line">LOAD:000005C7D084C5FE</span><br><span class="line">LOAD:000005C7D084C5FE                               loc_5C7D084C5FE:                        ; CODE XREF: LOAD:000005C7D084C616↓j</span><br><span class="line">LOAD:000005C7D084C5FE 48 89 E6                      mov     rsi, rsp</span><br><span class="line">LOAD:000005C7D084C601 0F 05                         syscall                                 ; write</span><br><span class="line">LOAD:000005C7D084C601</span><br><span class="line">LOAD:000005C7D084C603</span><br><span class="line">LOAD:000005C7D084C603                               loc_5C7D084C603:                        ; CODE XREF: LOAD:000005C7D084C579↑j</span><br><span class="line">LOAD:000005C7D084C603 B8 3C 00 00 00                mov     eax, 3Ch ; &#x27;&lt;&#x27;</span><br><span class="line">LOAD:000005C7D084C608 31 FF                         xor     edi, edi</span><br><span class="line">LOAD:000005C7D084C60A 0F 05                         syscall </span><br></pre></td></tr></table></figure>
+
+<p>可以在<a target="_blank" rel="noopener" href="https://filippo.io/linux-syscall-table/%E6%9F%A5%E6%89%BE%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8ID">https://filippo.io/linux-syscall-table/查找系统调用ID</a> 目的是输出<code>yes</code> flag通过命令行参数传入 具体逻辑写在注释中 用<code>readelf -a</code>读出所有虚拟内存:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">ELF Header:</span><br><span class="line">  Magic:   7f 45 4c 46 02 01 a8 9e b6 21 74 80 06 55 b8 e5 </span><br><span class="line">  Class:                             ELF64</span><br><span class="line">  Data:                              2&#x27;s complement, little endian</span><br><span class="line">  Version:                           168 &lt;unknown&gt;</span><br><span class="line">  OS/ABI:                            &lt;unknown: 9e&gt;</span><br><span class="line">  ABI Version:                       182</span><br><span class="line">  Type:                              EXEC (Executable file)</span><br><span class="line">  Machine:                           Advanced Micro Devices X86-64</span><br><span class="line">  Version:                           0xc7b4d76e</span><br><span class="line">  Entry point address:               0x5c7d084c137</span><br><span class="line">  Start of program headers:          58 (bytes into file)</span><br><span class="line">  Start of section headers:          39047220244264590 (bytes into file)</span><br><span class="line">  Flags:                             0xb214c4dd</span><br><span class="line">  Size of this header:               16830 (bytes)</span><br><span class="line">  Size of program headers:           56 (bytes)</span><br><span class="line">  Number of program headers:         61</span><br><span class="line">  Size of section headers:           1 (bytes)</span><br><span class="line">  Number of section headers:         0</span><br><span class="line">  Section header string table index: 47031 &lt;corrupt: out of range&gt;</span><br><span class="line"></span><br><span class="line">There are no section groups in this file.</span><br><span class="line"></span><br><span class="line">Program Headers:</span><br><span class="line">  Type           Offset             VirtAddr           PhysAddr</span><br><span class="line">                 FileSiz            MemSiz              Flags  Align</span><br><span class="line">  LOAD           0x0000000000001000 0x00000265a3ce8000 0xc28f4b0d8a362161</span><br><span class="line">                 0x0000000000001000 0x0000000000001000  RWE    0x3cc4d55e9677dc9e</span><br><span class="line">  LOAD           0x0000000000002000 0x00000516ef99c000 0x3656c86e821bb521</span><br><span class="line">	....</span><br><span class="line">	....</span><br><span class="line">  LOAD           0x000000000003c000 0x00000ae8f3641000 0x8da8b4d80a2f5556</span><br><span class="line">                 0x0000000000001000 0x0000000000001000  RWE    0x3fce6f654e1eaf66</span><br><span class="line">  LOAD           0x000000000003d000 0x00000ccd481d4000 0x353d5269c3fd6e77</span><br><span class="line">                 0x0000000000001000 0x0000000000001000  RWE    0x10eaf695dc252738</span><br><span class="line"></span><br><span class="line">There is no dynamic section in this file.</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>数据在虚拟内存和其在二进制文件中相对文件头的偏移的关系是<code>data_offset = seg_offset + data_virtaddr - seg_virtaddr</code> 据此可以写出脚本解密:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># segment_addr = &quot;&quot;&quot;</span></span><br><span class="line"><span class="comment"># 0x00000265a3ce8000</span></span><br><span class="line"><span class="comment"># 0x00000516ef99c000</span></span><br><span class="line"><span class="comment"># ...</span></span><br><span class="line"><span class="comment"># 0x00000ae8f3641000</span></span><br><span class="line"><span class="comment"># 0x00000ccd481d4000</span></span><br><span class="line"><span class="comment"># &quot;&quot;&quot;</span></span><br><span class="line"><span class="comment"># segment_start = [int(k, 16) for k in segment_addr.split(&quot;\n&quot;)[1:-1]]</span></span><br><span class="line">segment_start = [<span class="number">2635563171840</span>, <span class="number">5596067250176</span>, <span class="number">242648760320</span>, <span class="number">5890218143744</span>, <span class="number">2735873134592</span>, <span class="number">12132385898496</span>, <span class="number">16697267249152</span>, <span class="number">3326682263552</span>, <span class="number">10460356464640</span>, <span class="number">8642733731840</span>, <span class="number">988726030336</span>, <span class="number">8708637028352</span>, <span class="number">2773839282176</span>, <span class="number">8133109415936</span>, <span class="number">3575512096768</span>, <span class="number">9797392764928</span>, <span class="number">1880326082560</span>, <span class="number">5535382552576</span>, <span class="number">5309783875584</span>, <span class="number">14846201360384</span>, <span class="number">15151867842560</span>, <span class="number">1420534173696</span>, <span class="number">3162423922688</span>, <span class="number">9884210810880</span>, <span class="number">3293418479616</span>, <span class="number">2848477061120</span>, <span class="number">9760137510912</span>, <span class="number">13268869967872</span>, <span class="number">6355754991616</span>, <span class="number">15773356351488</span>, <span class="number">17095304347648</span>, <span class="number">11089330114560</span>, <span class="number">8872599801856</span>, <span class="number">119536611328</span>, <span class="number">11962295312384</span>, <span class="number">14545242775552</span>, <span class="number">6175697338368</span>, <span class="number">3295986577408</span>, <span class="number">4857408086016</span>, <span class="number">1006577762304</span>, <span class="number">6169422487552</span>, <span class="number">10338827309056</span>, <span class="number">5784443174912</span>, <span class="number">7711878021120</span>, <span class="number">15179293179904</span>, <span class="number">2675108958208</span>, <span class="number">5810459635712</span>, <span class="number">15978780405760</span>, <span class="number">15805306486784</span>, <span class="number">12812716527616</span>, <span class="number">13144427872256</span>, <span class="number">5770609094656</span>, <span class="number">14127787970560</span>, <span class="number">17062766280704</span>, <span class="number">7485916786688</span>, <span class="number">3136088481792</span>, <span class="number">12072940883968</span>, <span class="number">3003644882944</span>, <span class="number">7554512248832</span>, <span class="number">11995632111616</span>, <span class="number">14075817705472</span>]</span><br><span class="line"><span class="comment"># base = ((base + input[i]) ^ mem[base + input[i]]) * 0xB216CB3C48C1E693 + 0xC200C6D3267C529D</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">find_physddr</span>(<span class="params">addr:<span class="built_in">int</span></span>):</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(segment_start)):</span><br><span class="line">        <span class="keyword">if</span> addr - segment_start[i] &gt;= <span class="number">0</span> <span class="keyword">and</span> addr - segment_start[i] &lt; <span class="number">0x1000</span>:</span><br><span class="line">            <span class="keyword">return</span> (i + <span class="number">1</span>) * <span class="number">0x1000</span> + addr - segment_start[i]</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line"></span><br><span class="line">musk1 = <span class="number">0x7FFFFFFFFFFFFFFF</span></span><br><span class="line">musk2 = <span class="number">0xFFFFFFFFFFFFFFFF</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;technically_correct_edit&quot;</span>, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    flag = [<span class="built_in">ord</span>(i) - <span class="number">0x20</span> <span class="keyword">for</span> i <span class="keyword">in</span> <span class="string">&quot;lactf&#123;&quot;</span>]</span><br><span class="line">    base = <span class="number">0xF84BC1F88E8</span></span><br><span class="line">    i = <span class="number">0</span></span><br><span class="line">    flags = []</span><br><span class="line">    stack = <span class="built_in">list</span>()</span><br><span class="line">    visited = <span class="built_in">set</span>()</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        data1 = (flag[i] * <span class="number">0x8</span> + base) &amp; musk2</span><br><span class="line">        f.seek(find_physddr(data1))</span><br><span class="line">        data2 = <span class="built_in">int</span>.from_bytes(f.read(<span class="number">8</span>), byteorder=<span class="string">&#x27;little&#x27;</span>)</span><br><span class="line">        data3 = data1 ^ data2</span><br><span class="line">        data4 = (data3 * <span class="number">0xB216CB3C48C1E693</span>) &amp; musk1</span><br><span class="line">        base = (data4 + <span class="number">0xC200C6D3267C529D</span>) &amp; musk2</span><br><span class="line">        <span class="comment"># print(hex(base))</span></span><br><span class="line">        i += <span class="number">1</span></span><br><span class="line">        <span class="keyword">if</span> i == <span class="built_in">len</span>(flag):</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        visited.add(base)</span><br><span class="line">        </span><br><span class="line">    stack.append((base, flag))</span><br><span class="line">    <span class="keyword">while</span> stack:</span><br><span class="line">        base, flag = stack.pop()</span><br><span class="line">        <span class="keyword">if</span> base <span class="keyword">in</span> visited:</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        visited.add(base)</span><br><span class="line">        <span class="keyword">if</span> base == <span class="number">0x7038FC00BE0</span>:</span><br><span class="line">            flags.append(flag)</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">for</span> char <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0x5E</span>):</span><br><span class="line">            <span class="keyword">if</span> find_physddr((char * <span class="number">0x8</span> + base) &amp; musk2):</span><br><span class="line">                data1 = (char * <span class="number">0x8</span> + base) &amp; musk2</span><br><span class="line">                f.seek(find_physddr(data1))</span><br><span class="line">                data2 = <span class="built_in">int</span>.from_bytes(f.read(<span class="number">8</span>), byteorder=<span class="string">&#x27;little&#x27;</span>)</span><br><span class="line">                data3 = data1 ^ data2</span><br><span class="line">                data4 = (data3 * <span class="number">0xB216CB3C48C1E693</span>) &amp; musk1</span><br><span class="line">                base_ = (data4 + <span class="number">0xC200C6D3267C529D</span>) &amp; musk2</span><br><span class="line">                stack.append((base_, flag + [char]))</span><br><span class="line">    <span class="keyword">for</span> flag <span class="keyword">in</span> flags:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;&quot;</span>.join([<span class="built_in">chr</span>(i + <span class="number">0x20</span>) <span class="keyword">for</span> i <span class="keyword">in</span> flag]))</span><br><span class="line">    <span class="comment"># lactf&#123;i_l0v3_l1nux_elf_p4rs1ng&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>以后遇到再更新应用案例…</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/" rel="tag"># 文件格式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/03/05/%E5%8F%A4%E7%A5%9E%E8%AF%AD%E4%B9%8B%E7%A0%94%E7%A9%B6/" rel="prev" title="古神语(Uiua)之研究">
+      <i class="fa fa-chevron-left"></i> 古神语(Uiua)之研究
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/03/16/1-%E7%A7%92%E9%92%9F%E5%AF%84-%E4%B8%80%E4%B8%AA%E7%AE%97%E6%B3%95-DFS-%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2/" rel="next" title="1!秒钟寄!一个算法:DFS-深度优先搜索">
+      1!秒钟寄!一个算法:DFS-深度优先搜索 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%A4%B4%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">文件头结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%84%E4%B8%AA%E5%AD%97%E6%AE%B5%E6%89%80%E5%90%AB%E5%80%BC%E7%9A%84%E5%90%AB%E4%B9%89"><span class="nav-number">3.</span> <span class="nav-text">各个字段所含值的含义</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#e-ident"><span class="nav-number">3.1.</span> <span class="nav-text">e_ident</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-type"><span class="nav-number">3.2.</span> <span class="nav-text">e_type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-machine"><span class="nav-number">3.3.</span> <span class="nav-text">e_machine</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-version"><span class="nav-number">3.4.</span> <span class="nav-text">e_version</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-entry"><span class="nav-number">3.5.</span> <span class="nav-text">e_entry</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-phoff-e-shoff"><span class="nav-number">3.6.</span> <span class="nav-text">e_phoff &amp; e_shoff</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-flags"><span class="nav-number">3.7.</span> <span class="nav-text">e_flags</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-ehsize"><span class="nav-number">3.8.</span> <span class="nav-text">e_ehsize</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-phentsize"><span class="nav-number">3.9.</span> <span class="nav-text">e_phentsize</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-phnum"><span class="nav-number">3.10.</span> <span class="nav-text">e_phnum</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-shentsize-e-shnum"><span class="nav-number">3.11.</span> <span class="nav-text">e_shentsize &amp; e_shnum</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-shstrndx"><span class="nav-number">3.12.</span> <span class="nav-text">e_shstrndx</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E5%9C%BA%E5%90%88"><span class="nav-number">4.</span> <span class="nav-text">应用场合</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#LACTF2024-rev-technically-correct-%E9%AD%94%E6%94%B9ELF%E6%96%87%E4%BB%B6%E5%A4%B4"><span class="nav-number">4.1.</span> <span class="nav-text">LACTF2024&#x2F;rev&#x2F;technically_correct | 魔改ELF文件头</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">305k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:37</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
