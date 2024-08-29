@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-flat-top.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="侧信道攻击最原始的想法是直接对程序输入数据进行爆破测试 例如羊城杯2024逆向的Rust-VM:">
+<meta property="og:type" content="article">
+<meta property="og:title" content="侧信道攻击">
+<meta property="og:url" content="https://ikoct.com/2024/08/29/%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="侧信道攻击最原始的想法是直接对程序输入数据进行爆破测试 例如羊城杯2024逆向的Rust-VM:">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F08%2F29%2F20240829-110246.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F08%2F29%2F20240829-111502.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F08%2F29%2F20240829-112123.png">
+<meta property="article:published_time" content="2024-08-29T06:37:55.000Z">
+<meta property="article:modified_time" content="2024-08-29T06:37:55.809Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="逆向">
+<meta property="article:tag" content="侧信道">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F08%2F29%2F20240829-110246.png">
+
+<link rel="canonical" href="https://ikoct.com/2024/08/29/%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>侧信道攻击 | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/08/29/%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          侧信道攻击
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-08-29 14:37:55" itemprop="dateCreated datePublished" datetime="2024-08-29T14:37:55+08:00">2024-08-29</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">逆向</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>18k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>16 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>侧信道攻击最原始的想法是直接对程序输入数据进行爆破测试 例如羊城杯2024逆向的Rust-VM:</p>
+<span id="more"></span>
+
+<p>(虽然这并不是侧信道攻击的前置知识 但是不妨碍我把它当成能联想到侧信道的最原始的想法()</p>
+<h2 id="2024-羊城杯-Rust-vm"><a href="#2024-羊城杯-Rust-vm" class="headerlink" title="[2024 羊城杯]-Rust_vm"></a>[2024 羊城杯]-Rust_vm</h2><p>前面的第一步加密和主题的关系不大 直接跳过 只需要知道动调出来的结果是将输入的内容进行base64第一步编码 即将输入数据(flag包裹的内容 长度为32bytes)分割为6bits 最后长度是44bytes 重要的是接下来的虚拟机过程:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F08%2F29%2F20240829-110246.png" alt="image-20240829110239568"></p>
+<p>可以看到处理函数调用了22次 并且每次处理2bytes数据 这时候就应该敏感的察觉到爆破的可能性 而虚拟机内部:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// positive sp value has been detected, the output may be wrong!</span></span><br><span class="line"><span class="type">void</span> __fastcall <span class="title function_">proc</span><span class="params">(__int64 OPCODES_REGS, <span class="type">int</span> a2, <span class="type">unsigned</span> <span class="type">int</span> a3)</span></span><br><span class="line">&#123;</span><br><span class="line">  __int64 v4; <span class="comment">// r9</span></span><br><span class="line">  __int64 v6; <span class="comment">// rdx</span></span><br><span class="line">  __int64 v7; <span class="comment">// r8</span></span><br><span class="line">  <span class="type">char</span> v8; <span class="comment">// cl</span></span><br><span class="line">  <span class="type">char</span> v9; <span class="comment">// al</span></span><br><span class="line">  __int64 v10; <span class="comment">// rcx</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v11; <span class="comment">// r12d</span></span><br><span class="line">  __int64 v12; <span class="comment">// r15</span></span><br><span class="line">  <span class="type">unsigned</span> __int8 v13; <span class="comment">// al</span></span><br><span class="line">  <span class="type">char</span> v14; <span class="comment">// cl</span></span><br><span class="line">  <span class="type">unsigned</span> __int8 v15; <span class="comment">// r13</span></span><br><span class="line">  __int64 v16; <span class="comment">// rbx</span></span><br><span class="line">  __int64 v17; <span class="comment">// rbp</span></span><br><span class="line">  <span class="type">bool</span> v18; <span class="comment">// r14</span></span><br><span class="line">  <span class="type">unsigned</span> __int8 v19; <span class="comment">// dl</span></span><br><span class="line">  <span class="type">unsigned</span> __int8 v20; <span class="comment">// bp</span></span><br><span class="line">  __int64 v21; <span class="comment">// r12</span></span><br><span class="line">  __int64 v22; <span class="comment">// r15</span></span><br><span class="line">  __int64 v23; <span class="comment">// rax</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v24; <span class="comment">// edi</span></span><br><span class="line">  <span class="type">int</span> v25; <span class="comment">// r10d</span></span><br><span class="line">  <span class="type">char</span> v26; <span class="comment">// bp</span></span><br><span class="line">  <span class="type">unsigned</span> __int8 v27; <span class="comment">// al</span></span><br><span class="line">  __int64 v28; <span class="comment">// r15</span></span><br><span class="line">  __int64 v29; <span class="comment">// rcx</span></span><br><span class="line">  <span class="type">int</span> v30; <span class="comment">// r14d</span></span><br><span class="line">  __int64 v31; <span class="comment">// rdx</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> v32; <span class="comment">// ecx</span></span><br><span class="line">  __int64 v33; <span class="comment">// r10</span></span><br><span class="line">  __int64 v34; <span class="comment">// rax</span></span><br><span class="line">  __int64 v35; <span class="comment">// rdx</span></span><br><span class="line">  __int64 v36; <span class="comment">// r9</span></span><br><span class="line">  __int64 v37; <span class="comment">// rax</span></span><br><span class="line">  __int64 v38; <span class="comment">// rdx</span></span><br><span class="line">  __int64 v39; <span class="comment">// rdx</span></span><br><span class="line">  <span class="type">unsigned</span> __int8 v40; <span class="comment">// bp</span></span><br><span class="line">  __int64 v41; <span class="comment">// rax</span></span><br><span class="line">  __int64 v42; <span class="comment">// rdx</span></span><br><span class="line">  __int64 v43; <span class="comment">// rdx</span></span><br><span class="line">  __int64 v44; <span class="comment">// rdx</span></span><br><span class="line">  <span class="type">int</span> v45; <span class="comment">// [rsp-7Ch] [rbp-124h]</span></span><br><span class="line">  __int64 v46; <span class="comment">// [rsp-78h] [rbp-120h]</span></span><br><span class="line">  __int64 v47; <span class="comment">// [rsp-70h] [rbp-118h]</span></span><br><span class="line">  __int64 v48; <span class="comment">// [rsp-68h] [rbp-110h]</span></span><br><span class="line">  <span class="type">int</span> v49; <span class="comment">// [rsp-5Ch] [rbp-104h]</span></span><br><span class="line">  __int64 v50; <span class="comment">// [rsp-58h] [rbp-100h]</span></span><br><span class="line">  __int64 v51; <span class="comment">// [rsp-50h] [rbp-F8h]</span></span><br><span class="line">  __int64 v52; <span class="comment">// [rsp-48h] [rbp-F0h]</span></span><br><span class="line"></span><br><span class="line">  v45 = a2;</span><br><span class="line">  v4 = (<span class="type">unsigned</span> __int8)a3;</span><br><span class="line">  <span class="keyword">if</span> ( (<span class="type">unsigned</span> __int8)a3 &gt; <span class="number">3u</span> )</span><br><span class="line">    sub_403550((<span class="type">unsigned</span> __int8)a3, <span class="number">4LL</span>, &amp;off_442EF0);</span><br><span class="line">  v6 = a3;</span><br><span class="line">  v7 = a3 &gt;&gt; <span class="number">8</span>;</span><br><span class="line">  v8 = a3 + (*((_BYTE *)&amp;v45 + v4) &gt;&gt; <span class="number">6</span>);</span><br><span class="line">  v9 = *((_BYTE *)&amp;v45 + v4) &amp; <span class="number">0x3F</span>;</span><br><span class="line">  *(_BYTE *)(OPCODES_REGS + <span class="number">1051</span>) = v9;</span><br><span class="line">  *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (v8 &amp; <span class="number">3</span>) + <span class="number">1041</span>) = v9;</span><br><span class="line">  v10 = BYTE1(a3);</span><br><span class="line">  <span class="keyword">if</span> ( BYTE1(a3) &gt;= <span class="number">4u</span> )</span><br><span class="line">    sub_403550(BYTE1(a3), <span class="number">4LL</span>, &amp;off_442F08);</span><br><span class="line">  v11 = HIWORD(a3);</span><br><span class="line">  v12 = HIBYTE(a3);</span><br><span class="line">  v13 = *((_BYTE *)&amp;v45 + v10);</span><br><span class="line">  v46 = v7;</span><br><span class="line">  *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (((_BYTE)v7 + (v13 &gt;&gt; <span class="number">6</span>)) &amp; <span class="number">3</span>) + <span class="number">1041</span>) = v13 &amp; <span class="number">0x3F</span>;</span><br><span class="line">  *(_BYTE *)(OPCODES_REGS + (((<span class="type">unsigned</span> __int8)(<span class="number">65</span> * v11) &gt;&gt; <span class="number">5</span>) | <span class="number">1LL</span>) + <span class="number">1040</span>) = (<span class="number">65</span> * v11) &amp; <span class="number">0x3F</span>;</span><br><span class="line">  v14 = (<span class="number">65</span> * v12) &amp; <span class="number">0x3F</span>;</span><br><span class="line">  *(_BYTE *)(OPCODES_REGS + <span class="number">1051</span>) = v14;</span><br><span class="line">  *(_BYTE *)(OPCODES_REGS + (((<span class="type">unsigned</span> __int8)(<span class="number">65</span> * v12) &gt;&gt; <span class="number">5</span>) | <span class="number">1LL</span>) + <span class="number">1040</span>) = v14;</span><br><span class="line">  v15 = <span class="number">8</span> * v11 + <span class="number">2</span> * v12;</span><br><span class="line">  v16 = v12 &amp; <span class="number">3</span>;</span><br><span class="line">  v17 = (v15 &gt;&gt; <span class="number">3</span>) &amp; <span class="number">3</span>;</span><br><span class="line">  v18 = (v15 &amp; <span class="number">0x20</span>) != <span class="number">0</span>;</span><br><span class="line">  v50 = v15 &gt;&gt; <span class="number">6</span>;</span><br><span class="line">  v52 = (<span class="type">unsigned</span> __int8)v11;</span><br><span class="line">  v51 = v4;</span><br><span class="line">  <span class="keyword">switch</span> ( v15 &gt;&gt; <span class="number">6</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2</span> * v16 + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2</span> * v16 + <span class="number">1041</span>);</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v17 + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v17 + <span class="number">1041</span>);</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2</span> * v16 + <span class="number">1041</span>) = <span class="number">0</span>;</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v17 + <span class="number">1041</span>) = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + (<span class="type">unsigned</span> __int8)(v17 | (<span class="number">4</span> * v18)) + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + v16 + <span class="number">1040</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">      <span class="keyword">if</span> ( (v15 &amp; <span class="number">0x20</span>) != <span class="number">0</span> )</span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + v17 + <span class="number">1048</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2</span> * v16 + <span class="number">1040</span>);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + <span class="number">2</span> * v16 + <span class="number">1041</span>) = *(_BYTE *)(OPCODES_REGS + v17 + <span class="number">1048</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">1051</span>) = v15 &amp; <span class="number">0x3E</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  v48 = v6;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, __int64, _QWORD))sub_40AA60)(OPCODES_REGS, v6, v11);</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, __int64, _QWORD))sub_40AA60)(OPCODES_REGS, v46, (<span class="type">unsigned</span> <span class="type">int</span>)v12);</span><br><span class="line">  <span class="keyword">if</span> ( (<span class="type">unsigned</span> __int8)v11 &gt;= <span class="number">4u</span> )</span><br><span class="line">    sub_403550((<span class="type">unsigned</span> __int8)v11, <span class="number">4LL</span>, &amp;off_442F20);</span><br><span class="line">  v47 = ((<span class="type">unsigned</span> __int8)(<span class="number">8</span> * v11 + <span class="number">2</span> * v12) &gt;&gt; <span class="number">3</span>) &amp; <span class="number">3</span>;</span><br><span class="line">  v19 = *((_BYTE *)&amp;v45 + (<span class="type">unsigned</span> __int8)v11);</span><br><span class="line">  v49 = <span class="number">2</span> * v11;</span><br><span class="line">  *(_BYTE *)(OPCODES_REGS + ((<span class="number">2</span> * (_BYTE)v11) &amp; <span class="number">6</span>) + <span class="number">1041</span>) = v19 &amp; <span class="number">0x3F</span>;</span><br><span class="line">  v20 = *((_BYTE *)&amp;v45 + v12);</span><br><span class="line">  *(_BYTE *)(OPCODES_REGS + <span class="number">1051</span>) = v20 &amp; <span class="number">0x3F</span>;</span><br><span class="line">  v21 = <span class="number">2</span> * v16;</span><br><span class="line">  v22 = <span class="number">2</span> * v16 + <span class="number">1</span>;</span><br><span class="line">  *(_BYTE *)(OPCODES_REGS + <span class="number">2</span> * v16 + <span class="number">1041</span>) = v20 &amp; <span class="number">0x3F</span>;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, (v19 &gt;&gt; <span class="number">6</span>) | <span class="number">0x20</span>u);</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, (v20 &gt;&gt; <span class="number">6</span>) | <span class="number">0x24</span>u);</span><br><span class="line">  <span class="keyword">switch</span> ( v50 )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0LL</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + v21 + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + v22 + <span class="number">1040</span>);</span><br><span class="line">      v23 = (<span class="type">unsigned</span> __int8)v47;</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v47 + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v47 + <span class="number">1041</span>);</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + v22 + <span class="number">1040</span>) = <span class="number">0</span>;</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2</span> * v23 + <span class="number">1041</span>) = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">goto</span> LABEL_16;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1LL</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + (<span class="type">unsigned</span> __int8)(v47 + <span class="number">4</span> * v18) + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + v16 + <span class="number">1040</span>);</span><br><span class="line">LABEL_16:</span><br><span class="line">      v24 = v46;</span><br><span class="line">      v25 = v48;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2LL</span>:</span><br><span class="line">      v24 = v46;</span><br><span class="line">      v25 = v48;</span><br><span class="line">      <span class="keyword">if</span> ( (v15 &amp; <span class="number">0x20</span>) != <span class="number">0</span> )</span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + v47 + <span class="number">1048</span>) = *(_BYTE *)(OPCODES_REGS + v21 + <span class="number">1040</span>);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + v22 + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + v47 + <span class="number">1048</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  v26 = <span class="number">2</span> * v24;</span><br><span class="line">  v27 = <span class="number">2</span> * v24 + <span class="number">8</span> * v25;</span><br><span class="line">  v28 = v24 &amp; <span class="number">3</span>;</span><br><span class="line">  v29 = (v27 &gt;&gt; <span class="number">3</span>) &amp; <span class="number">3</span>;</span><br><span class="line">  <span class="keyword">switch</span> ( v27 &gt;&gt; <span class="number">6</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v28 + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v28 + <span class="number">1041</span>);</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v29 + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v29 + <span class="number">1041</span>);</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v28 + <span class="number">1041</span>) = <span class="number">0</span>;</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v29 + <span class="number">1041</span>) = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + (<span class="type">unsigned</span> __int8)(v29 | (<span class="number">4</span> * ((v27 &amp; <span class="number">0x20</span>) != <span class="number">0</span>))) + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + v28 + <span class="number">1040</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">      <span class="keyword">if</span> ( (v27 &amp; <span class="number">0x20</span>) != <span class="number">0</span> )</span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + v29 + <span class="number">1048</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v28 + <span class="number">1040</span>);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v28 + <span class="number">1041</span>) = *(_BYTE *)(OPCODES_REGS + v29 + <span class="number">1048</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">1051</span>) = v27 &amp; <span class="number">0x3E</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  v30 = v25;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, (<span class="type">unsigned</span> <span class="type">int</span>)(v25 - <span class="number">116</span>));</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, (<span class="type">unsigned</span> <span class="type">int</span>)(v30 - <span class="number">72</span>));</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, (<span class="type">unsigned</span> <span class="type">int</span>)(v30 - <span class="number">84</span>));</span><br><span class="line">  LOBYTE(v31) = <span class="number">0x80</span>;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, __int64))sub_40A800)(OPCODES_REGS, v31);</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, (<span class="type">unsigned</span> <span class="type">int</span>)(v30 - <span class="number">76</span>));</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, (<span class="type">unsigned</span> <span class="type">int</span>)(v30 - <span class="number">104</span>));</span><br><span class="line">  v32 = <span class="number">2</span> * v30;</span><br><span class="line">  LOBYTE(v32) = <span class="number">2</span> * v30 - <span class="number">88</span>;</span><br><span class="line">  v33 = v51 &amp; <span class="number">3</span>;</span><br><span class="line">  v34 = ((<span class="type">unsigned</span> __int8)v32 &gt;&gt; <span class="number">3</span>) &amp; <span class="number">3</span>;</span><br><span class="line">  v35 = v32;</span><br><span class="line">  <span class="keyword">switch</span> ( (<span class="type">unsigned</span> __int8)v32 &gt;&gt; <span class="number">6</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v33 + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v33 + <span class="number">1041</span>);</span><br><span class="line">      v35 = *(<span class="type">unsigned</span> __int8 *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v34 + <span class="number">1041</span>);</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v34 + <span class="number">1040</span>) = v35;</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v33 + <span class="number">1041</span>) = <span class="number">0</span>;</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v34 + <span class="number">1041</span>) = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + (<span class="type">unsigned</span> __int8)(v34 | (<span class="number">4</span> * ((v32 &amp; <span class="number">0x20</span>) != <span class="number">0</span>))) + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + v33 + <span class="number">1040</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">      <span class="keyword">if</span> ( (v32 &amp; <span class="number">0x20</span>) != <span class="number">0</span> )</span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + v34 + <span class="number">1048</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v33 + <span class="number">1040</span>);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v33 + <span class="number">1041</span>) = *(_BYTE *)(OPCODES_REGS + v34 + <span class="number">1048</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">1051</span>) = v32 &amp; <span class="number">0x3E</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  LOBYTE(v35) = <span class="number">-124</span>;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, __int64))sub_40A800)(OPCODES_REGS, v35);</span><br><span class="line">  v36 = v52 &amp; <span class="number">3</span>;</span><br><span class="line">  v37 = ((<span class="type">unsigned</span> __int8)(v49 - <span class="number">88</span>) &gt;&gt; <span class="number">3</span>) &amp; <span class="number">3</span>;</span><br><span class="line">  <span class="keyword">switch</span> ( (<span class="type">unsigned</span> __int8)(v49 - <span class="number">88</span>) &gt;&gt; <span class="number">6</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v36 + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v36 + <span class="number">1041</span>);</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v37 + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v37 + <span class="number">1041</span>);</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v36 + <span class="number">1041</span>) = <span class="number">0</span>;</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v37 + <span class="number">1041</span>) = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + (<span class="type">unsigned</span> __int8)(v37 | (<span class="number">4</span> * ((((_BYTE)v49 - <span class="number">88</span>) &amp; <span class="number">0x20</span>) != <span class="number">0</span>))) + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + v36 + <span class="number">1040</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">      <span class="keyword">if</span> ( (((_BYTE)v49 - <span class="number">88</span>) &amp; <span class="number">0x20</span>) != <span class="number">0</span> )</span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + v37 + <span class="number">1048</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v36 + <span class="number">1040</span>);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v36 + <span class="number">1041</span>) = *(_BYTE *)(OPCODES_REGS + v37 + <span class="number">1048</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">1051</span>) = (v49 - <span class="number">88</span>) &amp; <span class="number">0x3E</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, <span class="number">0LL</span>);</span><br><span class="line">  LOBYTE(v38) = <span class="number">-100</span>;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, __int64))sub_40A800)(OPCODES_REGS, v38);</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, v24 - <span class="number">116</span>);</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, v24 - <span class="number">72</span>);</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, v24 - <span class="number">84</span>);</span><br><span class="line">  LOBYTE(v39) = <span class="number">0x80</span>;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, __int64))sub_40A800)(OPCODES_REGS, v39);</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, v24 - <span class="number">76</span>);</span><br><span class="line">  LOBYTE(v24) = v24 - <span class="number">104</span>;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, _QWORD))sub_40A800)(OPCODES_REGS, v24);</span><br><span class="line">  v40 = v26 - <span class="number">88</span>;</span><br><span class="line">  v41 = (v40 &gt;&gt; <span class="number">3</span>) &amp; <span class="number">3</span>;</span><br><span class="line">  v42 = v40 &gt;&gt; <span class="number">6</span>;</span><br><span class="line">  <span class="keyword">switch</span> ( v40 &gt;&gt; <span class="number">6</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v28 + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v28 + <span class="number">1041</span>);</span><br><span class="line">      v42 = *(<span class="type">unsigned</span> __int8 *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v41 + <span class="number">1041</span>);</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v41 + <span class="number">1040</span>) = v42;</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v28 + <span class="number">1041</span>) = <span class="number">0</span>;</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v41 + <span class="number">1041</span>) = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + (<span class="type">unsigned</span> __int8)(v41 | (<span class="number">4</span> * ((v40 &amp; <span class="number">0x20</span>) != <span class="number">0</span>))) + <span class="number">1040</span>) = *(_BYTE *)(OPCODES_REGS + v28 + <span class="number">1040</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">      <span class="keyword">if</span> ( (v40 &amp; <span class="number">0x20</span>) != <span class="number">0</span> )</span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + v41 + <span class="number">1048</span>) = *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v28 + <span class="number">1040</span>);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        *(_BYTE *)(OPCODES_REGS + <span class="number">2LL</span> * (<span class="type">unsigned</span> __int8)v28 + <span class="number">1041</span>) = *(_BYTE *)(OPCODES_REGS + v41 + <span class="number">1048</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">      *(_BYTE *)(OPCODES_REGS + <span class="number">1051</span>) = v40 &amp; <span class="number">0x3E</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  LOBYTE(v42) = <span class="number">-124</span>;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, __int64))sub_40A800)(OPCODES_REGS, v42);</span><br><span class="line">  *(_BYTE *)(OPCODES_REGS + <span class="number">1049</span>) = *(_BYTE *)(OPCODES_REGS + v21 + <span class="number">1040</span>);</span><br><span class="line">  LOBYTE(v43) = <span class="number">4</span>;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, __int64))sub_40A800)(OPCODES_REGS, v43);</span><br><span class="line">  LOBYTE(v44) = <span class="number">-100</span>;</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(__int64, __int64))sub_40A800)(OPCODES_REGS, v44);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>很明显是难以直接分析或者模拟这个过程进行爆破的 这时候就会自然想到直接对程序输入数据进行爆破的方法 python的<code>subprocess</code>模块就是实现这个想法和下面侧信道攻击的关键 对于这道题 由于缺少侧信道爆破的关键要素–程序含有大量导致程序退出的分支 所以这里要修改一下程序</p>
+<p>动调的过程可以很明显看出上述<code>OPCODES_REGS</code>偏移为1040开始是一系列的寄存器 0~1040的数据目测是opcode不过这个不重要 直接看到所有处理函数执行完后的校验环节:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F08%2F29%2F20240829-111502.png" alt="image-20240829111502100"></p>
+<p>可以看到程序通过检查第8个(8 * 131 &#x3D; 1048)寄存器的值来判断是否正确 这时候再调试一遍 着重观察第八个寄存器 可以看到每次执行完proc都会增加1~2 最后是一个非零值 这时候就能猜测到这是储存经过对比后和正确数据不相等的数据的个数的 这时候就能开始准备patch程序了 这里选择在每个<code>proc()</code>后的指令patch为跳转到判断目标寄存器的<code>jmp</code>指令(如果要在每个proc后直接增加一个或者修改成<code>cmp</code>的话可能会因为指令长度的问题爆段) 观察到每次proc指令后都会对比<code>r15</code>寄存器的值进行异常处理:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F08%2F29%2F20240829-112123.png" alt="image-20240829112123666"></p>
+<p>据此筛选出符合条件的21个<code>cmp</code>(最后一个proc不用跳转) patch成目标指令:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> keystone <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> capstone <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">pe = <span class="string">&#x27;bzff\\vm.exe&#x27;</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(pe, <span class="string">&#x27;rb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    data = <span class="built_in">bytearray</span>(f.read())</span><br><span class="line">    target = <span class="number">0x40B2E0</span></span><br><span class="line">    base = <span class="number">0x400c00</span></span><br><span class="line">    end = <span class="number">0x40CF45</span></span><br><span class="line">    ks = Ks(KS_ARCH_X86, KS_MODE_64)</span><br><span class="line">    cs = Cs(CS_ARCH_X86, CS_MODE_64)</span><br><span class="line">    to_patch = []</span><br><span class="line">    <span class="keyword">for</span> ins <span class="keyword">in</span> cs.disasm(data[target - base: end - base], target):</span><br><span class="line">        <span class="keyword">if</span> ins.mnemonic == <span class="string">&#x27;cmp&#x27;</span> <span class="keyword">and</span> ins.op_str.startswith(<span class="string">&#x27;r15&#x27;</span>):</span><br><span class="line">            to_patch.append(ins.address)</span><br><span class="line">    c = <span class="number">0</span></span><br><span class="line">    to_patch = to_patch[<span class="number">8</span>:]</span><br><span class="line">    <span class="keyword">for</span> ins <span class="keyword">in</span> to_patch[::-<span class="number">1</span>]:</span><br><span class="line">        new_op = <span class="string">&#x27;jmp 0x40CE56&#x27;</span></span><br><span class="line">        new_ins, count = ks.asm(new_op, ins)</span><br><span class="line">        <span class="keyword">if</span> count != <span class="number">1</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&#x27;Failed to assemble&#x27;</span>)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        data[ins - base: ins - base + <span class="built_in">len</span>(new_ins)] = new_ins</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&#x27;Patched <span class="subst">&#123;<span class="built_in">hex</span>(ins)&#125;</span>: <span class="subst">&#123;new_op&#125;</span>&#x27;</span>)</span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">f&#x27;bzff\\vm_<span class="subst">&#123;<span class="number">21</span> - c&#125;</span>.exe&#x27;</span>, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> file:</span><br><span class="line">            file.write(data)</span><br><span class="line">        c += <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>这样就获得了每次对比2*n(0 &lt; n &lt; 23)个数据的22个pe文件 接下来要做的就是像这些pe文件输入 接下来的想法就是将通过了第n轮检测的数据输入到第n + 1个pe文件中进行下一轮的判断 直到进行完所有的22轮 这里的第一步处理导致实际上每一轮检测的2个数据对应的是32 &#x2F; 22 ≈ 1.5个数据 这是这题的爆破解法的最后一个难点 需要手动控制已确定字符的长度并手动修改需要进行判断的轮数:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> subprocess, threading, time, copy</span><br><span class="line"></span><br><span class="line">stdouts = &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">run</span>(<span class="params">arg, c, i</span>):</span><br><span class="line">    proc = subprocess.Popen([<span class="string">f&#x27;bzff\\vm.exe_<span class="subst">&#123;i&#125;</span>&#x27;</span>], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=<span class="literal">True</span>)</span><br><span class="line">    stdout, stderr = proc.communicate(<span class="built_in">input</span>=arg)</span><br><span class="line">    stdouts[c] = stdout[-<span class="number">2</span>:]</span><br><span class="line">    <span class="comment"># print(f&#x27;[+]Testing: &#123;c&#125;&#x27;)</span></span><br><span class="line">    <span class="keyword">return</span> stdout</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">check_thread_exit</span>(<span class="params">threads</span>):</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">all</span>(<span class="keyword">not</span> thread.is_alive() <span class="keyword">for</span> thread <span class="keyword">in</span> threads):</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br><span class="line">    threads.clear()</span><br><span class="line">        </span><br><span class="line"></span><br><span class="line">flag = <span class="built_in">list</span>(<span class="string">&#x27;DASCTF&#123;&#x27;</span>)</span><br><span class="line">flag += <span class="built_in">list</span>(<span class="string">&#x27;c669733af3ce4459b88016420b81cb15&#x27;</span>)</span><br><span class="line">flag += <span class="built_in">list</span>(<span class="string">&#x27;_&#x27;</span> * (<span class="number">39</span> - <span class="built_in">len</span>(flag)) + <span class="string">&#x27;&#125;&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;&#x27;</span>.join(flag))</span><br><span class="line">char_table = <span class="string">&#x27;0123456789abcdef&#x27;</span></span><br><span class="line">offset = <span class="number">21</span></span><br><span class="line">threads = []</span><br><span class="line">pieces = []</span><br><span class="line"><span class="keyword">for</span> a <span class="keyword">in</span> char_table:</span><br><span class="line">    <span class="keyword">for</span> b <span class="keyword">in</span> char_table:</span><br><span class="line">        <span class="keyword">for</span> c <span class="keyword">in</span> char_table:</span><br><span class="line">            input_content = copy.deepcopy(flag)</span><br><span class="line">            input_content[<span class="number">7</span> + <span class="number">8</span> + offset : <span class="number">7</span> + <span class="number">8</span> + offset + <span class="number">3</span>] = [a, b, c]</span><br><span class="line">            input_content = <span class="string">&#x27;&#x27;</span>.join(input_content)</span><br><span class="line">            <span class="built_in">print</span>(input_content)</span><br><span class="line">            t = threading.Thread(target=run, args=(input_content, a+b+c, offset))</span><br><span class="line">            threads.append(t)</span><br><span class="line">            t.start()</span><br><span class="line">            <span class="keyword">if</span> <span class="built_in">len</span>(threads) == <span class="number">256</span>:</span><br><span class="line">                check_thread_exit(threads)</span><br><span class="line">                <span class="keyword">for</span> piece <span class="keyword">in</span> stdouts:</span><br><span class="line">                    <span class="keyword">if</span> stdouts[piece] == <span class="string">&#x27;!\n&#x27;</span>:</span><br><span class="line">                        pieces.append(piece)</span><br><span class="line">                stdouts.clear()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;Found: <span class="subst">&#123;pieces&#125;</span>&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>实际上如果能找到一种直接对虚拟空间中目标内存空间进行赋值的api就可以实现全自动的爆破 也就是下面侧信道攻击的样式 这里挖个坑</p>
+<p>以上就是侧信道攻击最原始的想法 下面详细说明时间侧信道攻击的方法和例子</p>
+<p>上面应该也能看出来主要是通过<code>subprocess.Popen()</code>直接执行程序 如果程序通过命令行参数接收数据的话就直接将要添加的命令行参数添加到第一个参数的列表中 否则就像上面用<code>communicate()</code>方法进行数据交互 要注意的是只能输入可编码的数据(可见字符) 不能是字节串 时间侧信道攻击的另一个核心就是检查程序的执行时间并将每个输入的数据与进行这个输入后程序的运行时间对应起来 找到运行(存活)时间最长的一个输入当作正确的已确定字符 这里用TFCCTF2024的一道逆向作为例子</p>
+<h2 id="2024-TFCCTF-Functional"><a href="#2024-TFCCTF-Functional" class="headerlink" title="[2024 TFCCTF] Functional"></a>[2024 TFCCTF] Functional</h2><p>程序是用Haskell编译的 比加了混淆还史 几乎不可能静态分析出加密和校验 上网找Haskell逆向的方法 几乎都是爆破 其中有一篇是通过pintool找到程序执行过的指令的条数来进行侧信道攻击 其实本质上和对时间的侧信道攻击大差不大 因为执行的指令条数在一定程度上可以用执行的时间来衡量 而执行的指令越多 执行的时间越长就说明越有可能是正确的字符(如果错误会直接退出) 这道题就是专门为这种方法设计的:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> subprocess, threading, time</span><br><span class="line"></span><br><span class="line">times = &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">run</span>(<span class="params">arg, c</span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;[+]Testing:&#x27;</span> + arg)</span><br><span class="line">    t1 = time.time()</span><br><span class="line">    proc = subprocess.Popen([<span class="string">&#x27;./main&#x27;</span>, arg], stdout=subprocess.PIPE, stderr=subprocess.PIPE)</span><br><span class="line">    stdout, stderr = proc.communicate()</span><br><span class="line">    cost = time.time() - t1</span><br><span class="line">    times[c] = cost</span><br><span class="line">    <span class="keyword">return</span> stdout</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">check_thread_exit</span>(<span class="params">threads</span>):</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">all</span>(<span class="keyword">not</span> thread.is_alive() <span class="keyword">for</span> thread <span class="keyword">in</span> threads):</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br><span class="line">        </span><br><span class="line"></span><br><span class="line">elf = <span class="string">&#x27;./main&#x27;</span></span><br><span class="line"><span class="comment"># times = &#123;&#125;</span></span><br><span class="line"><span class="comment"># for i in range(0x40):</span></span><br><span class="line"><span class="comment">#     input_content = i * &#x27;_&#x27;</span></span><br><span class="line"><span class="comment">#     t1 = time.time()</span></span><br><span class="line"><span class="comment">#     proc = subprocess.Popen([elf, input_content], stdout=subprocess.PIPE, stderr=subprocess.PIPE)</span></span><br><span class="line"><span class="comment">#     stdout, stderr = proc.communicate()</span></span><br><span class="line"><span class="comment">#     cost = time.time() - t1</span></span><br><span class="line"><span class="comment">#     times[str(i)] = cost</span></span><br><span class="line"><span class="comment"># print(times)</span></span><br><span class="line">right_len = <span class="number">28</span></span><br><span class="line">flag = <span class="built_in">list</span>(<span class="string">&#x27;TFCCTF&#123;&#x27;</span> + <span class="string">&#x27;A&#x27;</span> * (right_len - <span class="number">7</span>))</span><br><span class="line">char_table = <span class="string">&#x27;0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_&#123;&#125;+-!@#$%^&amp;*()&#x27;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">7</span>, right_len):</span><br><span class="line">    threads = []</span><br><span class="line">    <span class="keyword">for</span> c <span class="keyword">in</span> char_table:</span><br><span class="line">        input_content = flag</span><br><span class="line">        input_content[i] = c</span><br><span class="line">        input_content = <span class="string">&#x27;&#x27;</span>.join(input_content)</span><br><span class="line">        t = threading.Thread(target=run, args=(input_content, c))</span><br><span class="line">        threads.append(t)</span><br><span class="line">        t.start()</span><br><span class="line">    check_thread_exit(threads)</span><br><span class="line">    most_likely = <span class="built_in">sorted</span>(times.items(), key=<span class="keyword">lambda</span> x: x[<span class="number">1</span>], reverse=<span class="literal">True</span>)[<span class="number">0</span>][<span class="number">0</span>]</span><br><span class="line">    flag[i] = most_likely</span><br><span class="line">    times.clear()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;\n[+]Solution found:&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;&#x27;</span>.join(flag))</span><br></pre></td></tr></table></figure>
+
+<p>除了在普通的加密-校验程序中可以用到 侧信道还能在简单的游戏逆向中发挥作用 比如下面这个例子</p>
+<h2 id="2024-DASCTF八月开学季-maze"><a href="#2024-DASCTF八月开学季-maze" class="headerlink" title="[2024 DASCTF八月开学季] maze"></a>[2024 DASCTF八月开学季] maze</h2><p>直接看主函数可以看到是一个8 * 8 * 8的三维迷宫 没有设置地图边界 移动时只有碰到墙壁才会停下 越界则会直接判定失败并结束程序:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __fastcall <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">&#123;</span><br><span class="line">  __int64 v3; <span class="comment">// rdx</span></span><br><span class="line">  __int64 v4; <span class="comment">// r8</span></span><br><span class="line">  __int64 v5; <span class="comment">// rdx</span></span><br><span class="line">  __int64 v6; <span class="comment">// r8</span></span><br><span class="line">  <span class="type">int</span> pos; <span class="comment">// [rsp+20h] [rbp-98h]</span></span><br><span class="line">  <span class="type">char</span> Str[<span class="number">112</span>]; <span class="comment">// [rsp+30h] [rbp-88h] BYREF</span></span><br><span class="line"></span><br><span class="line">  pos = <span class="number">0</span>;</span><br><span class="line">  <span class="built_in">memset</span>(Str, <span class="number">0</span>, <span class="number">100</span>);</span><br><span class="line">  print(<span class="string">&quot;Welcome to this sign in problem.\n&quot;</span>, argv, envp);</span><br><span class="line">  print(<span class="string">&quot;Give me your input:&quot;</span>, v3, v4);</span><br><span class="line">  print_0(<span class="string">&quot;%s&quot;</span>, Str);</span><br><span class="line">  <span class="keyword">for</span> ( step = <span class="number">0</span>; ; ++step )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( step &gt;= <span class="built_in">strlen</span>(Str) )</span><br><span class="line">      quit();</span><br><span class="line">    Sleep(<span class="number">0x28</span>u);</span><br><span class="line">    <span class="keyword">switch</span> ( Str[step] )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&#x27;a&#x27;</span>:</span><br><span class="line">        <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          v5 = (pos &gt;&gt; <span class="number">31</span>) &amp; <span class="number">7</span>;</span><br><span class="line">          <span class="keyword">if</span> ( pos % <span class="number">8</span> - <span class="number">1</span> &lt; <span class="number">0</span> )</span><br><span class="line">            quit();</span><br><span class="line">          <span class="keyword">if</span> ( (*maze)[pos - <span class="number">1</span>] )</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          --pos;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&#x27;d&#x27;</span>:</span><br><span class="line">        <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          v5 = (pos &gt;&gt; <span class="number">31</span>) &amp; <span class="number">7</span>;</span><br><span class="line">          <span class="keyword">if</span> ( pos % <span class="number">8</span> + <span class="number">1</span> &gt;= <span class="number">8</span> )</span><br><span class="line">            quit();</span><br><span class="line">          <span class="keyword">if</span> ( (*maze)[pos + <span class="number">1</span>] )</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          ++pos;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&#x27;n&#x27;</span>:</span><br><span class="line">        <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="keyword">if</span> ( pos - <span class="number">64</span> &lt; <span class="number">0</span> )</span><br><span class="line">            quit();</span><br><span class="line">          <span class="keyword">if</span> ( (*maze)[pos - <span class="number">64</span>] )</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          pos -= <span class="number">64</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&#x27;s&#x27;</span>:</span><br><span class="line">        <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          v5 = (pos &gt;&gt; <span class="number">31</span>) &amp; <span class="number">0x3F</span>;</span><br><span class="line">          <span class="keyword">if</span> ( pos % <span class="number">64</span> + <span class="number">8</span> &gt;= <span class="number">64</span> )</span><br><span class="line">            quit();</span><br><span class="line">          <span class="keyword">if</span> ( (*maze)[pos + <span class="number">8</span>] )</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          pos += <span class="number">8</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&#x27;u&#x27;</span>:</span><br><span class="line">        <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="keyword">if</span> ( pos + <span class="number">64</span> &gt;= <span class="number">512</span> )</span><br><span class="line">            quit();</span><br><span class="line">          <span class="keyword">if</span> ( (*maze)[pos + <span class="number">64</span>] )</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          pos += <span class="number">64</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&#x27;w&#x27;</span>:</span><br><span class="line">        <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          v5 = (pos &gt;&gt; <span class="number">31</span>) &amp; <span class="number">0x3F</span>;</span><br><span class="line">          <span class="keyword">if</span> ( pos % <span class="number">64</span> - <span class="number">8</span> &lt; <span class="number">0</span> )</span><br><span class="line">            quit();</span><br><span class="line">          <span class="keyword">if</span> ( (*maze)[pos - <span class="number">8</span>] )</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          pos -= <span class="number">8</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">default</span>:</span><br><span class="line">        quit();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ( pos == <span class="number">436</span> )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  print(<span class="string">&quot;Good job, the flag is md5_32_lower(your input)&quot;</span>, v5, v6);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果不想盯着迷宫硬解的话 也可以用时间侧信道进行爆破 只需要添加几个条件 例如不能重复一个步骤 不能在一步后进行相反的一步:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> subprocess, threading, time, copy</span><br><span class="line"></span><br><span class="line">times = &#123;&#125;</span><br><span class="line">stdouts = &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">run</span>(<span class="params">arg, c</span>):</span><br><span class="line">    t1 = time.time()</span><br><span class="line">    proc = subprocess.Popen([<span class="string">&#x27;bzff\\Maze.exe&#x27;</span>], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=<span class="literal">True</span>)</span><br><span class="line">    stdout, stderr = proc.communicate(<span class="built_in">input</span>=arg)</span><br><span class="line">    cost = time.time() - t1</span><br><span class="line">    times[c] = cost</span><br><span class="line">    stdouts[c] = stdout[-<span class="number">4</span>:]</span><br><span class="line">    <span class="keyword">return</span> stdout</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">check_thread_exit</span>(<span class="params">threads</span>):</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">all</span>(<span class="keyword">not</span> thread.is_alive() <span class="keyword">for</span> thread <span class="keyword">in</span> threads):</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br><span class="line">        </span><br><span class="line"></span><br><span class="line"><span class="comment"># times = &#123;&#125;</span></span><br><span class="line"><span class="comment"># for i in range(0x40):</span></span><br><span class="line"><span class="comment">#     input_content = i * &#x27;_&#x27;</span></span><br><span class="line"><span class="comment">#     t1 = time.time()</span></span><br><span class="line"><span class="comment">#     proc = subprocess.Popen([elf, input_content], stdout=subprocess.PIPE, stderr=subprocess.PIPE)</span></span><br><span class="line"><span class="comment">#     stdout, stderr = proc.communicate()</span></span><br><span class="line"><span class="comment">#     cost = time.time() - t1</span></span><br><span class="line"><span class="comment">#     times[str(i)] = cost</span></span><br><span class="line"><span class="comment"># print(times)</span></span><br><span class="line">flag = [<span class="string">&#x27;s&#x27;</span>, <span class="string">&#x27;d&#x27;</span>]</span><br><span class="line">oppsite = &#123;<span class="string">&#x27;w&#x27;</span>: <span class="string">&#x27;s&#x27;</span>, <span class="string">&#x27;s&#x27;</span>: <span class="string">&#x27;w&#x27;</span>, <span class="string">&#x27;a&#x27;</span>: <span class="string">&#x27;d&#x27;</span>, <span class="string">&#x27;d&#x27;</span>: <span class="string">&#x27;a&#x27;</span>, <span class="string">&#x27;u&#x27;</span>: <span class="string">&#x27;n&#x27;</span>, <span class="string">&#x27;n&#x27;</span>: <span class="string">&#x27;u&#x27;</span>&#125;</span><br><span class="line"><span class="keyword">while</span>(<span class="literal">True</span>):</span><br><span class="line">    threads = []</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&#x27;[+]Now: <span class="subst">&#123;<span class="string">&quot;&quot;</span>.join(flag)&#125;</span>&#x27;</span>)</span><br><span class="line">    char_table = <span class="string">&#x27;wasdun&#x27;</span>.replace(flag[-<span class="number">1</span>], <span class="string">&#x27;&#x27;</span>).replace(oppsite[flag[-<span class="number">1</span>]], <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    <span class="keyword">for</span> a <span class="keyword">in</span> char_table:</span><br><span class="line">        char_table2 = char_table.replace(a, <span class="string">&#x27;&#x27;</span>).replace(oppsite[a], <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">        <span class="keyword">for</span> c <span class="keyword">in</span> char_table2:</span><br><span class="line">            input_content = copy.deepcopy(flag)</span><br><span class="line">            input_content += [a, c]</span><br><span class="line">            input_content = <span class="string">&#x27;&#x27;</span>.join(input_content)</span><br><span class="line">            t = threading.Thread(target=run, args=(input_content, a+c))</span><br><span class="line">            threads.append(t)</span><br><span class="line">            t.start()</span><br><span class="line">    check_thread_exit(threads)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&#x27;put)&#x27;</span> <span class="keyword">not</span> <span class="keyword">in</span> [stdouts[c] <span class="keyword">for</span> c <span class="keyword">in</span> stdouts]:</span><br><span class="line">        most_likely = <span class="built_in">sorted</span>(times.items(), key=<span class="keyword">lambda</span> x: x[<span class="number">1</span>], reverse=<span class="literal">True</span>)[<span class="number">0</span>][<span class="number">0</span>]</span><br><span class="line">        flag += <span class="built_in">list</span>(most_likely)[<span class="number">0</span>]</span><br><span class="line">        stdouts.clear()</span><br><span class="line">        times.clear()</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;\n[+]Solution found:&#x27;</span>)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;&#x27;</span>.join(flag), end=<span class="string">&#x27;\nRest in :&#x27;</span>)</span><br><span class="line">        <span class="built_in">print</span>(stdouts)</span><br><span class="line">        <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%80%86%E5%90%91/" rel="tag"># 逆向</a>
+              <a href="/tags/%E4%BE%A7%E4%BF%A1%E9%81%93/" rel="tag"># 侧信道</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/07/18/angr%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/" rel="prev" title="angr学习记录">
+      <i class="fa fa-chevron-left"></i> angr学习记录
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#2024-%E7%BE%8A%E5%9F%8E%E6%9D%AF-Rust-vm"><span class="nav-number">1.</span> <span class="nav-text">[2024 羊城杯]-Rust_vm</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2024-TFCCTF-Functional"><span class="nav-number">2.</span> <span class="nav-text">[2024 TFCCTF] Functional</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2024-DASCTF%E5%85%AB%E6%9C%88%E5%BC%80%E5%AD%A6%E5%AD%A3-maze"><span class="nav-number">3.</span> <span class="nav-text">[2024 DASCTF八月开学季] maze</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">325k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:55</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
