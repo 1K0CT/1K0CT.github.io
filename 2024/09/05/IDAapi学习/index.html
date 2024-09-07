@@ -35,7 +35,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F05%2F20240905-134621.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F05%2F20240905-194256.png">
 <meta property="article:published_time" content="2024-09-05T05:09:01.000Z">
-<meta property="article:modified_time" content="2024-09-07T03:53:43.323Z">
+<meta property="article:modified_time" content="2024-09-07T13:02:42.054Z">
 <meta property="article:author" content="1K0CT B14s">
 <meta property="article:tag" content="逆向">
 <meta property="article:tag" content="IDA">
@@ -228,7 +228,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-09-07 11:53:43" itemprop="dateModified" datetime="2024-09-07T11:53:43+08:00">2024-09-07</time>
+                <time title="修改时间：2024-09-07 21:02:42" itemprop="dateModified" datetime="2024-09-07T21:02:42+08:00">2024-09-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -246,14 +246,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.3k</span>
+              <span>3k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
+              <span>3 分钟</span>
             </span>
 
         </div>
@@ -277,7 +277,7 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">is_thumb</span>(<span class="params">address</span>):</span><br><span class="line">    <span class="keyword">return</span> idc.get_sreg(address, <span class="string">&#x27;T&#x27;</span>) == <span class="number">1</span></span><br><span class="line"><span class="comment"># idc中获取寄存器可以使用字母代表 这里将&#x27;A&#x27;转化为0 则&#x27;T&#x27;转化为20</span></span><br><span class="line"><span class="comment"># &lt;=&gt;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">is_thumb</span>(<span class="params">address</span>):</span><br><span class="line">    <span class="keyword">return</span> idaapi.get_sreg(address, <span class="number">20</span>) == <span class="number">1</span></span><br></pre></td></tr></table></figure>
 
 <h3 id="获取内存信息"><a href="#获取内存信息" class="headerlink" title="获取内存信息"></a>获取内存信息</h3><h4 id="is-mapped-ea-bool"><a href="#is-mapped-ea-bool" class="headerlink" title="is_mapped(ea) -&gt; bool"></a>is_mapped(ea) -&gt; bool</h4><p>判断地址ea是否是有效地址(在程序内)</p>
-<h4 id="get-bytes-ea-size-gmb-flags-0x01-bytes"><a href="#get-bytes-ea-size-gmb-flags-0x01-bytes" class="headerlink" title="get_bytes(ea, size[, gmb_flags&#x3D;0x01]) -&gt; bytes"></a>get_bytes(ea, size[, gmb_flags&#x3D;0x01]) -&gt; bytes</h4><p>以大端序获取位于地址ea处的size个字节数据</p>
+<h4 id="get-bytes-ea-size-gmb-flags-0x01-bytes-get-wide-byte-ea-int"><a href="#get-bytes-ea-size-gmb-flags-0x01-bytes-get-wide-byte-ea-int" class="headerlink" title="get_bytes(ea, size[, gmb_flags&#x3D;0x01]) -&gt; bytes | get_wide_byte(ea) -&gt; int"></a>get_bytes(ea, size[, gmb_flags&#x3D;0x01]) -&gt; bytes | get_wide_byte(ea) -&gt; int</h4><p>分别用来以大端序获取位于地址ea处的size个字节数据和1个字节的数据 除此之外还有包括获取1字 双字等的函数 但是这两个应该够用了</p>
 <h2 id="与IDA交互"><a href="#与IDA交互" class="headerlink" title="与IDA交互"></a>与IDA交互</h2><h3 id="让IDA生成信息更具可操作性"><a href="#让IDA生成信息更具可操作性" class="headerlink" title="让IDA生成信息更具可操作性"></a>让IDA生成信息更具可操作性</h3><h4 id="get-name-value-from-name-typ-value-get-dtype-size-dtype"><a href="#get-name-value-from-name-typ-value-get-dtype-size-dtype" class="headerlink" title="get_name_value(_from, name) -&gt; (typ, value) | get_dtype_size(dtype)"></a>get_name_value(_from, name) -&gt; (typ, value) | get_dtype_size(dtype)</h4><p>获取IDA生成信息对应的值和值的类型 例如:</p>
 <p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F04%2F20240904-220744.png" alt="image-20240904220744244"></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># test.py</span></span><br><span class="line"><span class="keyword">import</span> idaapi, idc</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;Type:<span class="subst">&#123;idaapi.get_name_value(<span class="number">0x40D2C2</span>, <span class="string">&#x27;var_18&#x27;</span>)[<span class="number">0</span>]&#125;</span>\nValue:<span class="subst">&#123;<span class="built_in">hex</span>(idaapi.get_name_value(<span class="number">0x40D2C2</span>, <span class="string">&#x27;var_18&#x27;</span>)[<span class="number">1</span>])&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;NT_SEG:<span class="subst">&#123;idaapi.NT_SEG&#125;</span>, NT_NONE:<span class="subst">&#123;idaapi.NT_NONE&#125;</span>&#x27;</span>)</span><br></pre></td></tr></table></figure>
@@ -294,6 +294,121 @@
 <p><code>insn.ops[n].dtype</code>  : 操作数的数据类别 参考<a target="_blank" rel="noopener" href="https://hex-rays.com/products/ida/support/sdkdoc/group__dt__.html">IDA SDK: Operand value types</a></p>
 <p><code>insn.ops[n].type</code>    : 操作数的类别 参考<a target="_blank" rel="noopener" href="https://hex-rays.com/products/ida/support/sdkdoc/group__o__.html#gab490f48c733f3d29c700bb5d70ecc198">IDA SDK: Operand types</a></p>
 <p><code>insn.ops[n].value</code>  : 如果该操作数是立即数 返回这个值</p>
+<h4 id="get-func-attr-ea-attr-any-set-func-addr-ea-attr-value-int"><a href="#get-func-attr-ea-attr-any-set-func-addr-ea-attr-value-int" class="headerlink" title="get_func_attr(ea, attr) -&gt; any | set_func_addr(ea, attr, value) -&gt; int"></a>get_func_attr(ea, attr) -&gt; any | set_func_addr(ea, attr, value) -&gt; int</h4><p>分别用于获取和设置ea地址所在的函数的attr属性 设置属性时返回<code>1</code>表示成功返回<code>0</code>表示失败</p>
+<p>这些属性是:</p>
+<table>
+<thead>
+<tr>
+<th>Attribution (idc.)</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FUNCATTR_ARGSIZE</td>
+<td>28</td>
+</tr>
+<tr>
+<td>FUNCATTR_COLOR</td>
+<td>36</td>
+</tr>
+<tr>
+<td>FUNCATTR_END</td>
+<td>4</td>
+</tr>
+<tr>
+<td>FUNCATTR_FLAGS</td>
+<td>8</td>
+</tr>
+<tr>
+<td>FUNCATTR_FPD</td>
+<td>32</td>
+</tr>
+<tr>
+<td>FUNCATTR_FRAME</td>
+<td>16</td>
+</tr>
+<tr>
+<td>FUNCATTR_FRREGS</td>
+<td>24</td>
+</tr>
+<tr>
+<td>FUNCATTR_FRSIZE</td>
+<td>20</td>
+</tr>
+<tr>
+<td>FUNCATTR_OWNER</td>
+<td>16</td>
+</tr>
+<tr>
+<td>FUNCATTR_REFQTY</td>
+<td>20</td>
+</tr>
+<tr>
+<td>FUNCATTR_START</td>
+<td>0</td>
+</tr>
+<tr>
+<td>FUNC_BOTTOMBP</td>
+<td>256</td>
+</tr>
+<tr>
+<td>FUNC_FAR</td>
+<td>2</td>
+</tr>
+<tr>
+<td>FUNC_FRAME</td>
+<td>16</td>
+</tr>
+<tr>
+<td>FUNC_HIDDEN</td>
+<td>64</td>
+</tr>
+<tr>
+<td>FUNC_LIB</td>
+<td>4</td>
+</tr>
+<tr>
+<td>FUNC_LUMINA</td>
+<td>65536</td>
+</tr>
+<tr>
+<td>FUNC_NORET</td>
+<td>1</td>
+</tr>
+<tr>
+<td>FUNC_NORET_PENDING</td>
+<td>512</td>
+</tr>
+<tr>
+<td>FUNC_OUTLINE</td>
+<td>131072</td>
+</tr>
+<tr>
+<td>FUNC_PURGED_OK</td>
+<td>16384</td>
+</tr>
+<tr>
+<td>FUNC_SP_READY</td>
+<td>1024</td>
+</tr>
+<tr>
+<td>FUNC_STATIC</td>
+<td>8</td>
+</tr>
+<tr>
+<td>FUNC_TAIL</td>
+<td>32768</td>
+</tr>
+<tr>
+<td>FUNC_THUNK</td>
+<td>128</td>
+</tr>
+<tr>
+<td>FUNC_USERFAR</td>
+<td>32</td>
+</tr>
+</tbody></table>
+<h3 id="对二进制文件进行操作"><a href="#对二进制文件进行操作" class="headerlink" title="对二进制文件进行操作"></a>对二进制文件进行操作</h3><h4 id="patch-byte-ea-x-bool-patch-bytes-ea-buf-bool"><a href="#patch-byte-ea-x-bool-patch-bytes-ea-buf-bool" class="headerlink" title="patch_byte(ea, x) -&gt; bool | patch_bytes(ea, buf) -&gt; bool"></a>patch_byte(ea, x) -&gt; bool | patch_bytes(ea, buf) -&gt; bool</h4><p>分别用于将ea处的1个和多个字节patch成目标字节<code>x</code>或目标字节串<code>buf</code> 返回patch的结果是否成功</p>
 
     </div>
 
@@ -375,7 +490,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">获取二进制文件信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E7%A1%AC%E4%BB%B6%E4%BF%A1%E6%81%AF"><span class="nav-number">1.1.</span> <span class="nav-text">获取硬件信息</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#inf-is-64bit-bool-inf-is-32bit-exactly-bool"><span class="nav-number">1.1.1.</span> <span class="nav-text">inf_is_64bit() -&gt; bool | inf_is_32bit_exactly() -&gt; bool</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#inf-is-be-bool"><span class="nav-number">1.1.2.</span> <span class="nav-text">inf_is_be() -&gt; bool</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#inf-get-procname-lower-str"><span class="nav-number">1.1.3.</span> <span class="nav-text">inf_get_procname()[.lower()] -&gt; str</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#idc-get-sreg-ea-reg-int"><span class="nav-number">1.1.4.</span> <span class="nav-text">idc.get_sreg(ea, reg) -&gt; int</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%86%85%E5%AD%98%E4%BF%A1%E6%81%AF"><span class="nav-number">1.2.</span> <span class="nav-text">获取内存信息</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#is-mapped-ea-bool"><span class="nav-number">1.2.1.</span> <span class="nav-text">is_mapped(ea) -&gt; bool</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#get-bytes-ea-size-gmb-flags-0x01-bytes"><span class="nav-number">1.2.2.</span> <span class="nav-text">get_bytes(ea, size[, gmb_flags&#x3D;0x01]) -&gt; bytes</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8EIDA%E4%BA%A4%E4%BA%92"><span class="nav-number">2.</span> <span class="nav-text">与IDA交互</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A9IDA%E7%94%9F%E6%88%90%E4%BF%A1%E6%81%AF%E6%9B%B4%E5%85%B7%E5%8F%AF%E6%93%8D%E4%BD%9C%E6%80%A7"><span class="nav-number">2.1.</span> <span class="nav-text">让IDA生成信息更具可操作性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#get-name-value-from-name-typ-value-get-dtype-size-dtype"><span class="nav-number">2.1.1.</span> <span class="nav-text">get_name_value(_from, name) -&gt; (typ, value) | get_dtype_size(dtype)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#get-item-head-ea-int-get-item-size-ea-int"><span class="nav-number">2.1.2.</span> <span class="nav-text">get_item_head(ea) -&gt; int | get_item_size(ea) -&gt; int</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#class-insn-t-decode-insn-insn-ea-int"><span class="nav-number">2.1.3.</span> <span class="nav-text">class insn_t() | decode_insn(insn, ea) -&gt; int</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">获取二进制文件信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E7%A1%AC%E4%BB%B6%E4%BF%A1%E6%81%AF"><span class="nav-number">1.1.</span> <span class="nav-text">获取硬件信息</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#inf-is-64bit-bool-inf-is-32bit-exactly-bool"><span class="nav-number">1.1.1.</span> <span class="nav-text">inf_is_64bit() -&gt; bool | inf_is_32bit_exactly() -&gt; bool</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#inf-is-be-bool"><span class="nav-number">1.1.2.</span> <span class="nav-text">inf_is_be() -&gt; bool</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#inf-get-procname-lower-str"><span class="nav-number">1.1.3.</span> <span class="nav-text">inf_get_procname()[.lower()] -&gt; str</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#idc-get-sreg-ea-reg-int"><span class="nav-number">1.1.4.</span> <span class="nav-text">idc.get_sreg(ea, reg) -&gt; int</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%86%85%E5%AD%98%E4%BF%A1%E6%81%AF"><span class="nav-number">1.2.</span> <span class="nav-text">获取内存信息</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#is-mapped-ea-bool"><span class="nav-number">1.2.1.</span> <span class="nav-text">is_mapped(ea) -&gt; bool</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#get-bytes-ea-size-gmb-flags-0x01-bytes-get-wide-byte-ea-int"><span class="nav-number">1.2.2.</span> <span class="nav-text">get_bytes(ea, size[, gmb_flags&#x3D;0x01]) -&gt; bytes | get_wide_byte(ea) -&gt; int</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8EIDA%E4%BA%A4%E4%BA%92"><span class="nav-number">2.</span> <span class="nav-text">与IDA交互</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A9IDA%E7%94%9F%E6%88%90%E4%BF%A1%E6%81%AF%E6%9B%B4%E5%85%B7%E5%8F%AF%E6%93%8D%E4%BD%9C%E6%80%A7"><span class="nav-number">2.1.</span> <span class="nav-text">让IDA生成信息更具可操作性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#get-name-value-from-name-typ-value-get-dtype-size-dtype"><span class="nav-number">2.1.1.</span> <span class="nav-text">get_name_value(_from, name) -&gt; (typ, value) | get_dtype_size(dtype)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#get-item-head-ea-int-get-item-size-ea-int"><span class="nav-number">2.1.2.</span> <span class="nav-text">get_item_head(ea) -&gt; int | get_item_size(ea) -&gt; int</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#class-insn-t-decode-insn-insn-ea-int"><span class="nav-number">2.1.3.</span> <span class="nav-text">class insn_t() | decode_insn(insn, ea) -&gt; int</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#get-func-attr-ea-attr-any-set-func-addr-ea-attr-value-int"><span class="nav-number">2.1.4.</span> <span class="nav-text">get_func_attr(ea, attr) -&gt; any | set_func_addr(ea, attr, value) -&gt; int</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6%E8%BF%9B%E8%A1%8C%E6%93%8D%E4%BD%9C"><span class="nav-number">2.2.</span> <span class="nav-text">对二进制文件进行操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#patch-byte-ea-x-bool-patch-bytes-ea-buf-bool"><span class="nav-number">2.2.1.</span> <span class="nav-text">patch_byte(ea, x) -&gt; bool | patch_bytes(ea, buf) -&gt; bool</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -439,12 +554,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">327k</span>
+    <span title="站点总字数">328k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:57</span>
+    <span title="站点阅读时长">4:58</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
   </div>
