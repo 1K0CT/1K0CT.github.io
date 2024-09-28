@@ -42,7 +42,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F15%2F20240915-225312.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F16%2F20240916-140102.png">
 <meta property="article:published_time" content="2024-09-15T02:20:37.000Z">
-<meta property="article:modified_time" content="2024-09-16T07:04:37.315Z">
+<meta property="article:modified_time" content="2024-09-18T04:21:55.372Z">
 <meta property="article:author" content="1K0CT B14s">
 <meta property="article:tag" content="逆向">
 <meta property="article:tag" content="C++">
@@ -235,7 +235,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-09-16 15:04:37" itemprop="dateModified" datetime="2024-09-16T15:04:37+08:00">2024-09-16</time>
+                <time title="修改时间：2024-09-18 12:21:55" itemprop="dateModified" datetime="2024-09-18T12:21:55+08:00">2024-09-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -326,6 +326,7 @@
 <li>原来会触发异常的部分不一定有足够的空间用来patch成两条指令</li>
 </ol>
 <p>所以目前我能想到比较好的处理方式是在异常处理函数的起始地址下断点来动态调试分析 而IDA是可以轻松识别出<code>__except(handler())</code>中的<code>handler()</code>的</p>
+<p>最后附上所有<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-erref/596a1078-e883-4972-9bbc-49e60bebca55">Windows异常状态码</a></p>
 
     </div>
 
@@ -348,7 +349,10 @@
     <a href="/2024/09/05/IDAapi%E5%AD%A6%E4%B9%A0/" rel="prev" title="IDAapi学习">
       <i class="fa fa-chevron-left"></i> IDAapi学习
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2024/09/28/IDA%E9%85%8D%E5%90%88VMware%E8%BF%9B%E8%A1%8C%E5%86%85%E6%A0%B8-%E9%A9%B1%E5%8A%A8-%E8%B0%83%E8%AF%95/" rel="next" title="IDA配合VMware进行内核(驱动)调试">
+      IDA配合VMware进行内核(驱动)调试 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -423,7 +427,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -478,7 +482,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">5:18</span>
+    <span title="站点阅读时长">5:19</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
   </div>
