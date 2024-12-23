@@ -3527,8 +3527,10 @@
   </entry>
   <entry>
     <title>Python逆向</title>
-    <url>/2024/09/15/Python%E9%80%86%E5%90%91/</url>
-    <content><![CDATA[<h2 id="CPython逆向"><a href="#CPython逆向" class="headerlink" title="CPython逆向"></a>CPython逆向</h2><p>如果python程序中调用了一个打包成<code>.pyd</code>或者<code>.so</code>的外部连接库 那么那个库大概率就是Cython编译打包的 直接当成<code>.dll</code>或者<code>.so</code>来逆向 </p>
+    <url>/2024/12/23/Python%E9%80%86%E5%90%91/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h2 id="CPython逆向"><a href="#CPython逆向" class="headerlink" title="CPython逆向"></a>CPython逆向</h2><p>如果python程序中调用了一个打包成<code>.pyd</code>或者<code>.so</code>的外部连接库 那么那个库大概率就是Cython编译打包的 直接当成<code>.dll</code>或者<code>.so</code>来逆向 </p>
 <p>正式开始逆向之前需要先知道几个关于CPython的最基础的知识点 方便后续理解</p>
 <h3 id="PyObject"><a href="#PyObject" class="headerlink" title="PyObject"></a>PyObject</h3><p>python中所有类都基于一个最基础的<code>Object</code>类 而Cython做的事无非就是将python实现转为C实现 原本的<code>Object</code>类在CPython中这个类就是<code>PyObject</code>结构体 逆向过程中见到的所有python变量都是这个类的派生类 这个类的内存布局如下:</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Py_obj</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    _QWORD refcnt;    <span class="comment">// 引用次数 用于内存回收机制</span></span><br><span class="line">    Py_obj *type;    <span class="comment">// 变量的类型</span></span><br><span class="line">    _QWORD size;    <span class="comment">// 变量的大小</span></span><br><span class="line">    _QWORD item;    <span class="comment">// 变量的值</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
