@@ -23,28 +23,49 @@
     var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Ikoct的饮冰室">
-<meta property="og:url" content="https://ikoct.com/">
+  <meta name="description" content="CPython逆向如果python程序中调用了一个打包成.pyd或者.so的外部连接库 那么那个库大概率就是Cython编译打包的 直接当成.dll或者.so来逆向  正式开始逆向之前需要先知道几个关于CPython的最基础的知识点 方便后续理解 PyObjectpython中所有类都基于一个最基础的Object类 而Cython做的事无非就是将python实现转为C实现 原本的Object类在C">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python逆向">
+<meta property="og:url" content="https://ikoct.com/2024/09/15/Python%E9%80%86%E5%90%91/">
 <meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="CPython逆向如果python程序中调用了一个打包成.pyd或者.so的外部连接库 那么那个库大概率就是Cython编译打包的 直接当成.dll或者.so来逆向  正式开始逆向之前需要先知道几个关于CPython的最基础的知识点 方便后续理解 PyObjectpython中所有类都基于一个最基础的Object类 而Cython做的事无非就是将python实现转为C实现 原本的Object类在C">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-095622.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-131642.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-131653.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-133248.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-133419.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-133841.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-150524.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-175908.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-180101.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-181108.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-181316.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-182920.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-183029.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-183801.jpg">
+<meta property="article:published_time" content="2024-09-15T02:20:37.000Z">
+<meta property="article:modified_time" content="2024-12-23T10:39:47.561Z">
 <meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="Reverse">
+<meta property="article:tag" content="Python">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-095622.png">
 
-<link rel="canonical" href="https://ikoct.com/">
+<link rel="canonical" href="https://ikoct.com/2024/09/15/Python%E9%80%86%E5%90%91/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>Ikoct的饮冰室</title>
+  <title>Python逆向 | Ikoct的饮冰室</title>
   
 
 
@@ -180,203 +201,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/09/28/IDA%E9%85%8D%E5%90%88VMware%E8%BF%9B%E8%A1%8C%E5%86%85%E6%A0%B8-%E9%A9%B1%E5%8A%A8-%E8%B0%83%E8%AF%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myavatar.gif">
-      <meta itemprop="name" content="1K0CT B14s">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ikoct的饮冰室">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/09/28/IDA%E9%85%8D%E5%90%88VMware%E8%BF%9B%E8%A1%8C%E5%86%85%E6%A0%B8-%E9%A9%B1%E5%8A%A8-%E8%B0%83%E8%AF%95/" class="post-title-link" itemprop="url">IDA配合VMware进行内核(驱动)调试</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-09-28 14:05:19" itemprop="dateCreated datePublished" datetime="2024-09-28T14:05:19+08:00">2024-09-28</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-10-23 15:07:10" itemprop="dateModified" datetime="2024-10-23T15:07:10+08:00">2024-10-23</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Windows%E5%86%85%E6%A0%B8/" itemprop="url" rel="index"><span itemprop="name">Windows内核</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>368</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
 
     
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>介绍一下如何用IDA配合Windbg和Vmware调试内核</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/09/28/IDA%E9%85%8D%E5%90%88VMware%E8%BF%9B%E8%A1%8C%E5%86%85%E6%A0%B8-%E9%A9%B1%E5%8A%A8-%E8%B0%83%E8%AF%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/09/15/C-%E5%8F%8D%E9%80%86%E5%90%91%E6%8A%80%E5%B7%A7%E9%89%B4%E8%B5%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myavatar.gif">
-      <meta itemprop="name" content="1K0CT B14s">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ikoct的饮冰室">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/09/15/C-%E5%8F%8D%E9%80%86%E5%90%91%E6%8A%80%E5%B7%A7%E9%89%B4%E8%B5%8F/" class="post-title-link" itemprop="url">C/C++反逆向技巧鉴赏</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-09-15 10:20:37" itemprop="dateCreated datePublished" datetime="2024-09-15T10:20:37+08:00">2024-09-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-12-02 17:13:16" itemprop="dateModified" datetime="2024-12-02T17:13:16+08:00">2024-12-02</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Reverse/" itemprop="url" rel="index"><span itemprop="name">Reverse</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>24k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>22 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>记录一下比赛中遇到的各种C&#x2F;C++的反逆向技巧(主要是Windows API)</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/09/15/C-%E5%8F%8D%E9%80%86%E5%90%91%E6%8A%80%E5%B7%A7%E9%89%B4%E8%B5%8F/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -392,10 +220,9 @@
       <meta itemprop="name" content="Ikoct的饮冰室">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/09/15/Python%E9%80%86%E5%90%91/" class="post-title-link" itemprop="url">Python逆向</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          Python逆向
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -452,7 +279,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="CPython逆向"><a href="#CPython逆向" class="headerlink" title="CPython逆向"></a>CPython逆向</h2><p>如果python程序中调用了一个打包成<code>.pyd</code>或者<code>.so</code>的外部连接库 那么那个库大概率就是Cython编译打包的 直接当成<code>.dll</code>或者<code>.so</code>来逆向 </p>
+        <h2 id="CPython逆向"><a href="#CPython逆向" class="headerlink" title="CPython逆向"></a>CPython逆向</h2><p>如果python程序中调用了一个打包成<code>.pyd</code>或者<code>.so</code>的外部连接库 那么那个库大概率就是Cython编译打包的 直接当成<code>.dll</code>或者<code>.so</code>来逆向 </p>
 <p>正式开始逆向之前需要先知道几个关于CPython的最基础的知识点 方便后续理解</p>
 <h3 id="PyObject"><a href="#PyObject" class="headerlink" title="PyObject"></a>PyObject</h3><p>python中所有类都基于一个最基础的<code>Object</code>类 而Cython做的事无非就是将python实现转为C实现 原本的<code>Object</code>类在CPython中这个类就是<code>PyObject</code>结构体 逆向过程中见到的所有python变量都是这个类的派生类 这个类的内存布局如下:</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Py_obj</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    _QWORD refcnt;    <span class="comment">// 引用次数 用于内存回收机制</span></span><br><span class="line">    Py_obj *type;    <span class="comment">// 变量的类型</span></span><br><span class="line">    _QWORD size;    <span class="comment">// 变量的大小</span></span><br><span class="line">    _QWORD item;    <span class="comment">// 变量的值</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
@@ -528,711 +355,38 @@
 <h2 id="PyArmor"><a href="#PyArmor" class="headerlink" title="PyArmor"></a>PyArmor</h2><p>没学到</p>
 <p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F12%2F23%2F20241223-183801.jpg" alt="2d02c83d1e65f2f5d83a2289822185cd"></p>
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
+          <div class="post-tags">
+              <a href="/tags/Reverse/" rel="tag"># Reverse</a>
+              <a href="/tags/Python/" rel="tag"># Python</a>
+          </div>
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/09/05/IDAapi%E5%AD%A6%E4%B9%A0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myavatar.gif">
-      <meta itemprop="name" content="1K0CT B14s">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ikoct的饮冰室">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/09/05/IDAapi%E5%AD%A6%E4%B9%A0/" class="post-title-link" itemprop="url">IDAapi学习</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-09-05 13:09:01" itemprop="dateCreated datePublished" datetime="2024-09-05T13:09:01+08:00">2024-09-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-10-23 15:06:19" itemprop="dateModified" datetime="2024-10-23T15:06:19+08:00">2024-10-23</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Reverse/" itemprop="url" rel="index"><span itemprop="name">Reverse</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>14k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>13 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Angr的力量是有极限的 所以我要转行学idaapi了!</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/09/05/IDAapi%E5%AD%A6%E4%B9%A0/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
-    </div>
 
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/08/29/%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myavatar.gif">
-      <meta itemprop="name" content="1K0CT B14s">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ikoct的饮冰室">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/08/29/%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/" class="post-title-link" itemprop="url">侧信道攻击</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-08-29 14:37:55" itemprop="dateCreated datePublished" datetime="2024-08-29T14:37:55+08:00">2024-08-29</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-10-23 15:06:02" itemprop="dateModified" datetime="2024-10-23T15:06:02+08:00">2024-10-23</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>20k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>18 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>侧信道攻击最原始的想法是直接对程序输入数据进行爆破测试 例如羊城杯2024逆向的Rust-VM:</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/08/29/%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/09/05/IDAapi%E5%AD%A6%E4%B9%A0/" rel="prev" title="IDAapi学习">
+      <i class="fa fa-chevron-left"></i> IDAapi学习
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/09/15/C-%E5%8F%8D%E9%80%86%E5%90%91%E6%8A%80%E5%B7%A7%E9%89%B4%E8%B5%8F/" rel="next" title="C/C++反逆向技巧鉴赏">
+      C/C++反逆向技巧鉴赏 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
       </footer>
+    
   </article>
   
   
   
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/07/18/angr%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myavatar.gif">
-      <meta itemprop="name" content="1K0CT B14s">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ikoct的饮冰室">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/07/18/angr%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">Angr学习记录</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-07-18 21:14:54" itemprop="dateCreated datePublished" datetime="2024-07-18T21:14:54+08:00">2024-07-18</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-10-28 15:43:59" itemprop="dateModified" datetime="2024-10-28T15:43:59+08:00">2024-10-28</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Reverse/" itemprop="url" rel="index"><span itemprop="name">Reverse</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>52k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>47 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="Angr简介"><a href="#Angr简介" class="headerlink" title="Angr简介"></a>Angr简介</h2><p>Angr提供了一个处理二进制文件的框架 主流的指令集指令在被载入<code>CLE</code>框架后 会根据功能被抽象为中间语言(IL) Angr提供的就是处理这些被载入为IL的程序 可以用来实现自动化的程序调试 例如直接载入程序然后像模拟的标准输入流输入数据以达到直接利用原程序进行爆破的目的 同时Angr还内置了约束求解器</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/07/18/angr%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/05/22/Pwn%E5%85%A5%E9%97%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myavatar.gif">
-      <meta itemprop="name" content="1K0CT B14s">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ikoct的饮冰室">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/05/22/Pwn%E5%85%A5%E9%97%A8/" class="post-title-link" itemprop="url">Pwn学习记录</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-05-22 20:44:16" itemprop="dateCreated datePublished" datetime="2024-05-22T20:44:16+08:00">2024-05-22</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-12-05 22:17:26" itemprop="dateModified" datetime="2024-12-05T22:17:26+08:00">2024-12-05</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Pwn/" itemprop="url" rel="index"><span itemprop="name">Pwn</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>31k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>28 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>记录一下入门Pwn的心路历程</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/05/22/Pwn%E5%85%A5%E9%97%A8/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/05/10/Frida%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myavatar.gif">
-      <meta itemprop="name" content="1K0CT B14s">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ikoct的饮冰室">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/05/10/Frida%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">Frida学习记录</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-05-10 21:54:22" itemprop="dateCreated datePublished" datetime="2024-05-10T21:54:22+08:00">2024-05-10</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-10-23 15:05:29" itemprop="dateModified" datetime="2024-10-23T15:05:29+08:00">2024-10-23</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Reverse/" itemprop="url" rel="index"><span itemprop="name">Reverse</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>记录一下学习Frida的历程</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/05/10/Frida%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/04/29/Windows%E5%B7%AE%E5%BC%82%E5%8C%96%E8%A1%A5%E4%B8%81MSDelta%E4%B9%8B%E7%A0%94%E7%A9%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myavatar.gif">
-      <meta itemprop="name" content="1K0CT B14s">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ikoct的饮冰室">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/04/29/Windows%E5%B7%AE%E5%BC%82%E5%8C%96%E8%A1%A5%E4%B8%81MSDelta%E4%B9%8B%E7%A0%94%E7%A9%B6/" class="post-title-link" itemprop="url">Windows差异化补丁MSDelta之研究</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-04-29 12:49:32" itemprop="dateCreated datePublished" datetime="2024-04-29T12:49:32+08:00">2024-04-29</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-10-23 15:08:21" itemprop="dateModified" datetime="2024-10-23T15:08:21+08:00">2024-10-23</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Windows%E5%86%85%E6%A0%B8/" itemprop="url" rel="index"><span itemprop="name">Windows内核</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>9.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>8 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p><code>msdelta.dll</code>包含了一系列用于对文件进行补丁操作的API 鉴于网上资料极少且<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/windows/win32/devnotes/msdelta">官方文档</a>简陋 记录一下学习过程</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/04/29/Windows%E5%B7%AE%E5%BC%82%E5%8C%96%E8%A1%A5%E4%B8%81MSDelta%E4%B9%8B%E7%A0%94%E7%A9%B6/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/04/15/AmateursCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myavatar.gif">
-      <meta itemprop="name" content="1K0CT B14s">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ikoct的饮冰室">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/04/15/AmateursCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/" class="post-title-link" itemprop="url">AmateursCTF2024逆向方向wp</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-04-15 13:36:09" itemprop="dateCreated datePublished" datetime="2024-04-15T13:36:09+08:00">2024-04-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-10-23 15:08:32" itemprop="dateModified" datetime="2024-10-23T15:08:32+08:00">2024-10-23</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Reverse/" itemprop="url" rel="index"><span itemprop="name">Reverse</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>43k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>39 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>参赛ID:1K0CT, Team : 4W3, 最终排名:88th(公开赛道)</p>
-<p>做到flocto师傅的题真的每次都要有感而发一下 真正能让我全身心投入的赛题 给一个陌生的考点 但是不至于让你寸步难行 有种接触新东西的时候那个东西对你欲拒还迎激发探索欲的美 可能这就是flocto师傅出的题的魅力吧</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/04/15/AmateursCTF2024%E9%80%86%E5%90%91%E6%96%B9%E5%90%91wp/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-
-  
-  <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
-  </nav>
 
 
 
@@ -1284,6 +438,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CPython%E9%80%86%E5%90%91"><span class="nav-number">1.</span> <span class="nav-text">CPython逆向</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PyObject"><span class="nav-number">1.1.</span> <span class="nav-text">PyObject</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#PyLong"><span class="nav-number">1.1.1.</span> <span class="nav-text">PyLong</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%83%E8%AF%95%E6%96%B9%E6%B3%95"><span class="nav-number">1.2.</span> <span class="nav-text">调试方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E5%A7%8B%E5%88%86%E6%9E%90"><span class="nav-number">1.3.</span> <span class="nav-text">开始分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%BB%E6%89%BE%E5%88%9D%E5%A7%8B%E5%8C%96%E5%87%BD%E6%95%B0"><span class="nav-number">1.3.1.</span> <span class="nav-text">寻找初始化函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%BB%E6%89%BE%E7%9B%AE%E6%A0%87%E5%87%BD%E6%95%B0"><span class="nav-number">1.3.2.</span> <span class="nav-text">寻找目标函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%98%E5%8E%9Fpython%E4%BB%A3%E7%A0%81"><span class="nav-number">1.4.</span> <span class="nav-text">还原python代码</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BE%AA%E7%8E%AF"><span class="nav-number">1.4.1.</span> <span class="nav-text">循环</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B0%83%E7%94%A8"><span class="nav-number">1.4.2.</span> <span class="nav-text">调用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%97%E8%A1%A8%E6%8E%A8%E5%AF%BC%E5%BC%8F"><span class="nav-number">1.4.3.</span> <span class="nav-text">列表推导式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E6%88%98"><span class="nav-number">1.5.</span> <span class="nav-text">实战</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Ciscn-C-C-B-2024-rand0m"><span class="nav-number">1.5.1.</span> <span class="nav-text">[Ciscn &amp; C!C!B!2024] rand0m</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyArmor"><span class="nav-number">2.</span> <span class="nav-text">PyArmor</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
