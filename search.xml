@@ -3526,9 +3526,42 @@
       </tags>
   </entry>
   <entry>
+    <title>IDA配合VMware进行内核(驱动)调试</title>
+    <url>/2024/09/28/IDA%E9%85%8D%E5%90%88VMware%E8%BF%9B%E8%A1%8C%E5%86%85%E6%A0%B8-%E9%A9%B1%E5%8A%A8-%E8%B0%83%E8%AF%95/</url>
+    <content><![CDATA[<p>介绍一下如何用IDA配合Windbg和Vmware调试内核</p>
+<span id="more"></span>
+
+<h2 id="虚拟机准备"><a href="#虚拟机准备" class="headerlink" title="虚拟机准备"></a>虚拟机准备</h2><p>新增一个串行端口:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-134238.png" alt="image-20240928134238807"></p>
+<p>如果设备里有打印机要把打印机移除 否则包括以下步骤使用的管道要改成com2</p>
+<p>命令行打开msconfig 然后配置默认启动调试机:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-135341.png"></p>
+<h2 id="物理机准备"><a href="#物理机准备" class="headerlink" title="物理机准备"></a>物理机准备</h2><p>虚拟机上配置好后先打开Windbg检查是否能进行内核调试:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-135805.png" alt="image-20240928135805578"></p>
+<p>如果成功的话应该会显示内核断在一个硬件断点上:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-135901.png" alt="image-20240928135901744"></p>
+<p>这时候用IDA打开要调试的驱动文件(.sys) 选择Windbg调试器:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-140006.png" alt="image-20240928140006899"></p>
+<p>配置调试器设置如下:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-140133.png" alt="image-20240928140133914"></p>
+<p>Connection string填<code>com:port=//./pipe/com1,baud=115200,pipe</code> (如果之前用的是com1)</p>
+<p>这时候选择Attach to process 如果成功的话会显示虚拟机内核:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-140335.png" alt="image-20240928140335125"></p>
+<p>下好断点后运行附加到内核上进行调试 一开始会断在硬件断点上 直接放行 运行会调用目标驱动的程序后内核会断在之前下好的断点上</p>
+]]></content>
+      <categories>
+        <category>Windows内核</category>
+      </categories>
+      <tags>
+        <tag>Reverse</tag>
+        <tag>Kernel</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Python逆向</title>
     <url>/2024/12/23/Python%E9%80%86%E5%90%91/</url>
-    <content><![CDATA[<span id="more"></span>
+    <content><![CDATA[<p>记录一下比赛中遇到的Python逆向学习心得</p>
+<span id="more"></span>
 
 <h2 id="CPython逆向"><a href="#CPython逆向" class="headerlink" title="CPython逆向"></a>CPython逆向</h2><p>如果python程序中调用了一个打包成<code>.pyd</code>或者<code>.so</code>的外部连接库 那么那个库大概率就是Cython编译打包的 直接当成<code>.dll</code>或者<code>.so</code>来逆向 </p>
 <p>正式开始逆向之前需要先知道几个关于CPython的最基础的知识点 方便后续理解</p>
@@ -3613,38 +3646,6 @@
       <tags>
         <tag>Reverse</tag>
         <tag>Python</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>IDA配合VMware进行内核(驱动)调试</title>
-    <url>/2024/09/28/IDA%E9%85%8D%E5%90%88VMware%E8%BF%9B%E8%A1%8C%E5%86%85%E6%A0%B8-%E9%A9%B1%E5%8A%A8-%E8%B0%83%E8%AF%95/</url>
-    <content><![CDATA[<p>介绍一下如何用IDA配合Windbg和Vmware调试内核</p>
-<span id="more"></span>
-
-<h2 id="虚拟机准备"><a href="#虚拟机准备" class="headerlink" title="虚拟机准备"></a>虚拟机准备</h2><p>新增一个串行端口:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-134238.png" alt="image-20240928134238807"></p>
-<p>如果设备里有打印机要把打印机移除 否则包括以下步骤使用的管道要改成com2</p>
-<p>命令行打开msconfig 然后配置默认启动调试机:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-135341.png"></p>
-<h2 id="物理机准备"><a href="#物理机准备" class="headerlink" title="物理机准备"></a>物理机准备</h2><p>虚拟机上配置好后先打开Windbg检查是否能进行内核调试:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-135805.png" alt="image-20240928135805578"></p>
-<p>如果成功的话应该会显示内核断在一个硬件断点上:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-135901.png" alt="image-20240928135901744"></p>
-<p>这时候用IDA打开要调试的驱动文件(.sys) 选择Windbg调试器:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-140006.png" alt="image-20240928140006899"></p>
-<p>配置调试器设置如下:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-140133.png" alt="image-20240928140133914"></p>
-<p>Connection string填<code>com:port=//./pipe/com1,baud=115200,pipe</code> (如果之前用的是com1)</p>
-<p>这时候选择Attach to process 如果成功的话会显示虚拟机内核:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2024%2F09%2F28%2F20240928-140335.png" alt="image-20240928140335125"></p>
-<p>下好断点后运行附加到内核上进行调试 一开始会断在硬件断点上 直接放行 运行会调用目标驱动的程序后内核会断在之前下好的断点上</p>
-]]></content>
-      <categories>
-        <category>Windows内核</category>
-      </categories>
-      <tags>
-        <tag>Reverse</tag>
-        <tag>Kernel</tag>
       </tags>
   </entry>
 </search>
