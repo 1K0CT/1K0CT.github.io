@@ -4354,6 +4354,7 @@
 <p>执行后:</p>
 <p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-221210.png" alt="image-20250309221210187"></p>
 <p>可以看到在进行对ptr1的修改前就已经缓存了ptr1在执行前的值并在后续依然向那个保存值中写入数据</p>
+<p>而这个特性最高在glibc 2.23仍可以被复现</p>
 ]]></content>
       <categories>
         <category>二进制</category>
