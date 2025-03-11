@@ -35,7 +35,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-220942.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F09%2F20250309-221210.png">
 <meta property="article:published_time" content="2025-03-09T14:16:19.000Z">
-<meta property="article:modified_time" content="2025-03-09T14:17:57.898Z">
+<meta property="article:modified_time" content="2025-03-11T13:42:05.777Z">
 <meta property="article:author" content="1K0CT B14s">
 <meta property="article:tag" content="Pwn">
 <meta name="twitter:card" content="summary">
@@ -220,10 +220,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2025-03-09 22:16:19 / 修改时间：22:17:57" itemprop="dateCreated datePublished" datetime="2025-03-09T22:16:19+08:00">2025-03-09</time>
+              <time title="创建时间：2025-03-09 22:16:19" itemprop="dateCreated datePublished" datetime="2025-03-09T22:16:19+08:00">2025-03-09</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-03-11 21:42:05" itemprop="dateModified" datetime="2025-03-11T21:42:05+08:00">2025-03-11</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -279,7 +285,7 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">*    stack frame:</span></span><br><span class="line"><span class="comment">*    &lt;low&gt;</span></span><br><span class="line"><span class="comment">*    buf2[0x20]</span></span><br><span class="line"><span class="comment">*    buf3[0x20]</span></span><br><span class="line"><span class="comment">*    buf1[0x100]</span></span><br><span class="line"><span class="comment">*    &lt;high&gt;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">buf3 = <span class="string">&quot;%s\x00&quot;</span>;</span><br><span class="line"><span class="built_in">sprintf</span>(buf2, buf3, buf1);</span><br></pre></td></tr></table></figure>
 
 <p>用户可以控制<code>buf1</code> 但是明显当对格式化字符串检测到<code>%s</code>时 若buf1(<strong>未被b’\x00’截断</strong>)的长度大于0x20时 继续复制字符到buf2会导致溢出至格式化字符串buf3</p>
-<p>由于buf3中”%s”的功能在实现过程中对格式化字符串的解析已经进行到”%s__xxx__”中粗体的部分了 所以要想修改成的目标格式化字符串生效需要填充这两个被解析过的字符</p>
+<p>由于buf3中”%s”的功能在实现过程中对格式化字符串的解析已经进行到”%s<strong>xxx</strong>“中粗体的部分了 所以要想修改成的目标格式化字符串生效需要填充这两个被解析过的字符</p>
 <p>新的格式化字符串(xxx的部分)的解析也是基于s[n]printf在调用前一刻的<code>RSP</code>的</p>
 <h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>以以下代码编译出的程序为例:</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">char</span> buf1[<span class="number">0x100</span>];</span><br><span class="line">    <span class="type">char</span> buf3[<span class="number">0x20</span>] = <span class="string">&quot;%s\x00&quot;</span>;</span><br><span class="line">    <span class="type">char</span> buf2[<span class="number">0x20</span>];</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        <span class="built_in">memset</span>(buf1, <span class="number">0</span>, <span class="number">0x100</span>);</span><br><span class="line">        read(<span class="number">0</span>, buf1, <span class="number">0x100</span>);</span><br><span class="line">        <span class="built_in">sprintf</span>(buf2, buf3, buf1);</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -498,12 +504,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">476k</span>
+    <span title="站点总字数">486k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">7:13</span>
+    <span title="站点阅读时长">7:22</span>
 </div>
 
 <!--
