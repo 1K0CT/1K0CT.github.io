@@ -4330,6 +4330,9 @@
 
 <p>使用<code>GetModuleHandle(NULL)</code>可以获取程序映射到虚拟内存中的基址 使用<code>ReadProcessMemory()</code>可以获取一个地址中的数据</p>
 <p>这里再讲一个踩到的坑 在跟着网上的wp复现时看到读取的内存地址直接就是0x140008318 应该是因为机器没开ASLR 正常情况下需要先获取真正的虚拟地址才能读到数据</p>
+<h5 id="PS-2025-3-30"><a href="#PS-2025-3-30" class="headerlink" title="PS | 2025&#x2F;3&#x2F;30"></a>PS | 2025&#x2F;3&#x2F;30</h5><p>实际上并不是机器的问题 Windows对于程序本身映射到虚拟内存中的基址和Linux中的PIE一样只需要修改二进制文件本身就行了 对于PE文件 使用010的<code>EXE.bt</code>模板修改以下程序头的字段即可使其以固定的基址被载入虚拟内存:</p>
+<p><code>NtHeader-&gt;OptionalHeader-&gt;DllCharacteristics-&gt;IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE : 1</code></p>
+<p>将字段设置为0即可关闭随机映射</p>
 <p>至此我们获取到了要hook的函数地址:</p>
 <p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F26%2F20250326-132625.png" alt="image-20250326132625777"></p>
 <p>接下来就是编写自己的函数来hook绘制函数 我们需要先定义一个目标函数的函数指针类型来方便后续调用原本的绘制函数:</p>
