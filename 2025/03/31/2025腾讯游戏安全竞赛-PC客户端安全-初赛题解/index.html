@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-corner-indicator.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="和前几年的相比还是太CTF了 第一天就出了flag 感觉有很多人都能做出来 不知道要达到什么要求才能拿满分数进决赛">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2025腾讯游戏安全竞赛 PC客户端安全 初赛题解">
+<meta property="og:url" content="https://ikoct.com/2025/03/31/2025%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B-PC%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%89%E5%85%A8-%E5%88%9D%E8%B5%9B%E9%A2%98%E8%A7%A3/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="和前几年的相比还是太CTF了 第一天就出了flag 感觉有很多人都能做出来 不知道要达到什么要求才能拿满分数进决赛">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-125502.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F29%2F20250329-102940.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F29%2F20250329-103120.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-142601.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-143050.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-150447.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-145503.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-150707.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-172317.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-173322.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-174036.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-174056.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-174134.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-175404.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-175408.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-175524.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-180550.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-181250.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-181253.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-181631.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-183524.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-183606.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-183624.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-184330.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-212850.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-211247.png">
+<meta property="article:published_time" content="2025-03-31T03:18:56.000Z">
+<meta property="article:modified_time" content="2025-03-31T03:18:56.878Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="Reverse">
+<meta property="article:tag" content="Writeups">
+<meta property="article:tag" content="Kernel">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-125502.png">
+
+<link rel="canonical" href="https://ikoct.com/2025/03/31/2025%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B-PC%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%89%E5%85%A8-%E5%88%9D%E8%B5%9B%E9%A2%98%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>2025腾讯游戏安全竞赛 PC客户端安全 初赛题解 | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">你愿意和我学一辈子二进制吗?</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2025/03/31/2025%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B-PC%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%89%E5%85%A8-%E5%88%9D%E8%B5%9B%E9%A2%98%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myavatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="残りの人生、私にくれませんか？">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          2025腾讯游戏安全竞赛 PC客户端安全 初赛题解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-03-31 11:18:56" itemprop="dateCreated datePublished" datetime="2025-03-31T11:18:56+08:00">2025-03-31</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Reverse/" itemprop="url" rel="index"><span itemprop="name">Reverse</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Windows%E5%86%85%E6%A0%B8/" itemprop="url" rel="index"><span itemprop="name">Windows内核</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>和前几年的相比还是太CTF了 第一天就出了flag 感觉有很多人都能做出来 不知道要达到什么要求才能拿满分数进决赛</p>
+<span id="more"></span>
+
+<h2 id="R3层程序分析"><a href="#R3层程序分析" class="headerlink" title="R3层程序分析"></a>R3层程序分析</h2><p> flag前4位静态分析时就能看出是<code>ACE_</code></p>
+<p>全局构造函数中发现反调试函数 编写IDApython脚本跳过这个函数以便调试:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-125502.png" alt="image-20250328125411862"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F29%2F20250329-102940.png" alt="image-20250329102933746"></p>
+<p>发现调试的时候在与驱动建立mini通讯连接时会直接卡死 现在只关注R3层程序对输入的处理 故也编写IDApython跳过这个函数先看看应用层对flag做了什么处理:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F29%2F20250329-103120.png" alt="QQ_1743215477403"></p>
+<p>调试至中间发现一个像某种表的字符串:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-142601.png" alt="image-20250328142601349"></p>
+<p>紧接着就把这个表和输入的flag[4:]传入了一个函数进行编码</p>
+<p>首先按照base58的第一步进行了分割:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-143050.png" alt="image-20250328143050626"></p>
+<p>但是看下面实际上编码用的是base64的表:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-150447.png" alt="image-20250328150446947"></p>
+<p>比较一下结果就能发现实际上就是换表base58用<code>@</code>填充 + 反转:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-145503.png" alt="image-20250328145503202"></p>
+<p>下面是一个循环异或:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-150707.png" alt="image-20250328150707324"></p>
+<p>根据结果验证一下这一步的加密流程:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">enc = [</span><br><span class="line">    <span class="number">0x33</span>, <span class="number">0x1C</span>, <span class="number">0x2C</span>, <span class="number">0x21</span>, <span class="number">0x00</span>, <span class="number">0x0A</span>, <span class="number">0x0A</span>, <span class="number">0x0F</span>, <span class="number">0x4E</span>, <span class="number">0x3D</span>, </span><br><span class="line">    <span class="number">0x2D</span>, <span class="number">0x02</span>, <span class="number">0x07</span>, <span class="number">0x12</span>, <span class="number">0x1C</span>, <span class="number">0x38</span>, <span class="number">0x35</span>, <span class="number">0x1E</span>, <span class="number">0x20</span>, <span class="number">0x21</span>, </span><br><span class="line">    <span class="number">0x0B</span>, <span class="number">0x29</span>, <span class="number">0x4C</span>, <span class="number">0x01</span>, <span class="number">0x34</span>, <span class="number">0x1A</span>, <span class="number">0x4D</span>, <span class="number">0x03</span>, <span class="number">0x4D</span>, <span class="number">0x01</span>, </span><br><span class="line">    <span class="number">0x04</span>, <span class="number">0x21</span>, <span class="number">0x00</span>, <span class="number">0x16</span></span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">key = <span class="string">b&#x27;sxx&#x27;</span></span><br><span class="line">c = <span class="number">0</span></span><br><span class="line">plain = [<span class="built_in">chr</span>(x ^ key[c % <span class="number">3</span>]) <span class="keyword">for</span> c, x <span class="keyword">in</span> <span class="built_in">enumerate</span>(enc)]</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;&#x27;</span>.join(plain))</span><br><span class="line"><span class="comment"># @dTRxryw6NUztjdKMfSYsZ4yGb5p5ywYxe</span></span><br></pre></td></tr></table></figure>
+
+<p>成功验证</p>
+<h2 id="R0层程序分析"><a href="#R0层程序分析" class="headerlink" title="R0层程序分析"></a>R0层程序分析</h2><p>接下来就进入到了驱动的校验函数 但是在驱动处理应用层发送的信息的回调函数里基本上都是花指令没法看 使用WinDBG进行辅助分析 关于WinDBG的远程调试配置参考<a target="_blank" rel="noopener" href="https://1k0ct.github.io/2024/09/28/IDA%E9%85%8D%E5%90%88VMware%E8%BF%9B%E8%A1%8C%E5%86%85%E6%A0%B8-%E9%A9%B1%E5%8A%A8-%E8%B0%83%E8%AF%95/">我之前的博客</a> 但是不推荐用IDA来调试 虽然IDA用的也是WinDBG作为调试器 但是查看内存还是没有WinDBG方便</p>
+<p>先用DriverView辅助计算下断点的虚拟内存 断点就下在<code>ProbeForRead </code>处 因为这个函数是驱动获取用户内存的API:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-172317.png" alt="image-20250328172317640"></p>
+<p>得到这两个函数都用于实现数据从用户层迁移到驱动层:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-173322.png" alt="image-20250328173322530"></p>
+<p>随后在读到驱动层的数据上下硬件断点跟踪数据流向 发现来到了如下的函数 参数就是用户层完成加密后的前两个字节以及b’ACE6’:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-174036.png" alt="QQ_1743154801365"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-174056.png" alt="image-20250328174056789"></p>
+<p>在IDA中找到对应函数进行静态分析:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-174134.png" alt="image-20250328174134180"></p>
+<p>发现就是一个XTEA 本来打算直接运行来验证其是否每次传入的都是相邻两个字节的用户层加密结果 但是断点没有被击中第二次 猜测应该是在加密完后直接就与正确密文进行了对比直接退出 这一次调试尝试使用步过来查看结果:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-175404.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-175408.png" alt="image-20250328175408664"></p>
+<p>通过RSI计算是从哪里取出的与TEA结果对比的 计算偏移为0x4060:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-175524.png" alt="image-20250328175524796"></p>
+<p>也就是说这一块应该存放的就是最终的密文</p>
+<p>手动修改zf寄存器值多观察几轮 <code>r @zf=1</code> 随后复制IDA伪代码验证是否TEA加密 发现结果和内核调试过程中得到的不一样 对TEA交叉引用发现有函数对其内容进行了修改:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-180550.png" alt="image-20250328180550821"></p>
+<p>在WinDBG中找到TEA函数对应的位置拷贝其内存到IDA中进行patch看看结果</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-181250.png" alt="QQ_1743156768453"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-181253.png" alt="image-20250328181253336"></p>
+<p>发现TEA函数被改为了跳到某个地址 在这个地址下断看看做了什么:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-181631.png" alt="QQ_1743156984996"></p>
+<p>大致可以看出来也是类似TEA的中间操作 指令条数实际上并不是很多 可以在IDA中找一块内存将其patch成TEA跳转到的这块指令然后再修改TEA+0x56处的逻辑让其跳到自己手写的指令上最后应该就能让IDA反汇编出实际执行的指令了(为了方便写入指令 将程序基址rebase成了0):</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-183524.png" alt="QQ_1743158119488"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-183606.png" alt="QQ_1743158161787"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-183624.png" alt="QQ_1743158182514"></p>
+<p>经过测试成功运算出了调试时得到的结果:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-184330.png" alt="QQ_1743158606986"></p>
+<h2 id="编写解密脚本"><a href="#编写解密脚本" class="headerlink" title="编写解密脚本"></a>编写解密脚本</h2><p>接下来要做的就是编写脚本解密了:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* r0层加密使用的key: */</span></span><br><span class="line"><span class="type">int</span> key[<span class="number">4</span>] = &#123;<span class="number">0x41</span>, <span class="number">0x43</span>, <span class="number">0x45</span>, <span class="number">0x36</span>&#125;;</span><br><span class="line"><span class="comment">/* r3层加密使用的key: */</span></span><br><span class="line"><span class="type">char</span> key2[] = <span class="string">&quot;sxx\x00&quot;</span>;</span><br><span class="line"><span class="comment">/* r0层得到的密文: */</span></span><br><span class="line"><span class="type">unsigned</span> <span class="type">int</span> to_decrypt[<span class="number">42</span>] = &#123;</span><br><span class="line">    <span class="number">0x0EC367B8</span>, <span class="number">0xC9DA9044</span>, <span class="number">0xDA6C2DEB</span>, <span class="number">0x88DDC9C3</span>, <span class="number">0x32A01575</span>, <span class="number">0x231DD0B4</span>, <span class="number">0x4B9E8A74</span>, <span class="number">0xD75D3E74</span>, </span><br><span class="line">    <span class="number">0xEAAB8712</span>, <span class="number">0xE704E888</span>, <span class="number">0xE01A31AC</span>, <span class="number">0xECAE205C</span>, <span class="number">0xA7BE7467</span>, <span class="number">0x0C6252A3</span>, <span class="number">0x1AEFEC4E</span>, <span class="number">0xC40DED44</span>, </span><br><span class="line">    <span class="number">0xC3C842CC</span>, <span class="number">0xDE4A0C0E</span>, <span class="number">0x7C24F3FC</span>, <span class="number">0x8FB8D001</span>, <span class="number">0x11153E6E</span>, <span class="number">0x530ED15C</span>, <span class="number">0xF4214811</span>, <span class="number">0xBEB517E0</span>, </span><br><span class="line">    <span class="number">0x63F91634</span>, <span class="number">0x4D96F8A5</span>, <span class="number">0xFE23EAC8</span>, <span class="number">0x2C607ADF</span>, <span class="number">0xCC43D85C</span>, <span class="number">0xFF186C5B</span>, <span class="number">0x8763E1A5</span>, <span class="number">0x9187BD58</span>, </span><br><span class="line">    <span class="number">0x87D1069B</span>, <span class="number">0xD7878D7B</span>, <span class="number">0x836E6B68</span>, <span class="number">0x55A0C63F</span>, <span class="number">0xD979FDB3</span>, <span class="number">0x3E524DEE</span>, <span class="number">0x7AB35C82</span>, <span class="number">0xA2F4DA8D</span>, </span><br><span class="line">    <span class="number">0x1708BA4C</span>, <span class="number">0x710653E6</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* XTEA解密函数 */</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">XTEA_decrypt</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> * to_decrypt)</span></span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> v1 = to_decrypt[<span class="number">0</span>], v2 = to_decrypt[<span class="number">1</span>], v3 = key[<span class="number">0</span>], v5 = key[<span class="number">1</span>], delta = <span class="number">0x61C88647</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> sum = delta * (<span class="number">-32</span>);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> _ = <span class="number">0</span>; _ &lt; <span class="number">32</span>; _++)&#123;</span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> tmp = sum + key[(sum &gt;&gt; <span class="number">11</span>) &amp; <span class="number">3</span>];</span><br><span class="line">        v2 -= tmp ^ (v1 + ((<span class="number">16</span> * v1) ^ (v1 &gt;&gt; <span class="number">5</span>)));</span><br><span class="line">        v1 -= (sum + v2) ^ (v3 + <span class="number">16</span> * v2) ^ (v5 + (v2 &gt;&gt; <span class="number">5</span>));</span><br><span class="line">        sum += delta;</span><br><span class="line">    &#125;</span><br><span class="line">    to_decrypt[<span class="number">0</span>] = v1;</span><br><span class="line">    to_decrypt[<span class="number">1</span>] = v2;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">42</span>; i += <span class="number">2</span>)&#123;</span><br><span class="line">        <span class="built_in">XTEA_decrypt</span>(to_decrypt + i);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">42</span>; i++)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%#08x, &quot;</span>, to_decrypt[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">42</span>; i++)&#123;</span><br><span class="line">        to_decrypt[i] ^= key2[i % <span class="number">3</span>];</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%c&quot;</span>, to_decrypt[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将得到的字符串反转并b58decode后拼接<code>ACE_</code>:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">b58decode</span>(<span class="params">cipher_input : <span class="built_in">bytes</span></span>):</span><br><span class="line">    alphabet = <span class="string">b&#x27;abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ123456789&#x27;</span></span><br><span class="line">    <span class="keyword">if</span> cipher_input[-<span class="number">1</span>] == <span class="string">b&#x27;@&#x27;</span>[<span class="number">0</span>]:</span><br><span class="line">        cipher_input = cipher_input[:-<span class="number">1</span>]</span><br><span class="line">    base = <span class="built_in">len</span>(alphabet)</span><br><span class="line">    num = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> char <span class="keyword">in</span> cipher_input:</span><br><span class="line">        num = num * base + alphabet.index(char)</span><br><span class="line">    <span class="keyword">return</span> num.to_bytes((num.bit_length() + <span class="number">7</span>) // <span class="number">8</span>, <span class="string">&#x27;big&#x27;</span>)</span><br><span class="line"></span><br><span class="line">to_decode = <span class="string">b&#x27;@PksUn39kYj763ggA1HLBUCaWSZv4vs4CwSevAnQEs&#x27;</span>[::-<span class="number">1</span>]</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;ACE_&#x27;</span> + b58decode(to_decode).decode(<span class="string">&#x27;utf-8&#x27;</span>))</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-212850.png" alt="img"></p>
+<p>得到flag: <code>ACE_We1C0me!T0Z0Z5GamESecur1t9*CTf</code></p>
+<p>验证flag:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-211247.png" alt="QQ_1743167529693"></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>1K0CT B14s
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ikoct.com/2025/03/31/2025%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B-PC%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%89%E5%85%A8-%E5%88%9D%E8%B5%9B%E9%A2%98%E8%A7%A3/" title="2025腾讯游戏安全竞赛 PC客户端安全 初赛题解">https://ikoct.com/2025/03/31/2025腾讯游戏安全竞赛-PC客户端安全-初赛题解/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Reverse/" rel="tag"># Reverse</a>
+              <a href="/tags/Writeups/" rel="tag"># Writeups</a>
+              <a href="/tags/Kernel/" rel="tag"># Kernel</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/03/26/%E8%B7%9F%E7%9D%802022%E5%B9%B4%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B-%E5%88%9D%E8%B5%9B-%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AD%A6DLL%E6%B3%A8%E5%85%A5/" rel="prev" title="跟着2022年腾讯游戏安全竞赛(初赛)从零开始学DLL注入">
+      <i class="fa fa-chevron-left"></i> 跟着2022年腾讯游戏安全竞赛(初赛)从零开始学DLL注入
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#R3%E5%B1%82%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">R3层程序分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#R0%E5%B1%82%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">R0层程序分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E5%86%99%E8%A7%A3%E5%AF%86%E8%84%9A%E6%9C%AC"><span class="nav-number">3.</span> <span class="nav-text">编写解密脚本</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="1K0CT B14s"
+      src="/images/myavatar.gif">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description">残りの人生、私にくれませんか？</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">512k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">7:46</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>-->
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
