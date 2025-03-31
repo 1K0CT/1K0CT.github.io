@@ -4585,7 +4585,7 @@
 <p>通过RSI计算是从哪里取出的与TEA结果对比的 计算偏移为0x4060:</p>
 <p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-175524.png" alt="image-20250328175524796"></p>
 <p>也就是说这一块应该存放的就是最终的密文</p>
-<p>手动修改zf寄存器值多观察几轮 <code>r @zf=1</code> 随后复制IDA伪代码验证是否TEA加密 发现结果和内核调试过程中得到的不一样 对TEA交叉引用发现有函数对其内容进行了修改:</p>
+<p>手动修改zf寄存器值多观察几轮 <code>r @zf=1</code> 随后复制IDA伪代码验证是否就是TEA加密 发现结果和内核调试过程中得到的不一样 对TEA交叉引用发现有函数对其内容进行了修改:</p>
 <p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-180550.png" alt="image-20250328180550821"></p>
 <p>在WinDBG中找到TEA函数对应的位置拷贝其内存到IDA中进行patch看看结果</p>
 <p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F03%2F28%2F20250328-181250.png" alt="QQ_1743156768453"></p>
