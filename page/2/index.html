@@ -189,6 +189,102 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2025/01/08/BPF%E9%80%86%E5%90%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myavatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="残りの人生、私にくれませんか？">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/01/08/BPF%E9%80%86%E5%90%91/" class="post-title-link" itemprop="url">BPF逆向</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-01-08 23:30:08" itemprop="dateCreated datePublished" datetime="2025-01-08T23:30:08+08:00">2025-01-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Reverse/" itemprop="url" rel="index"><span itemprop="name">Reverse</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="BPF简介"><a href="#BPF简介" class="headerlink" title="BPF简介"></a>BPF简介</h2><p><a target="_blank" rel="noopener" href="https://docs.kernel.org/translations/zh_CN/userspace-api/seccomp_filter.html">BPF(Berkeley Packet Filter)</a>是一个在Linux内核运行的安全计算系统 可以简单理解为一个专门为了计算过滤规则的虚拟机 通常配合<code>prctl()</code> 或 <code>seccomp()</code>进行对系统调用的限制 有两个主要32位寄存器:</p>
+<p><code>A</code>(累加器, Accumulator)：存储主要操作数据</p>
+<p><code>X</code>(索引寄存器, Index Register)：通常用于索引计算或临时存储数据</p>
+<p>以及16个32位内存单元<code>mem[idx]</code></p>
+<p>支持常见的数值和位运算 在使用seccomp或prctl添加了BPF过滤器后 每次进行系统调用时都会先对使用的系统调用号<code>sys_number</code> 系统ABI<code>arch</code> 以及传入的参数进行安全计算然后判断是否能够执行系统调用</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2025/01/08/BPF%E9%80%86%E5%90%91/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/12/23/Python%E9%80%86%E5%90%91/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1073,101 +1169,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2024/04/29/Windows%E5%B7%AE%E5%BC%82%E5%8C%96%E8%A1%A5%E4%B8%81MSDelta%E4%B9%8B%E7%A0%94%E7%A9%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myavatar.gif">
-      <meta itemprop="name" content="1K0CT B14s">
-      <meta itemprop="description" content="残りの人生、私にくれませんか？">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ikoct的饮冰室">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/04/29/Windows%E5%B7%AE%E5%BC%82%E5%8C%96%E8%A1%A5%E4%B8%81MSDelta%E4%B9%8B%E7%A0%94%E7%A9%B6/" class="post-title-link" itemprop="url">Windows差异化补丁MSDelta之研究</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2024-04-29 12:49:32" itemprop="dateCreated datePublished" datetime="2024-04-29T12:49:32+08:00">2024-04-29</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-10-23 15:08:21" itemprop="dateModified" datetime="2024-10-23T15:08:21+08:00">2024-10-23</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Windows%E5%86%85%E6%A0%B8/" itemprop="url" rel="index"><span itemprop="name">Windows内核</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>9.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>8 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p><code>msdelta.dll</code>包含了一系列用于对文件进行补丁操作的API 鉴于网上资料极少且<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/windows/win32/devnotes/msdelta">官方文档</a>简陋 记录一下学习过程</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/04/29/Windows%E5%B7%AE%E5%BC%82%E5%8C%96%E8%A1%A5%E4%B8%81MSDelta%E4%B9%8B%E7%A0%94%E7%A9%B6/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1239,7 +1240,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1292,12 +1293,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">512k</span>
+    <span title="站点总字数">531k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">7:46</span>
+    <span title="站点阅读时长">8:03</span>
 </div>
 
 <!--

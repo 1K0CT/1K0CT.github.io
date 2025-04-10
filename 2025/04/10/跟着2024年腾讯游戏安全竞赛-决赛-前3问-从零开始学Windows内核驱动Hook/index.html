@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-corner-indicator.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="记录一下第一次深入驱动层hook学到的东西">
+<meta property="og:type" content="article">
+<meta property="og:title" content="跟着2024年腾讯游戏安全竞赛(决赛(前3问))从零开始学Windows内核驱动Hook">
+<meta property="og:url" content="https://ikoct.com/2025/04/10/%E8%B7%9F%E7%9D%802024%E5%B9%B4%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B-%E5%86%B3%E8%B5%9B-%E5%89%8D3%E9%97%AE-%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AD%A6Windows%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8Hook/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="记录一下第一次深入驱动层hook学到的东西">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-172218.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-220315.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-220534.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-222523.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-222828.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-223114.png">
+<meta property="article:published_time" content="2025-04-10T14:46:13.000Z">
+<meta property="article:modified_time" content="2025-04-10T14:46:13.186Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="Reverse">
+<meta property="article:tag" content="Writeups">
+<meta property="article:tag" content="Kernel">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-172218.png">
+
+<link rel="canonical" href="https://ikoct.com/2025/04/10/%E8%B7%9F%E7%9D%802024%E5%B9%B4%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B-%E5%86%B3%E8%B5%9B-%E5%89%8D3%E9%97%AE-%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AD%A6Windows%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8Hook/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>跟着2024年腾讯游戏安全竞赛(决赛(前3问))从零开始学Windows内核驱动Hook | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">你愿意和我学一辈子二进制吗?</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2025/04/10/%E8%B7%9F%E7%9D%802024%E5%B9%B4%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B-%E5%86%B3%E8%B5%9B-%E5%89%8D3%E9%97%AE-%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AD%A6Windows%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8Hook/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myavatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="残りの人生、私にくれませんか？">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          跟着2024年腾讯游戏安全竞赛(决赛(前3问))从零开始学Windows内核驱动Hook
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-04-10 22:46:13" itemprop="dateCreated datePublished" datetime="2025-04-10T22:46:13+08:00">2025-04-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Reverse/" itemprop="url" rel="index"><span itemprop="name">Reverse</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Windows%E5%86%85%E6%A0%B8/" itemprop="url" rel="index"><span itemprop="name">Windows内核</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>19k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>17 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>记录一下第一次深入驱动层hook学到的东西</p>
+<span id="more"></span>
+
+<p>题目给了一个驱动和写了<code>username-key</code>的文本 要求将文本放在<code>C:\</code>下并手动加载驱动</p>
+<h2 id="创建并启用内核驱动"><a href="#创建并启用内核驱动" class="headerlink" title="创建并启用内核驱动"></a>创建并启用内核驱动</h2><p>这里使用Windows自带的sc.exe来加载 使用</p>
+<p><code>sc create [Service name] binpath=&quot;\path\to\driver type=kernel start=[Way to start]&quot;</code></p>
+<p>来加载一个驱动服务 需要指定服务名 驱动路径 启动方式</p>
+<p>启动方式有:</p>
+<p>• <code>demand</code>: 需要手动启用<br>• <code>boot</code>: 系统启动时加载<br>• <code>system</code>: 内核初始化时加载<br>• <code>auto</code>: 自动启动<br>• <code>disabled</code>: 禁用</p>
+<p>这里选择使用手动启用来制造hook时机:</p>
+<p><code>sc start ACE2024</code></p>
+<p>sc还有其他几个指令:</p>
+<table>
+<thead>
+<tr>
+<th align="left">命令</th>
+<th align="left">功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>sc query ACE2024</code></td>
+<td align="left">查询服务状态</td>
+</tr>
+<tr>
+<td align="left"><code>sc stop ACE2024</code></td>
+<td align="left">停止服务 (卸载驱动)</td>
+</tr>
+<tr>
+<td align="left"><code>sc delete ACE2024</code></td>
+<td align="left">删除服务 (需先停止)</td>
+</tr>
+<tr>
+<td align="left"><code>sc config ACE2024 start= auto</code></td>
+<td align="left">修改服务为自动启动</td>
+</tr>
+</tbody></table>
+<h2 id="IDA…无法静态分析"><a href="#IDA…无法静态分析" class="headerlink" title="IDA…无法静态分析"></a>IDA…无法静态分析</h2><p>驱动本体就有10mb IDA打开后可以看到驱动入口之后都被混淆了 并且后续IDA一直在加载不知道什么东西 而且看起来像报错:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-172218.png" alt="QQ_1744276810321"></p>
+<p>导致IDA很卡 所以后面都会用<code>Binaryninja</code>来进行静态分析</p>
+<h2 id="内核驱动的hook"><a href="#内核驱动的hook" class="headerlink" title="内核驱动的hook"></a>内核驱动的hook</h2><p>因为代码的混淆 硬看基本上看不出逻辑 这个时候就应该使用hook技术了 而在这题中 一个内核驱动要读取文件内容大概率要使用<code>NtReadFile()</code>和<code>NtCreateFile()</code> 所以这两个函数就是我们hook的目标</p>
+<h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>参考<a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/windows-hardware/drivers/gettingstarted/writing-a-very-small-kmdf--driver">微软的内核驱动编写教程</a> VS需要安装以下组件:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-220315.png" alt="QQ_1744293792629"></p>
+<p>接下来安装相同版本的<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/windows-hardware/drivers/other-wdk-downloads">WDK</a>和<a target="_blank" rel="noopener" href="https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/">WSDK</a> 安装这个版本的WDK 其他的不保证能正常编译驱动:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-220534.png" alt="QQ_1744293906177"></p>
+<h3 id="绕过PatchGuard"><a href="#绕过PatchGuard" class="headerlink" title="绕过PatchGuard"></a>绕过PatchGuard</h3><p>而64位Windows驱动有内核保护(PatchGuard) 正常情况下不会允许驱动修改内存 这时候就要通过一些手段来绕过这个保护了</p>
+<p>这里参考<a target="_blank" rel="noopener" href="https://xia0ji233.pro/2024/04/22/tencent-race-2024-pre-final/index.html">这位大佬的博客</a> 通过以下两个函数开关PG:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">KIRQL <span class="title function_">writeProtectOFFx64</span><span class="params">()</span> &#123;</span><br><span class="line">    KIRQL OldIrql;</span><br><span class="line">    OldIrql = KeRaiseIrqlToDpcLevel();</span><br><span class="line">    __writecr0(__readcr0() &amp; ~<span class="number">0x10000</span>);</span><br><span class="line">    _disable();</span><br><span class="line">    <span class="keyword">return</span> OldIrql;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">writeProtectONx64</span><span class="params">(KIRQL OldIrql)</span> &#123;</span><br><span class="line">    _enable();</span><br><span class="line">    __writecr0(__readcr0() | <span class="number">0x10000</span>);</span><br><span class="line">    KeLowerIrql(OldIrql);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以下是对上述代码的解释</p>
+<table>
+<thead>
+<tr>
+<th align="left">代码</th>
+<th align="left">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>KeRaiseIrqlToDpcLevel()</code></td>
+<td align="left">将当前处理器中断请求级别(IRQL)提升至 <code>DISPATCH_LEVEL</code>(DPC 级别) 防止线程切换干扰</td>
+</tr>
+<tr>
+<td align="left"><code>__readcr0() &amp; ~0x10000</code></td>
+<td align="left">读取 <code>CR0</code> 寄存器并清除第 16 位(WP 位) 禁用内存写保护</td>
+</tr>
+<tr>
+<td align="left"><code>__writecr0(...)</code></td>
+<td align="left">将修改后的值写回 <code>CR0</code> 寄存器</td>
+</tr>
+<tr>
+<td align="left"><code>_disable()</code></td>
+<td align="left">执行 <code>CLI</code> 指令禁用处理器中断 防止中断上下文破坏关键操作</td>
+</tr>
+</tbody></table>
+<p>接下来就能进行对上述两个内核函数的hook了 先尝试使用最简单的 inline hoook</p>
+<h3 id="对内核函数进行inline-hook"><a href="#对内核函数进行inline-hook" class="headerlink" title="对内核函数进行inline hook"></a>对内核函数进行inline hook</h3><p>被加载到内核的驱动共用API模块 我们可以直接在编写的驱动中通过函数名获取到其地址 接下来的关键就是如何判别读取的文件是否是<code>\??\C:card.txt</code>了 通过<a target="_blank" rel="noopener" href="https://ntdoc.m417z.com/">这个网站</a>来查找要hook的内核函数的信息</p>
+<p><code>NtCreateFile()</code>的原型:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">NTSYSCALLAPI</span><br><span class="line">NTSTATUS</span><br><span class="line">NTAPI</span><br><span class="line"><span class="title function_">NtCreateFile</span><span class="params">(</span></span><br><span class="line"><span class="params">    _Out_ PHANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_ ACCESS_MASK DesiredAccess,</span></span><br><span class="line"><span class="params">    _In_ PCOBJECT_ATTRIBUTES ObjectAttributes,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER AllocationSize,</span></span><br><span class="line"><span class="params">    _In_ ULONG FileAttributes,</span></span><br><span class="line"><span class="params">    _In_ ULONG ShareAccess,</span></span><br><span class="line"><span class="params">    _In_ ULONG CreateDisposition,</span></span><br><span class="line"><span class="params">    _In_ ULONG CreateOptions,</span></span><br><span class="line"><span class="params">    _In_reads_bytes_opt_(EaLength) PVOID EaBuffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG EaLength</span></span><br><span class="line"><span class="params">    )</span>;</span><br></pre></td></tr></table></figure>
+
+<p>而要得到的文件句柄来自<code>ObjectAttributes-&gt;ObjectName-&gt;Buffer</code>路径的文件 所以这里就通过对这个参数来判断是否要打开card.txt</p>
+<p>同时我们就可以保留<code>FileHandle</code>来为未来hook <code>NtReadFile()</code>做准备</p>
+<p><code>NtReadFile()</code>的原型:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">NTSYSCALLAPI</span><br><span class="line">NTSTATUS</span><br><span class="line">NTAPI</span><br><span class="line"><span class="title function_">NtReadFile</span><span class="params">(</span></span><br><span class="line"><span class="params">    _In_ HANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_opt_ HANDLE Event,</span></span><br><span class="line"><span class="params">    _In_opt_ PIO_APC_ROUTINE ApcRoutine,</span></span><br><span class="line"><span class="params">    _In_opt_ PVOID ApcContext,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _Out_writes_bytes_(Length) PVOID Buffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG Length,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER ByteOffset,</span></span><br><span class="line"><span class="params">    _In_opt_ PULONG Key</span></span><br><span class="line"><span class="params">    )</span>;</span><br></pre></td></tr></table></figure>
+
+<p>只需要对比<code>FileHandle</code>和自己保存的文件句柄就能判断是否读取card.txt了</p>
+<p>以下就是hook这两个内核函数的相关代码:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntifs.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntdef.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntstatus.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntddk.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> kprintf(format, ...) DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, format, __VA_ARGS__)</span></span><br><span class="line"><span class="keyword">typedef</span> UINT64 u64;</span><br><span class="line"><span class="keyword">typedef</span> UINT32 u32;</span><br><span class="line"><span class="keyword">typedef</span> UINT16 u16;</span><br><span class="line"><span class="keyword">typedef</span> UINT8  u8;</span><br><span class="line"></span><br><span class="line">u8 mov_jmp_rax1[<span class="number">12</span>] = &#123;</span><br><span class="line">    <span class="number">0x48</span>,<span class="number">0xB8</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,	<span class="comment">//mov rax,xxx</span></span><br><span class="line">    <span class="number">0xFF</span>,<span class="number">0xE0</span>											<span class="comment">//jmp rax</span></span><br><span class="line">&#125;, mov_jmp_rax2[<span class="number">12</span>] = &#123;</span><br><span class="line">    <span class="number">0x48</span>,<span class="number">0xB8</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,	<span class="comment">//mov rax,xxx</span></span><br><span class="line">    <span class="number">0xFF</span>,<span class="number">0xE0</span>											<span class="comment">//jmp rax</span></span><br><span class="line">&#125;, origin1[<span class="number">12</span>] = &#123;</span><br><span class="line">    <span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,</span><br><span class="line">    <span class="number">0x00</span>,<span class="number">0x00</span></span><br><span class="line">&#125;, origin2[<span class="number">12</span>] = &#123;</span><br><span class="line">    <span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,</span><br><span class="line">    <span class="number">0x00</span>,<span class="number">0x00</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">u8* HookAddr1 = <span class="literal">NULL</span>, * HookAddr2 = <span class="literal">NULL</span>, Hooked1 = FALSE, Hooked2 = FALSE;</span><br><span class="line"></span><br><span class="line">KIRQL <span class="title function_">writeProtectOFFx64</span><span class="params">()</span> &#123;</span><br><span class="line">    KIRQL OldIrql;</span><br><span class="line">    OldIrql = KeRaiseIrqlToDpcLevel();</span><br><span class="line">    __writecr0(__readcr0() &amp; ~<span class="number">0x10000</span>);</span><br><span class="line">    _disable();</span><br><span class="line">    <span class="keyword">return</span> OldIrql;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">writeProtectONx64</span><span class="params">(KIRQL OldIrql)</span> &#123;</span><br><span class="line">    _enable();</span><br><span class="line">    __writecr0(__readcr0() | <span class="number">0x10000</span>);</span><br><span class="line">    KeLowerIrql(OldIrql);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">NTSTATUS <span class="title function_">dohook1</span><span class="params">(u8 HOOK)</span> &#123;</span><br><span class="line">    Hooked1 = HOOK;</span><br><span class="line">    KIRQL irql = writeProtectOFFx64();</span><br><span class="line">    <span class="keyword">if</span> (HookAddr1) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!HOOK) &#123;</span><br><span class="line">            <span class="built_in">memcpy</span>(HookAddr1, origin1, <span class="keyword">sizeof</span>(origin1));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">memcpy</span>(HookAddr1, mov_jmp_rax1, <span class="keyword">sizeof</span>(mov_jmp_rax1));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    writeProtectONx64(irql);</span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line">NTSTATUS <span class="title function_">dohook2</span><span class="params">(u8 HOOK)</span> &#123;</span><br><span class="line">    Hooked2 = HOOK;</span><br><span class="line">    KIRQL irql = writeProtectOFFx64();</span><br><span class="line">    <span class="keyword">if</span> (HookAddr2) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!HOOK) &#123;</span><br><span class="line">            <span class="built_in">memcpy</span>(HookAddr2, origin2, <span class="keyword">sizeof</span>(origin2));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">memcpy</span>(HookAddr2, mov_jmp_rax2, <span class="keyword">sizeof</span>(mov_jmp_rax2));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    writeProtectONx64(irql);</span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="title function_">NTSTATUS</span><span class="params">(*createfile_ptr)</span><span class="params">(</span></span><br><span class="line"><span class="params">    _Out_ PHANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_ ACCESS_MASK DesiredAccess,</span></span><br><span class="line"><span class="params">    _In_ PCOBJECT_ATTRIBUTES ObjectAttributes,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER AllocationSize,</span></span><br><span class="line"><span class="params">    _In_ ULONG FileAttributes,</span></span><br><span class="line"><span class="params">    _In_ ULONG ShareAccess,</span></span><br><span class="line"><span class="params">    _In_ ULONG CreateDisposition,</span></span><br><span class="line"><span class="params">    _In_ ULONG CreateOptions,</span></span><br><span class="line"><span class="params">    _In_reads_bytes_opt_(EaLength) PVOID EaBuffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG EaLength</span></span><br><span class="line"><span class="params">    )</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="title function_">NTSTATUS</span><span class="params">(*readfile_ptr)</span><span class="params">(</span></span><br><span class="line"><span class="params">    _In_ HANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_opt_ HANDLE Event,</span></span><br><span class="line"><span class="params">    _In_opt_ PIO_APC_ROUTINE ApcRoutine,</span></span><br><span class="line"><span class="params">    _In_opt_ PVOID ApcContext,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _Out_writes_bytes_(Length) PVOID Buffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG Length,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER ByteOffset,</span></span><br><span class="line"><span class="params">    _In_opt_ PULONG Key</span></span><br><span class="line"><span class="params">    )</span>;</span><br><span class="line"></span><br><span class="line">HANDLE FileHandler = <span class="literal">NULL</span>;</span><br><span class="line">NTSTATUS <span class="title function_">mycreatefile</span><span class="params">(</span></span><br><span class="line"><span class="params">    _Out_ PHANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_ ACCESS_MASK DesiredAccess,</span></span><br><span class="line"><span class="params">    _In_ PCOBJECT_ATTRIBUTES ObjectAttributes,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER AllocationSize,</span></span><br><span class="line"><span class="params">    _In_ ULONG FileAttributes,</span></span><br><span class="line"><span class="params">    _In_ ULONG ShareAccess,</span></span><br><span class="line"><span class="params">    _In_ ULONG CreateDisposition,</span></span><br><span class="line"><span class="params">    _In_ ULONG CreateOptions,</span></span><br><span class="line"><span class="params">    _In_reads_bytes_opt_(EaLength) PVOID EaBuffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG EaLength</span></span><br><span class="line"><span class="params">)</span> &#123;</span><br><span class="line">    dohook1(FALSE);</span><br><span class="line">    createfile_ptr createfile = (createfile_ptr)HookAddr1;</span><br><span class="line">    NTSTATUS status = createfile(</span><br><span class="line">        FileHandle,</span><br><span class="line">        DesiredAccess,</span><br><span class="line">        ObjectAttributes,</span><br><span class="line">        IoStatusBlock,</span><br><span class="line">        AllocationSize,</span><br><span class="line">        FileAttributes,</span><br><span class="line">        ShareAccess,</span><br><span class="line">        CreateDisposition,</span><br><span class="line">        CreateOptions,</span><br><span class="line">        EaBuffer,</span><br><span class="line">        EaLength</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">if</span> (!wcscmp(ObjectAttributes-&gt;ObjectName-&gt;Buffer, <span class="string">L&quot;\\??\\C:\\card.txt&quot;</span>)) &#123;</span><br><span class="line">        kprintf(<span class="string">&quot;Line %d: Reading card.txt detected in NtCreateFile\n&quot;</span>, __LINE__);</span><br><span class="line">        FileHandler = *FileHandle;</span><br><span class="line">    &#125;</span><br><span class="line">    dohook1(TRUE);</span><br><span class="line">    <span class="keyword">return</span> status;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">NTSTATUS <span class="title function_">myreadfile</span><span class="params">(</span></span><br><span class="line"><span class="params">    _In_ HANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_opt_ HANDLE Event,</span></span><br><span class="line"><span class="params">    _In_opt_ PIO_APC_ROUTINE ApcRoutine,</span></span><br><span class="line"><span class="params">    _In_opt_ PVOID ApcContext,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _Out_writes_bytes_(Length) PVOID Buffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG Length,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER ByteOffset,</span></span><br><span class="line"><span class="params">    _In_opt_ PULONG Key</span></span><br><span class="line"><span class="params">)</span> &#123;</span><br><span class="line">    dohook2(FALSE);</span><br><span class="line">    readfile_ptr readfile = (readfile_ptr)HookAddr2;</span><br><span class="line">    NTSTATUS status = readfile(</span><br><span class="line">        FileHandle,</span><br><span class="line">        Event,</span><br><span class="line">        ApcRoutine,</span><br><span class="line">        ApcContext,</span><br><span class="line">        IoStatusBlock,</span><br><span class="line">        Buffer,</span><br><span class="line">        Length,</span><br><span class="line">        ByteOffset,</span><br><span class="line">        Key</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">if</span> (FileHandler &amp;&amp; FileHandler == FileHandle) &#123;</span><br><span class="line">        kprintf(<span class="string">&quot;Line %d: Reading card.txt detected in NtReadFile\n&quot;</span>, __LINE__);</span><br><span class="line">    &#125;</span><br><span class="line">    dohook2(TRUE);</span><br><span class="line">    <span class="keyword">return</span> status;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">DeleteDevice</span><span class="params">(PDRIVER_OBJECT pDriver)</span> &#123;</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Deleting Driver\n&quot;</span>, __LINE__);</span><br><span class="line">    <span class="keyword">if</span> (pDriver-&gt;DeviceObject) &#123;</span><br><span class="line">        UNICODE_STRING DeviceName;</span><br><span class="line">        RtlInitUnicodeString(&amp;DeviceName, SYM);</span><br><span class="line">        IoDeleteSymbolicLink(&amp;DeviceName);</span><br><span class="line">        IoDeleteDevice(pDriver-&gt;DeviceObject);</span><br><span class="line">    &#125;</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Driver Deleted\n&quot;</span>, __LINE__);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">DriverUnload</span><span class="params">(PDRIVER_OBJECT pDriver)</span> &#123;</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Unloading Driver\n&quot;</span>, __LINE__);</span><br><span class="line">    <span class="keyword">if</span> (Hooked1) &#123;</span><br><span class="line">        dohook1(FALSE);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (Hooked2) &#123;</span><br><span class="line">        dohook2(FALSE);</span><br><span class="line">    &#125;</span><br><span class="line">    DeleteDevice(pDriver);</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Driver Unloaded\n&quot;</span>, __LINE__);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">NTSTATUS <span class="title function_">DriverEntry</span><span class="params">(</span></span><br><span class="line"><span class="params">    _In_ PDRIVER_OBJECT DriverObject,</span></span><br><span class="line"><span class="params">    _In_ PUNICODE_STRING RegistryPath</span></span><br><span class="line"><span class="params">)</span> &#123;</span><br><span class="line">    DriverObject-&gt;DriverUnload = DriverUnload;</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Driver Loaded, RegistryPath : %S\n&quot;</span>, __LINE__, RegistryPath-&gt;Buffer);</span><br><span class="line">    HookAddr1 = (u64)NtCreateFile;</span><br><span class="line">    HookAddr2 = (u64)NtReadFile;</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: HookAddr1 : 0x%llx, HookAddr2 : 0x%llx\n&quot;</span>, __LINE__, HookAddr1, HookAddr2);</span><br><span class="line">    <span class="keyword">if</span> (!HookAddr1 || !HookAddr2) &#123;</span><br><span class="line">        kprintf(<span class="string">&quot;Line %d: HookAddr1 or HookAddr2 is NULL\n&quot;</span>, __LINE__);</span><br><span class="line">        <span class="keyword">return</span> STATUS_UNSUCCESSFUL;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">memcpy</span>(origin1, HookAddr1, <span class="keyword">sizeof</span>(origin1));</span><br><span class="line">    <span class="built_in">memcpy</span>(origin2, HookAddr2, <span class="keyword">sizeof</span>(origin2));</span><br><span class="line">    *((u64*)(mov_jmp_rax1 + <span class="number">2</span>)) = (u64)mycreatefile;</span><br><span class="line">    *((u64*)(mov_jmp_rax2 + <span class="number">2</span>)) = (u64)myreadfile;</span><br><span class="line">    dohook1(TRUE);</span><br><span class="line">    dohook2(TRUE);</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Hooked NtCreateFile and NtReadFile\n&quot;</span>, __LINE__);</span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>自己编写的inline hook要在进入用户函数时就马上进行unhook 否则会递归调用自身</p>
+<p>现在 先加载自己编写的驱动 然后加载题目驱动就能记录到读取card.txt的痕迹了 接下来要解决的问题就是如何分析驱动读取用户名和密钥后的行为了 这里可以直接使用<code>DbgBreakPoint()</code>来下断并让Windbg进行托管</p>
+<h3 id="Windbg托管驱动设置的断点"><a href="#Windbg托管驱动设置的断点" class="headerlink" title="Windbg托管驱动设置的断点"></a>Windbg托管驱动设置的断点</h3><p>修改我们的读取函数:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">NTSTATUS <span class="title function_">myreadfile</span><span class="params">(</span></span><br><span class="line"><span class="params">    _In_ HANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_opt_ HANDLE Event,</span></span><br><span class="line"><span class="params">    _In_opt_ PIO_APC_ROUTINE ApcRoutine,</span></span><br><span class="line"><span class="params">    _In_opt_ PVOID ApcContext,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _Out_writes_bytes_(Length) PVOID Buffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG Length,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER ByteOffset,</span></span><br><span class="line"><span class="params">    _In_opt_ PULONG Key</span></span><br><span class="line"><span class="params">)</span> &#123;</span><br><span class="line">    dohook2(FALSE);</span><br><span class="line">    readfile_ptr readfile = (readfile_ptr)HookAddr2;</span><br><span class="line">    NTSTATUS status = readfile(</span><br><span class="line">        FileHandle,</span><br><span class="line">        Event,</span><br><span class="line">        ApcRoutine,</span><br><span class="line">        ApcContext,</span><br><span class="line">        IoStatusBlock,</span><br><span class="line">        Buffer,</span><br><span class="line">        Length,</span><br><span class="line">        ByteOffset,</span><br><span class="line">        Key</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">if</span> (FileHandler &amp;&amp; FileHandler == FileHandle) &#123;</span><br><span class="line">        kprintf(<span class="string">&quot;Line %d: Reading card.txt detected in NtReadFile\n&quot;</span>, __LINE__);</span><br><span class="line">        DbgBreakPoint();</span><br><span class="line">    &#125;</span><br><span class="line">    dohook2(TRUE);</span><br><span class="line">    <span class="keyword">return</span> status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此时当驱动再读到card.txt时 系统就会断在<code>DbgBreakPoint()</code>处 再用Windbg进行双机调试就能接管到这个断点:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-222523.png" alt="QQ_1744295119223"></p>
+<p>而读取到的文件内容在变量<code>Buffer(RSP+0x28)</code>中(这里的card.txt内容换掉了 为了测试Task2的):</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-222828.png" alt="QQ_1744295305760"></p>
+<p>下个硬件断点跟到题目驱动里 <code>ba r4 0xffffc589a0ece3f0</code> 在bnj中搜索一下字节码特征定位内存位置:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F10%2F20250410-223114.png" alt="QQ_1744295470896"></p>
+<p>接下来可以先静态分析一下了 这里继续往下调试一下也能知道是个复制函数 一路交叉引用向上找到一个看起来像是主逻辑的地方:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">14000</span>a0f4    <span class="type">int64_t</span> <span class="title function_">sub_14000a0f4</span><span class="params">()</span></span><br><span class="line"></span><br><span class="line">14000a0f4    &#123;</span><br><span class="line"><span class="number">14000</span>a0f4        <span class="type">int64_t</span>* from;</span><br><span class="line"><span class="number">14000</span>a100        <span class="title function_">sub_1400054cc</span><span class="params">(&amp;from)</span>;</span><br><span class="line"><span class="number">14000</span>a105        <span class="type">int32_t</span> count = <span class="number">0</span>;</span><br><span class="line"><span class="number">14000</span>a105        </span><br><span class="line"><span class="number">14000</span>a122        <span class="title function_">while</span> <span class="params">((<span class="type">int64_t</span>)count &lt; <span class="number">0x10</span>)</span></span><br><span class="line">14000a122        &#123;</span><br><span class="line"><span class="number">14000</span>a122            *(<span class="type">uint16_t</span>*)(&amp;data_140675e20 + ((<span class="type">int64_t</span>)count &lt;&lt; <span class="number">1</span>)) ^= <span class="number">0xace</span>;</span><br><span class="line"><span class="number">14000</span>a115            count += <span class="number">1</span>;</span><br><span class="line"><span class="number">14000</span>a122        &#125;</span><br><span class="line"><span class="number">14000</span>a122        </span><br><span class="line"><span class="number">14000</span>a17d        <span class="type">void</span>* len;</span><br><span class="line"><span class="number">14000</span>a17d        <span class="type">int32_t</span> result;</span><br><span class="line"><span class="number">14000</span>a17d        <span class="type">int64_t</span> r8;</span><br><span class="line"><span class="number">14000</span>a17d        <span class="type">int64_t</span> r9;</span><br><span class="line"><span class="number">14000</span>a17d        </span><br><span class="line"><span class="number">14000</span>a17d        <span class="title function_">if</span> <span class="params">(j_sub_14000a343(&amp;data_140675e20, &amp;from, r8, r9) &lt; <span class="number">0</span> || !from || !len)</span></span><br><span class="line">14000a2d3            result = <span class="number">0</span>;</span><br><span class="line"><span class="number">14000</span>a17d        <span class="keyword">else</span></span><br><span class="line"><span class="number">14000</span>a17d        &#123;</span><br><span class="line"><span class="number">14000</span>a192            <span class="type">void</span> to;  <span class="comment">// Copy content of card.txt into to</span></span><br><span class="line"><span class="number">14000</span>a192            <span class="title function_">str_copy_</span><span class="params">(&amp;to, from, len)</span>;</span><br><span class="line"><span class="number">14000</span>a192            </span><br><span class="line"><span class="number">14000</span>a1a6            <span class="title function_">if</span> <span class="params">((<span class="type">uint32_t</span>)sub_140009ad8(&amp;to))</span></span><br><span class="line">14000a1a6            &#123;</span><br><span class="line"><span class="number">14000</span>a2ce                <span class="title function_">free</span><span class="params">(&amp;to)</span>;</span><br><span class="line"><span class="number">14000</span>a2d3                result = <span class="number">0</span>;</span><br><span class="line"><span class="number">14000</span>a1a6            &#125;</span><br><span class="line"><span class="number">14000</span>a1a6            <span class="keyword">else</span></span><br><span class="line"><span class="number">14000</span>a1a6            &#123;</span><br><span class="line"><span class="number">14000</span>a1bb                <span class="type">void</span>* pos_0x2d = find(&amp;to, <span class="string">u&quot;-…&quot;</span>, nullptr);</span><br><span class="line"><span class="number">14000</span>a1bb                </span><br><span class="line"><span class="number">14000</span>a1cb                <span class="title function_">if</span> <span class="params">(pos_0x2d == <span class="number">-1</span>)</span></span><br><span class="line">14000a1cb                &#123;</span><br><span class="line"><span class="number">14000</span>a2ce                    <span class="title function_">free</span><span class="params">(&amp;to)</span>;</span><br><span class="line"><span class="number">14000</span>a2d3                    result = <span class="number">0</span>;</span><br><span class="line"><span class="number">14000</span>a1cb                &#125;</span><br><span class="line"><span class="number">14000</span>a1cb                <span class="keyword">else</span></span><br><span class="line"><span class="number">14000</span>a1cb                &#123;</span><br><span class="line"><span class="number">14000</span>a1e6                    <span class="type">void</span> usrname;</span><br><span class="line"><span class="number">14000</span>a1e6                    <span class="title function_">split</span><span class="params">(&amp;to, &amp;usrname, <span class="number">0</span>, pos_0x2d)</span>;</span><br><span class="line"><span class="number">14000</span>a20a                    <span class="type">void</span> password;</span><br><span class="line"><span class="number">14000</span>a20a                    <span class="type">char</span> r11_1 = split(&amp;to, &amp;password, (<span class="type">char</span>*)pos_0x2d + <span class="number">1</span>, -ffffffffffffffff);</span><br><span class="line"><span class="number">14000</span>a217                    <span class="type">int64_t</span>* rax_11 = str_copy__(&amp;password);</span><br><span class="line"><span class="number">14000</span>a22a                    <span class="type">char</span>* var_88;</span><br><span class="line"><span class="number">14000</span>a22a                    <span class="type">int32_t</span> decnum = basen(rax_11, &amp;var_88, <span class="number">0xa</span>, rax_11);</span><br><span class="line"><span class="number">14000</span>a22a                    </span><br><span class="line"><span class="number">14000</span>a23d                    <span class="title function_">if</span> <span class="params">((<span class="type">int32_t</span>)*(<span class="type">uint8_t</span>*)var_88)</span></span><br><span class="line">14000a23d                    &#123;</span><br><span class="line"><span class="number">14000</span>a2b7                        label_14000a2b7:</span><br><span class="line"><span class="number">14000</span>a2b7                        <span class="title function_">free</span><span class="params">(&amp;password)</span>;</span><br><span class="line"><span class="number">14000</span>a2c4                        <span class="title function_">free</span><span class="params">(&amp;usrname)</span>;</span><br><span class="line"><span class="number">14000</span>a2ce                        <span class="title function_">free</span><span class="params">(&amp;to)</span>;</span><br><span class="line"><span class="number">14000</span>a2d3                        result = <span class="number">0</span>;</span><br><span class="line"><span class="number">14000</span>a23d                    &#125;</span><br><span class="line"><span class="number">14000</span>a23d                    <span class="keyword">else</span></span><br><span class="line"><span class="number">14000</span>a23d                    &#123;</span><br><span class="line"><span class="number">14000</span>a247                        <span class="type">int64_t</span> len_1 = lenth(&amp;usrname);</span><br><span class="line"><span class="number">14000</span>a259                        <span class="type">int64_t</span>* usrname_1 = str_copy__(&amp;usrname);</span><br><span class="line"><span class="number">14000</span>a259                        </span><br><span class="line"><span class="number">14000</span>a27e                        <span class="title function_">if</span> <span class="params">(decnum != encrypt(usrname_1, len_1, usrname_1, r11_1))</span></span><br><span class="line">14000a27e                            <span class="keyword">goto</span> label_14000a2b7;</span><br><span class="line"><span class="number">14000</span>a27e                        </span><br><span class="line"><span class="number">14000</span>a28d                        <span class="title function_">free</span><span class="params">(&amp;password)</span>;</span><br><span class="line"><span class="number">14000</span>a29a                        <span class="title function_">free</span><span class="params">(&amp;usrname)</span>;</span><br><span class="line"><span class="number">14000</span>a2a4                        <span class="title function_">free</span><span class="params">(&amp;to)</span>;</span><br><span class="line"><span class="number">14000</span>a2a9                        result = <span class="number">1</span>;</span><br><span class="line"><span class="number">14000</span>a23d                    &#125;</span><br><span class="line"><span class="number">14000</span>a1cb                &#125;</span><br><span class="line"><span class="number">14000</span>a1a6            &#125;</span><br><span class="line"><span class="number">14000</span>a17d        &#125;</span><br><span class="line"><span class="number">14000</span>a17d        </span><br><span class="line"><span class="number">14000</span>a2dc        <span class="keyword">return</span> result;</span><br><span class="line"><span class="number">14000</span>a0f4    &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>大部分都是string的成员函数 密钥的处理只有一个转化为10进制数 而用户名的操作在encrypt中:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">140</span>afc131    <span class="type">uint64_t</span> <span class="title function_">sub_140afc131</span><span class="params">(<span class="type">char</span>* usrname, <span class="type">int64_t</span> len, <span class="type">int16_t</span> end @ rax, <span class="type">char</span> arg4 @ r11)</span></span><br><span class="line"></span><br><span class="line">140afc131    &#123;</span><br><span class="line"><span class="number">140</span>afc131        <span class="type">bool</span> c;</span><br><span class="line"><span class="number">140</span>afc136        end = end + arg4;</span><br><span class="line"><span class="number">140</span>afc15d        <span class="type">int32_t</span> res = <span class="number">0</span>;</span><br><span class="line"><span class="number">140</span>afc165        <span class="type">int32_t</span> count = <span class="number">0</span>;</span><br><span class="line"><span class="number">140</span>afc165        </span><br><span class="line"><span class="number">140</span>afc198        <span class="title function_">while</span> <span class="params">((<span class="type">int64_t</span>)count &lt; len)</span></span><br><span class="line">140afc198        &#123;</span><br><span class="line"><span class="number">140</span>afc198            <span class="type">int64_t</span> now;</span><br><span class="line"><span class="number">140</span>afc1ab            now = usrname[(<span class="type">int64_t</span>)count];</span><br><span class="line"><span class="number">140</span>afc1ae            <span class="type">char</span> var_28_1 = now;</span><br><span class="line"><span class="number">140</span>afc1b1            <span class="type">char</span> temp0_1 = *(<span class="type">uint8_t</span>*)((<span class="type">char</span>*)now)[<span class="number">1</span>];</span><br><span class="line"><span class="number">140</span>afc1b1            *(<span class="type">uint8_t</span>*)((<span class="type">char</span>*)now)[<span class="number">1</span>] = *(<span class="type">uint8_t</span>*)((<span class="type">char</span>*)now)[<span class="number">1</span>];</span><br><span class="line"><span class="number">140</span>afc1b1            *(<span class="type">uint8_t</span>*)((<span class="type">char</span>*)now)[<span class="number">1</span>] = temp0_1;</span><br><span class="line"><span class="number">140</span>afc1cf            res = ((<span class="type">uint32_t</span>)var_28_1 + res) * <span class="number">0x1003f</span>;</span><br><span class="line"><span class="number">140</span>afc17d            count += <span class="number">1</span>;</span><br><span class="line"><span class="number">140</span>afc198        &#125;</span><br><span class="line"><span class="number">140</span>afc198        </span><br><span class="line"><span class="number">140</span>afc1f3        <span class="title function_">return</span> <span class="params">(<span class="type">uint64_t</span>)</span>res;</span><br><span class="line"><span class="number">140</span>afc131    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>一个类似CRC32的校验和计算 到这里Task1&amp;2就能轻松完成了</p>
+<h3 id="找到用户名为administrator的KEY-作为答案提交-编写注册机"><a href="#找到用户名为administrator的KEY-作为答案提交-编写注册机" class="headerlink" title="找到用户名为administrator的KEY 作为答案提交 &amp;&amp; 编写注册机"></a>找到用户名为administrator的KEY 作为答案提交 &amp;&amp; 编写注册机</h3><p>注册机:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mask = (<span class="number">1</span> &lt;&lt; <span class="number">32</span>) - <span class="number">1</span></span><br><span class="line">username = <span class="string">b&#x27;administrator&#x27;</span></span><br><span class="line">checksum = <span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> c <span class="keyword">in</span> username:</span><br><span class="line">    checksum = ((c + checksum) * <span class="number">0x1003f</span>) &amp; mask</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;<span class="subst">&#123;username.decode()&#125;</span>-<span class="subst">&#123;checksum&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="comment"># administrator-4007951923</span></span><br></pre></td></tr></table></figure>
+
+<p>而Task3需要无论加载到的card.txt内容是什么都能正常加载驱动 上面的逻辑也能看出来主要就是用户名的校验和验证 这里直接通过修改我们的读取函数将正确的用户名和密钥复制到从文件句柄读取到的内存里即可</p>
+<h3 id="编写一个exp-在exp程序运行后-对于任意的用户名-key-Loader-sys均能正确启动"><a href="#编写一个exp-在exp程序运行后-对于任意的用户名-key-Loader-sys均能正确启动" class="headerlink" title="编写一个exp 在exp程序运行后 对于任意的用户名-key Loader.sys均能正确启动"></a>编写一个exp 在exp程序运行后 对于任意的用户名-key Loader.sys均能正确启动</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">NTSTATUS <span class="title function_">myreadfile</span><span class="params">(</span></span><br><span class="line"><span class="params">    _In_ HANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_opt_ HANDLE Event,</span></span><br><span class="line"><span class="params">    _In_opt_ PIO_APC_ROUTINE ApcRoutine,</span></span><br><span class="line"><span class="params">    _In_opt_ PVOID ApcContext,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _Out_writes_bytes_(Length) PVOID Buffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG Length,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER ByteOffset,</span></span><br><span class="line"><span class="params">    _In_opt_ PULONG Key</span></span><br><span class="line"><span class="params">)</span> &#123;</span><br><span class="line">    dohook2(FALSE);</span><br><span class="line">    readfile_ptr readfile = (readfile_ptr)HookAddr2;</span><br><span class="line">    NTSTATUS status = readfile(</span><br><span class="line">        FileHandle,</span><br><span class="line">        Event,</span><br><span class="line">        ApcRoutine,</span><br><span class="line">        ApcContext,</span><br><span class="line">        IoStatusBlock,</span><br><span class="line">        Buffer,</span><br><span class="line">        Length,</span><br><span class="line">        ByteOffset,</span><br><span class="line">        Key</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">if</span> (FileHandler &amp;&amp; FileHandler == FileHandle) &#123;</span><br><span class="line">        kprintf(<span class="string">&quot;Line %d: Reading card.txt detected in NtReadFile\n&quot;</span>, __LINE__);</span><br><span class="line">        <span class="comment">//DbgBreakPoint();</span></span><br><span class="line">        <span class="comment">/* Replace the user-key with the right one */</span></span><br><span class="line">        u8 CorrectPair[] = <span class="string">&quot;ACE-4051574845\x00&quot;</span>;</span><br><span class="line">        <span class="built_in">memset</span>(Buffer, <span class="number">0</span>, <span class="number">0x1000</span>);</span><br><span class="line">        <span class="built_in">memcpy</span>(Buffer, CorrectPair, <span class="built_in">strlen</span>(CorrectPair));</span><br><span class="line">        <span class="comment">/* Replace the user-key with the right one */</span></span><br><span class="line">    &#125;</span><br><span class="line">    dohook2(TRUE);</span><br><span class="line">    <span class="keyword">return</span> status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>完整驱动代码:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntifs.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntdef.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntstatus.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntddk.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntstrsafe.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_BACKTRACE_DEPTH 0x20</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SYM <span class="string">L&quot;\\??\\Hook_API&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> kprintf(format, ...) DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, format, __VA_ARGS__)</span></span><br><span class="line"><span class="keyword">typedef</span> UINT64 u64;</span><br><span class="line"><span class="keyword">typedef</span> UINT32 u32;</span><br><span class="line"><span class="keyword">typedef</span> UINT16 u16;</span><br><span class="line"><span class="keyword">typedef</span> UINT8  u8;</span><br><span class="line"></span><br><span class="line">u8 mov_jmp_rax1[<span class="number">12</span>] = &#123;</span><br><span class="line">    <span class="number">0x48</span>,<span class="number">0xB8</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,	<span class="comment">//mov rax,xxx</span></span><br><span class="line">    <span class="number">0xFF</span>,<span class="number">0xE0</span>											<span class="comment">//jmp rax</span></span><br><span class="line">&#125;, mov_jmp_rax2[<span class="number">12</span>] = &#123;</span><br><span class="line">    <span class="number">0x48</span>,<span class="number">0xB8</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,	<span class="comment">//mov rax,xxx</span></span><br><span class="line">    <span class="number">0xFF</span>,<span class="number">0xE0</span>											<span class="comment">//jmp rax</span></span><br><span class="line">&#125;, origin1[<span class="number">12</span>] = &#123;</span><br><span class="line">    <span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,</span><br><span class="line">    <span class="number">0x00</span>,<span class="number">0x00</span></span><br><span class="line">&#125;, origin2[<span class="number">12</span>] = &#123;</span><br><span class="line">    <span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,<span class="number">0x00</span>,</span><br><span class="line">    <span class="number">0x00</span>,<span class="number">0x00</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">u8* HookAddr1 = <span class="literal">NULL</span>, * HookAddr2 = <span class="literal">NULL</span>, Hooked1 = FALSE, Hooked2 = FALSE;</span><br><span class="line"></span><br><span class="line">KIRQL <span class="title function_">writeProtectOFFx64</span><span class="params">()</span> &#123;</span><br><span class="line">    KIRQL OldIrql;</span><br><span class="line">    OldIrql = KeRaiseIrqlToDpcLevel();</span><br><span class="line">    __writecr0(__readcr0() &amp; ~<span class="number">0x10000</span>);</span><br><span class="line">    _disable();</span><br><span class="line">    <span class="keyword">return</span> OldIrql;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">writeProtectONx64</span><span class="params">(KIRQL OldIrql)</span> &#123;</span><br><span class="line">    _enable();</span><br><span class="line">    __writecr0(__readcr0() | <span class="number">0x10000</span>);</span><br><span class="line">    KeLowerIrql(OldIrql);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">NTSTATUS <span class="title function_">dohook1</span><span class="params">(u8 HOOK)</span> &#123;</span><br><span class="line">    Hooked1 = HOOK;</span><br><span class="line">    KIRQL irql = writeProtectOFFx64();</span><br><span class="line">    <span class="keyword">if</span> (HookAddr1) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!HOOK) &#123;</span><br><span class="line">            <span class="built_in">memcpy</span>(HookAddr1, origin1, <span class="keyword">sizeof</span>(origin1));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">memcpy</span>(HookAddr1, mov_jmp_rax1, <span class="keyword">sizeof</span>(mov_jmp_rax1));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    writeProtectONx64(irql);</span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line">NTSTATUS <span class="title function_">dohook2</span><span class="params">(u8 HOOK)</span> &#123;</span><br><span class="line">    Hooked2 = HOOK;</span><br><span class="line">    KIRQL irql = writeProtectOFFx64();</span><br><span class="line">    <span class="keyword">if</span> (HookAddr2) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!HOOK) &#123;</span><br><span class="line">            <span class="built_in">memcpy</span>(HookAddr2, origin2, <span class="keyword">sizeof</span>(origin2));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">memcpy</span>(HookAddr2, mov_jmp_rax2, <span class="keyword">sizeof</span>(mov_jmp_rax2));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    writeProtectONx64(irql);</span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="title function_">NTSTATUS</span><span class="params">(*createfile_ptr)</span><span class="params">(</span></span><br><span class="line"><span class="params">    _Out_ PHANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_ ACCESS_MASK DesiredAccess,</span></span><br><span class="line"><span class="params">    _In_ PCOBJECT_ATTRIBUTES ObjectAttributes,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER AllocationSize,</span></span><br><span class="line"><span class="params">    _In_ ULONG FileAttributes,</span></span><br><span class="line"><span class="params">    _In_ ULONG ShareAccess,</span></span><br><span class="line"><span class="params">    _In_ ULONG CreateDisposition,</span></span><br><span class="line"><span class="params">    _In_ ULONG CreateOptions,</span></span><br><span class="line"><span class="params">    _In_reads_bytes_opt_(EaLength) PVOID EaBuffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG EaLength</span></span><br><span class="line"><span class="params">    )</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="title function_">NTSTATUS</span><span class="params">(*readfile_ptr)</span><span class="params">(</span></span><br><span class="line"><span class="params">    _In_ HANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_opt_ HANDLE Event,</span></span><br><span class="line"><span class="params">    _In_opt_ PIO_APC_ROUTINE ApcRoutine,</span></span><br><span class="line"><span class="params">    _In_opt_ PVOID ApcContext,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _Out_writes_bytes_(Length) PVOID Buffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG Length,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER ByteOffset,</span></span><br><span class="line"><span class="params">    _In_opt_ PULONG Key</span></span><br><span class="line"><span class="params">    )</span>;</span><br><span class="line"></span><br><span class="line">HANDLE FileHandler = <span class="literal">NULL</span>;</span><br><span class="line">NTSTATUS <span class="title function_">mycreatefile</span><span class="params">(</span></span><br><span class="line"><span class="params">    _Out_ PHANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_ ACCESS_MASK DesiredAccess,</span></span><br><span class="line"><span class="params">    _In_ PCOBJECT_ATTRIBUTES ObjectAttributes,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER AllocationSize,</span></span><br><span class="line"><span class="params">    _In_ ULONG FileAttributes,</span></span><br><span class="line"><span class="params">    _In_ ULONG ShareAccess,</span></span><br><span class="line"><span class="params">    _In_ ULONG CreateDisposition,</span></span><br><span class="line"><span class="params">    _In_ ULONG CreateOptions,</span></span><br><span class="line"><span class="params">    _In_reads_bytes_opt_(EaLength) PVOID EaBuffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG EaLength</span></span><br><span class="line"><span class="params">)</span> &#123;</span><br><span class="line">    dohook1(FALSE);</span><br><span class="line">    createfile_ptr createfile = (createfile_ptr)HookAddr1;</span><br><span class="line">    NTSTATUS status = createfile(</span><br><span class="line">        FileHandle,</span><br><span class="line">        DesiredAccess,</span><br><span class="line">        ObjectAttributes,</span><br><span class="line">        IoStatusBlock,</span><br><span class="line">        AllocationSize,</span><br><span class="line">        FileAttributes,</span><br><span class="line">        ShareAccess,</span><br><span class="line">        CreateDisposition,</span><br><span class="line">        CreateOptions,</span><br><span class="line">        EaBuffer,</span><br><span class="line">        EaLength</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">if</span> (!wcscmp(ObjectAttributes-&gt;ObjectName-&gt;Buffer, <span class="string">L&quot;\\??\\C:\\card.txt&quot;</span>)) &#123;</span><br><span class="line">        kprintf(<span class="string">&quot;Line %d: Reading card.txt detected in NtCreateFile\n&quot;</span>, __LINE__);</span><br><span class="line">        FileHandler = *FileHandle;</span><br><span class="line">    &#125;</span><br><span class="line">    dohook1(TRUE);</span><br><span class="line">    <span class="keyword">return</span> status;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">NTSTATUS <span class="title function_">myreadfile</span><span class="params">(</span></span><br><span class="line"><span class="params">    _In_ HANDLE FileHandle,</span></span><br><span class="line"><span class="params">    _In_opt_ HANDLE Event,</span></span><br><span class="line"><span class="params">    _In_opt_ PIO_APC_ROUTINE ApcRoutine,</span></span><br><span class="line"><span class="params">    _In_opt_ PVOID ApcContext,</span></span><br><span class="line"><span class="params">    _Out_ PIO_STATUS_BLOCK IoStatusBlock,</span></span><br><span class="line"><span class="params">    _Out_writes_bytes_(Length) PVOID Buffer,</span></span><br><span class="line"><span class="params">    _In_ ULONG Length,</span></span><br><span class="line"><span class="params">    _In_opt_ PLARGE_INTEGER ByteOffset,</span></span><br><span class="line"><span class="params">    _In_opt_ PULONG Key</span></span><br><span class="line"><span class="params">)</span> &#123;</span><br><span class="line">    dohook2(FALSE);</span><br><span class="line">    readfile_ptr readfile = (readfile_ptr)HookAddr2;</span><br><span class="line">    NTSTATUS status = readfile(</span><br><span class="line">        FileHandle,</span><br><span class="line">        Event,</span><br><span class="line">        ApcRoutine,</span><br><span class="line">        ApcContext,</span><br><span class="line">        IoStatusBlock,</span><br><span class="line">        Buffer,</span><br><span class="line">        Length,</span><br><span class="line">        ByteOffset,</span><br><span class="line">        Key</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">if</span> (FileHandler &amp;&amp; FileHandler == FileHandle) &#123;</span><br><span class="line">        kprintf(<span class="string">&quot;Line %d: Reading card.txt detected in NtReadFile\n&quot;</span>, __LINE__);</span><br><span class="line">        <span class="comment">//DbgBreakPoint();</span></span><br><span class="line">        <span class="comment">/* Replace the user-key with the right one */</span></span><br><span class="line">        u8 CorrectPair[] = <span class="string">&quot;ACE-4051574845\x00&quot;</span>;</span><br><span class="line">        <span class="built_in">memset</span>(Buffer, <span class="number">0</span>, <span class="number">0x1000</span>);</span><br><span class="line">        <span class="built_in">memcpy</span>(Buffer, CorrectPair, <span class="built_in">strlen</span>(CorrectPair));</span><br><span class="line">        <span class="comment">/* Replace the user-key with the right one */</span></span><br><span class="line">    &#125;</span><br><span class="line">    dohook2(TRUE);</span><br><span class="line">    <span class="keyword">return</span> status;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">DeleteDevice</span><span class="params">(PDRIVER_OBJECT pDriver)</span> &#123;</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Deleting Driver\n&quot;</span>, __LINE__);</span><br><span class="line">    <span class="keyword">if</span> (pDriver-&gt;DeviceObject) &#123;</span><br><span class="line">        UNICODE_STRING DeviceName;</span><br><span class="line">        RtlInitUnicodeString(&amp;DeviceName, SYM);</span><br><span class="line">        IoDeleteSymbolicLink(&amp;DeviceName);</span><br><span class="line">        IoDeleteDevice(pDriver-&gt;DeviceObject);</span><br><span class="line">    &#125;</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Driver Deleted\n&quot;</span>, __LINE__);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">DriverUnload</span><span class="params">(PDRIVER_OBJECT pDriver)</span> &#123;</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Unloading Driver\n&quot;</span>, __LINE__);</span><br><span class="line">    <span class="keyword">if</span> (Hooked1) &#123;</span><br><span class="line">        dohook1(FALSE);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (Hooked2) &#123;</span><br><span class="line">        dohook2(FALSE);</span><br><span class="line">    &#125;</span><br><span class="line">    DeleteDevice(pDriver);</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Driver Unloaded\n&quot;</span>, __LINE__);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">NTSTATUS <span class="title function_">DriverEntry</span><span class="params">(</span></span><br><span class="line"><span class="params">    _In_ PDRIVER_OBJECT DriverObject,</span></span><br><span class="line"><span class="params">    _In_ PUNICODE_STRING RegistryPath</span></span><br><span class="line"><span class="params">)</span> &#123;</span><br><span class="line">    DriverObject-&gt;DriverUnload = DriverUnload;</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Driver Loaded, RegistryPath : %S\n&quot;</span>, __LINE__, RegistryPath-&gt;Buffer);</span><br><span class="line">    HookAddr1 = (u64)NtCreateFile;</span><br><span class="line">    HookAddr2 = (u64)NtReadFile;</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: HookAddr1 : 0x%llx, HookAddr2 : 0x%llx\n&quot;</span>, __LINE__, HookAddr1, HookAddr2);</span><br><span class="line">    <span class="keyword">if</span> (!HookAddr1 || !HookAddr2) &#123;</span><br><span class="line">        kprintf(<span class="string">&quot;Line %d: HookAddr1 or HookAddr2 is NULL\n&quot;</span>, __LINE__);</span><br><span class="line">        <span class="keyword">return</span> STATUS_UNSUCCESSFUL;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">memcpy</span>(origin1, HookAddr1, <span class="keyword">sizeof</span>(origin1));</span><br><span class="line">    <span class="built_in">memcpy</span>(origin2, HookAddr2, <span class="keyword">sizeof</span>(origin2));</span><br><span class="line">    *((u64*)(mov_jmp_rax1 + <span class="number">2</span>)) = (u64)mycreatefile;</span><br><span class="line">    *((u64*)(mov_jmp_rax2 + <span class="number">2</span>)) = (u64)myreadfile;</span><br><span class="line">    dohook1(TRUE);</span><br><span class="line">    dohook2(TRUE);</span><br><span class="line">    kprintf(<span class="string">&quot;Line %d: Hooked NtCreateFile and NtReadFile\n&quot;</span>, __LINE__);</span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参考</p>
+<blockquote>
+<p>腾讯游戏安全大赛2024决赛题解  <a target="_blank" rel="noopener" href="https://xia0ji233.pro/2024/04/22/tencent-race-2024-pre-final/index.html">https://xia0ji233.pro/2024/04/22/tencent-race-2024-pre-final/index.html</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>1K0CT B14s
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ikoct.com/2025/04/10/%E8%B7%9F%E7%9D%802024%E5%B9%B4%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B-%E5%86%B3%E8%B5%9B-%E5%89%8D3%E9%97%AE-%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AD%A6Windows%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8Hook/" title="跟着2024年腾讯游戏安全竞赛(决赛(前3问))从零开始学Windows内核驱动Hook">https://ikoct.com/2025/04/10/跟着2024年腾讯游戏安全竞赛-决赛-前3问-从零开始学Windows内核驱动Hook/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Reverse/" rel="tag"># Reverse</a>
+              <a href="/tags/Writeups/" rel="tag"># Writeups</a>
+              <a href="/tags/Kernel/" rel="tag"># Kernel</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/03/31/2025%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B-PC%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%89%E5%85%A8-%E5%88%9D%E8%B5%9B%E9%A2%98%E8%A7%A3/" rel="prev" title="2025腾讯游戏安全竞赛 PC客户端安全 初赛题解">
+      <i class="fa fa-chevron-left"></i> 2025腾讯游戏安全竞赛 PC客户端安全 初赛题解
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%B9%B6%E5%90%AF%E7%94%A8%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8"><span class="nav-number">1.</span> <span class="nav-text">创建并启用内核驱动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IDA%E2%80%A6%E6%97%A0%E6%B3%95%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">IDA…无法静态分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E7%9A%84hook"><span class="nav-number">3.</span> <span class="nav-text">内核驱动的hook</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">3.1.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%95%E8%BF%87PatchGuard"><span class="nav-number">3.2.</span> <span class="nav-text">绕过PatchGuard</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E5%86%85%E6%A0%B8%E5%87%BD%E6%95%B0%E8%BF%9B%E8%A1%8Cinline-hook"><span class="nav-number">3.3.</span> <span class="nav-text">对内核函数进行inline hook</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Windbg%E6%89%98%E7%AE%A1%E9%A9%B1%E5%8A%A8%E8%AE%BE%E7%BD%AE%E7%9A%84%E6%96%AD%E7%82%B9"><span class="nav-number">3.4.</span> <span class="nav-text">Windbg托管驱动设置的断点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%BE%E5%88%B0%E7%94%A8%E6%88%B7%E5%90%8D%E4%B8%BAadministrator%E7%9A%84KEY-%E4%BD%9C%E4%B8%BA%E7%AD%94%E6%A1%88%E6%8F%90%E4%BA%A4-%E7%BC%96%E5%86%99%E6%B3%A8%E5%86%8C%E6%9C%BA"><span class="nav-number">3.5.</span> <span class="nav-text">找到用户名为administrator的KEY 作为答案提交 &amp;&amp; 编写注册机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AAexp-%E5%9C%A8exp%E7%A8%8B%E5%BA%8F%E8%BF%90%E8%A1%8C%E5%90%8E-%E5%AF%B9%E4%BA%8E%E4%BB%BB%E6%84%8F%E7%9A%84%E7%94%A8%E6%88%B7%E5%90%8D-key-Loader-sys%E5%9D%87%E8%83%BD%E6%AD%A3%E7%A1%AE%E5%90%AF%E5%8A%A8"><span class="nav-number">3.6.</span> <span class="nav-text">编写一个exp 在exp程序运行后 对于任意的用户名-key Loader.sys均能正确启动</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="1K0CT B14s"
+      src="/images/myavatar.gif">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description">残りの人生、私にくれませんか？</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">531k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">8:03</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>-->
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
