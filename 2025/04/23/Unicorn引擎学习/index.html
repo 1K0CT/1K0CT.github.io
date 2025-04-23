@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-corner-indicator.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="如果早知道 学Angr也会被背刺…">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unicorn引擎学习">
+<meta property="og:url" content="https://ikoct.com/2025/04/23/Unicorn%E5%BC%95%E6%93%8E%E5%AD%A6%E4%B9%A0/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="如果早知道 学Angr也会被背刺…">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F23%2F20250423-134256.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F23%2F20250423-134652.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F23%2F20250423-135341.png">
+<meta property="article:published_time" content="2025-04-23T08:15:33.000Z">
+<meta property="article:modified_time" content="2025-04-23T08:15:33.592Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="Reverse">
+<meta property="article:tag" content="Unicorn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F23%2F20250423-134256.png">
+
+<link rel="canonical" href="https://ikoct.com/2025/04/23/Unicorn%E5%BC%95%E6%93%8E%E5%AD%A6%E4%B9%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unicorn引擎学习 | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">你愿意和我学一辈子二进制吗?</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2025/04/23/Unicorn%E5%BC%95%E6%93%8E%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myavatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="残りの人生、私にくれませんか？">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unicorn引擎学习
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-04-23 16:15:33" itemprop="dateCreated datePublished" datetime="2025-04-23T16:15:33+08:00">2025-04-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Reverse/" itemprop="url" rel="index"><span itemprop="name">Reverse</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>8.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>8 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>如果早知道 学Angr也会被背刺…</p>
+<span id="more"></span>
+
+<p>同样作为模拟执行引擎 unicorn相比angr虽然没有内置的z3引擎 但是就使用体验上来说十分的易上手 再加上注册代码回调函数(hook)的功能用起来不可谓不舒服</p>
+<h2 id="模拟执行的准备工作"><a href="#模拟执行的准备工作" class="headerlink" title="模拟执行的准备工作"></a>模拟执行的准备工作</h2><p>之所以说它易上手 是因为它的使用方法和keystone, capstone这两个汇编相关引擎很相似 指定一个框架和模式就能开始模拟执行了</p>
+<p>以X86_64为例 模拟执行前需要创建<code>unicorn.Uc</code>对象</p>
+<p><code>uc = Uc(UC_ARCH_X86, UC_MODE_64)</code></p>
+<p>接下来就是进行内存映射 使用<code>Uc.mem_map(addr, size)</code>进行内存映射以获取存放代码和栈或者数据的字节的以映射内存 目前看来映射内存需要页对齐 否则会报错 保险起见一个页定在1mb(0x400 ** 2 byte)</p>
+<p> <code>PAGE = 0x400 ** 2</code></p>
+<p>此后映射内存时addr和size最好都是<code>n * PAGE</code>的形式</p>
+<p>unicorn的模拟执行不需要读取完整代码 只需要想要执行的代码片段被写入了对应的位置即可 但是为了方便也可以直接将二进制文件读到正确的内存上:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">CODE = <span class="number">0</span></span><br><span class="line">STACK= PAGE</span><br><span class="line">uc.mem_map(CODE,  PAGE)</span><br><span class="line">uc.mem_map(STACK, PAGE)</span><br><span class="line">uc.mem_write(CODE, <span class="built_in">open</span>(<span class="string">&#x27;.\\to_emu&#x27;</span>, <span class="string">&#x27;rb&#x27;</span>).read())</span><br><span class="line">uc.reg_write(UC_X86_REG_RSP, STACK + PAGE // <span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+
+<p>栈基址可以随便定 而CODE需要保证读到的代码段字节在正确的位置上 最简单的方法就是打开IDA看程序基址 将CODE设为这个基址即可</p>
+<p>unicorn中读写寄存器, 内存的方法也很简单 只用<code>Uc.[mem|reg]_[read|write]()</code>4个函数就可以完成 读写寄存器时可以直接用unicorn中准备好的宏定义标识要读写的寄存器 这些宏定义将一个组件名映射到一个整型上 格式都是<code>UC_ARCH_TYPE_xxx</code></p>
+<h2 id="开始-结束模拟执行"><a href="#开始-结束模拟执行" class="headerlink" title="开始&#x2F;结束模拟执行"></a>开始&#x2F;结束模拟执行</h2><p>unicorn中要开始和结束模拟执行也只由两个函数负责<code>Uc.emu_[start|stop]()</code> 开始模拟执行只需要指定开始执行的地址和结束地址</p>
+<h2 id="Hook-Unhook代码"><a href="#Hook-Unhook代码" class="headerlink" title="Hook&#x2F;Unhook代码"></a>Hook&#x2F;Unhook代码</h2><p>uncorn提供了几种不同等级的hook 这里只介绍最通用的code hook</p>
+<p>当注册了code hook后 和IDA下条件断点一样 在执行当前指令前会先执行我们的hook函数</p>
+<h3 id="添加Hook"><a href="#添加Hook" class="headerlink" title="添加Hook"></a>添加Hook</h3><p>使用<code>hook_handle = Uc.hook_add(UC_HOOK_CODE, hook)</code>来添加一个代码回调<code>hook</code> 函数返回一个回调函数句柄 在后续删除hook时要用到 多次添加hook不会覆盖掉前面的 而是链式调用各个hook</p>
+<h3 id="删除Hook"><a href="#删除Hook" class="headerlink" title="删除Hook"></a>删除Hook</h3><p>使用<code>Uc.hook_add(hook_handle)</code>来删除一个hook 要注意的是一个hook句柄只能在删除时使用一次 调用完后<code>hook_handle</code>就失效了 即使下次再添加同一个hook也不能用这个<code>hook_handle</code>来删除</p>
+<h2 id="保存-恢复上下文"><a href="#保存-恢复上下文" class="headerlink" title="保存&#x2F;恢复上下文"></a>保存&#x2F;恢复上下文</h2><p>不同于专门用于模拟程序执行的所有分支的angr 若unicorn在模拟执行前不手动设定各个通用寄存器的值就会默认为0 当遇到分支时不会像angr一样生成另一条stash 因此如果要用unicorn实现类似的功能就需要在遇到分支时手动保存上下文 然后对产生分支的寄存器或内存写入可能的值再从分支点开始进行模拟执行</p>
+<p>相关的函数为:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ctx = uc.context_save()</span><br><span class="line">uc.context_restore(ctx)</span><br></pre></td></tr></table></figure>
+
+<p>unicorn的基本功能就结束了 下面是实战应用</p>
+<h2 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h2><h3 id="b01lersCTF-2025-labyrinth"><a href="#b01lersCTF-2025-labyrinth" class="headerlink" title="[b01lersCTF 2025] labyrinth"></a>[b01lersCTF 2025] labyrinth</h3><h4 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h4><p>程序实现了一个类似迷宫的函数 这个函数所在内存被mprotect设置为了rwx权限的 通过输入<code>LUDR</code>中的一个来进行移动 函数本体就是迷宫 根据输入会间接跳转到函数的其他地方:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F23%2F20250423-134256.png" alt="QQ_1745386973654"></p>
+<p>那么迷宫中每个节点的特征就很明显了 因为如果到达一个节点肯定要通过call来获取输入才能到达下一个 那么基本节点的特征就是<code>call</code>指令</p>
+<p>直接看这种控制流来找到通往终点的路肯定是很难的 因为除了基本的根据输入来进行间接跳转 还有几个节点会修改函数本身导致某些节点对某些输入造成的跳转发生改变 这也是这个函数的内存被修改权限的原因:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F23%2F20250423-134652.png" alt="QQ_1745387197955"></p>
+<p>并且这些节点并不是经过一次改变了函数控制流后就不用关心的 后续还可能再经过并把函数的控制流修改回去 这样的节点有5个 手动记录一下位置</p>
+<p>这个时候要获取清晰的各个节点之间的关系就是关键了 一开始我尝试patch程序将间接跳转修改为直接跳转 这样IDA就能成功反汇编查看伪代码了:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> idc <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> idaapi</span><br><span class="line"><span class="keyword">from</span> keystone <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">ks = Ks(KS_ARCH_X86, KS_MODE_64)</span><br><span class="line"></span><br><span class="line"><span class="comment"># base = 0x400000</span></span><br><span class="line">base = <span class="number">0</span></span><br><span class="line">ea = func = <span class="number">0x13b6</span> + base</span><br><span class="line">end       = <span class="number">0x303A</span> + base</span><br><span class="line"><span class="comment"># end = 0x13EC + base</span></span><br><span class="line">indirect_jmp= [<span class="literal">False</span>, <span class="number">0</span>, <span class="number">0</span>]</span><br><span class="line">nodes       = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">next_ins</span>():</span><br><span class="line">    <span class="keyword">global</span> ea</span><br><span class="line">    lenth = idaapi.decode_insn(idaapi.insn_t(), ea)</span><br><span class="line">    ea += lenth</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">patch</span>():</span><br><span class="line">    <span class="keyword">while</span> ea &lt;= end:</span><br><span class="line">        opcode = GetDisasm(ea).split()</span><br><span class="line">        <span class="comment"># print(opcode)</span></span><br><span class="line">        <span class="keyword">if</span> indirect_jmp[<span class="number">0</span>] <span class="keyword">and</span> opcode[<span class="number">0</span>] == <span class="string">&#x27;push&#x27;</span> <span class="keyword">and</span> opcode[<span class="number">1</span>] == <span class="string">&#x27;r15&#x27;</span>:</span><br><span class="line">            new_opcode = ks.asm(<span class="string">f&#x27;mov eax, <span class="subst">&#123;indirect_jmp[<span class="number">2</span>]&#125;</span>&#x27;</span>)[<span class="number">0</span>]</span><br><span class="line">            new_opcode+= ks.asm(<span class="string">f&#x27;jmp <span class="subst">&#123;func + indirect_jmp[<span class="number">1</span>]&#125;</span>&#x27;</span>, ea - <span class="number">2</span>)[<span class="number">0</span>]</span><br><span class="line">            new_opcode = <span class="built_in">bytes</span>(new_opcode)</span><br><span class="line">            <span class="built_in">print</span>(new_opcode, <span class="string">f&#x27;at <span class="subst">&#123;<span class="built_in">hex</span>(ea - <span class="number">7</span>)&#125;</span>&#x27;</span>)</span><br><span class="line">            idaapi.patch_bytes(ea - <span class="number">7</span>, new_opcode)</span><br><span class="line">            indirect_jmp[<span class="number">0</span>] = <span class="literal">False</span></span><br><span class="line">            ea += <span class="number">3</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(opcode) == <span class="number">3</span> <span class="keyword">and</span> opcode[<span class="number">0</span>] == <span class="string">&#x27;add&#x27;</span> <span class="keyword">and</span> opcode[<span class="number">1</span>] == <span class="string">&#x27;r15,&#x27;</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&#x27;Found indirect jmp at: <span class="subst">&#123;<span class="built_in">hex</span>(ea)&#125;</span>&#x27;</span>)</span><br><span class="line">            indirect_jmp[<span class="number">0</span>] = <span class="literal">True</span></span><br><span class="line">            <span class="keyword">try</span>:</span><br><span class="line">                indirect_jmp[<span class="number">1</span>] = <span class="built_in">int</span>(opcode[<span class="number">2</span>][:-<span class="number">1</span>], <span class="number">16</span>)</span><br><span class="line">            <span class="keyword">except</span>:</span><br><span class="line">                indirect_jmp[<span class="number">1</span>] = <span class="number">0</span></span><br><span class="line">            next_ins()</span><br><span class="line">            opcode = GetDisasm(ea).split()</span><br><span class="line">            indirect_jmp[<span class="number">2</span>] = <span class="built_in">int</span>(opcode[<span class="number">2</span>])</span><br><span class="line">        next_ins()</span><br><span class="line"></span><br><span class="line">patch()</span><br></pre></td></tr></table></figure>
+
+<p>确实能反汇编了 但是看起来还是很难绷:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F04%2F23%2F20250423-135341.png" alt="QQ_1745387478068"></p>
+<p>虽然并不复杂但是跟给自己上了混淆一样 IDA也不会将其识别为switch-case结构</p>
+<p>这时候就要请出我们的unicorn了 既然每个节点的特征明显 可以轻易获取 且每个节点只有4种输入 不妨在每个节点的入口进行模拟执行4种输入的结果 当模拟执行至其他节点时记录这两个节点间的关系</p>
+<p>找到所有基本节点的关系后再在修改控制流的节点处进行模拟执行 直到下一个节点时保存上下文再对所有节点执行上面的流程 找出所有与先前不同的关系(实际上这一步也可以静态做 但是都unicorn了就要一u到底)</p>
+<h4 id="获取所有节点"><a href="#获取所有节点" class="headerlink" title="获取所有节点"></a>获取所有节点</h4><p>这一步还是通过IDA进行</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> idc <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> idaapi</span><br><span class="line"><span class="keyword">from</span> keystone <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">ks = Ks(KS_ARCH_X86, KS_MODE_64)</span><br><span class="line"></span><br><span class="line"><span class="comment"># base = 0x400000</span></span><br><span class="line">base = <span class="number">0</span></span><br><span class="line">ea = func = <span class="number">0x13b6</span> + base</span><br><span class="line">end       = <span class="number">0x303A</span> + base</span><br><span class="line"><span class="comment"># end = 0x13EC + base</span></span><br><span class="line">indirect_jmp= [<span class="literal">False</span>, <span class="number">0</span>, <span class="number">0</span>]</span><br><span class="line">nodes       = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">next_ins</span>():</span><br><span class="line">    <span class="keyword">global</span> ea</span><br><span class="line">    lenth = idaapi.decode_insn(idaapi.insn_t(), ea)</span><br><span class="line">    ea += lenth</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_all_node</span>():</span><br><span class="line">    <span class="keyword">while</span> ea &lt;= end:</span><br><span class="line">        opcode = GetDisasm(ea).split()</span><br><span class="line">        <span class="keyword">if</span> opcode[<span class="number">0</span>] == <span class="string">&#x27;call&#x27;</span>:</span><br><span class="line">            nodes.append(ea)</span><br><span class="line">        next_ins()</span><br><span class="line"></span><br><span class="line">get_all_node()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;, &quot;</span>.join(<span class="built_in">hex</span>(node) <span class="keyword">for</span> node <span class="keyword">in</span> nodes))</span><br></pre></td></tr></table></figure>
+
+<p>得到</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nodes = [</span><br><span class="line">    <span class="number">0x13c5</span>, <span class="number">0x1431</span>, <span class="number">0x149d</span>, <span class="number">0x1509</span>, <span class="number">0x1575</span>, <span class="number">0x15e1</span>, <span class="number">0x164d</span>, <span class="number">0x16b9</span>, <span class="number">0x1725</span>, <span class="number">0x1791</span>, <span class="number">0x1934</span>, <span class="number">0x19a0</span>, <span class="number">0x1a0c</span>, <span class="number">0x1a78</span>, <span class="number">0x1ae4</span>, <span class="number">0x1b50</span>, <span class="number">0x1bbc</span>, <span class="number">0x1c25</span>, <span class="number">0x1c91</span>, <span class="number">0x1cfd</span>, <span class="number">0x1d72</span>, <span class="number">0x1dde</span>, <span class="number">0x1e4a</span>, <span class="number">0x1eb6</span>, <span class="number">0x2225</span>, <span class="number">0x2291</span>, <span class="number">0x22fd</span>, <span class="number">0x2369</span>, <span class="number">0x27be</span>, <span class="number">0x282a</span>, <span class="number">0x2896</span>, <span class="number">0x2902</span>, <span class="number">0x296e</span>, <span class="number">0x29da</span>, <span class="number">0x2a46</span>, <span class="number">0x2ab2</span>, <span class="number">0x2b1e</span>, <span class="number">0x2c8c</span>, <span class="number">0x2fcd</span></span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<h4 id="获取节点间的关系"><a href="#获取节点间的关系" class="headerlink" title="获取节点间的关系"></a>获取节点间的关系</h4><p>就和上面说的一样 需要先进行模拟前的上下文配置:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> unicorn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> unicorn.x86_const <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> capstone <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">cs = Cs(CS_ARCH_X86, CS_MODE_64)</span><br><span class="line">uc = Uc(UC_ARCH_X86, UC_MODE_64)</span><br><span class="line">PAGE = <span class="number">0x400</span> ** <span class="number">2</span></span><br><span class="line">CODE = <span class="number">0</span></span><br><span class="line">STACK= PAGE</span><br><span class="line">uc.mem_map(CODE,  PAGE)</span><br><span class="line">uc.mem_map(STACK, PAGE)</span><br><span class="line">uc.mem_write(CODE, <span class="built_in">open</span>(<span class="string">&#x27;.\\labyrinth&#x27;</span>, <span class="string">&#x27;rb&#x27;</span>).read())</span><br><span class="line">uc.reg_write(UC_X86_REG_RSP, STACK + PAGE // <span class="number">2</span>)</span><br><span class="line">start   = <span class="number">0x13B6</span></span><br><span class="line">end     = <span class="number">0x303A</span></span><br><span class="line">op      = <span class="number">0x6011</span></span><br><span class="line">fail    = <span class="number">0x3036</span></span><br><span class="line">success = <span class="number">0x1D29</span></span><br><span class="line"></span><br><span class="line">visited     = <span class="built_in">set</span>()</span><br><span class="line">node_attrs  = &#123;&#125;</span><br><span class="line">node_sym    = <span class="string">&#x27;&#x27;</span></span><br><span class="line">node_op     = <span class="string">&#x27;&#x27;</span></span><br><span class="line">switcheron  = <span class="string">&#x27;&#x27;</span></span><br><span class="line">STOP        = <span class="literal">False</span></span><br><span class="line">PRINT       = <span class="literal">False</span></span><br><span class="line">switchers   = [</span><br><span class="line">    <span class="number">0x17FD</span>, <span class="number">0x1F22</span>, <span class="number">0x23D5</span>, <span class="number">0x2B8A</span>, <span class="number">0x2CF8</span></span><br><span class="line">]</span><br><span class="line">nodes       = [</span><br><span class="line"><span class="number">0x13c5</span>, <span class="number">0x1431</span>, <span class="number">0x149d</span>, <span class="number">0x1509</span>, <span class="number">0x1575</span>, <span class="number">0x15e1</span>, <span class="number">0x164d</span>, <span class="number">0x16b9</span>, <span class="number">0x1725</span>, <span class="number">0x1791</span>, <span class="number">0x1934</span>, <span class="number">0x19a0</span>, <span class="number">0x1a0c</span>, <span class="number">0x1a78</span>, <span class="number">0x1ae4</span>, <span class="number">0x1b50</span>, <span class="number">0x1bbc</span>, <span class="number">0x1c25</span>, <span class="number">0x1c91</span>, <span class="number">0x1cfd</span>, <span class="number">0x1d72</span>, <span class="number">0x1dde</span>, <span class="number">0x1e4a</span>, <span class="number">0x1eb6</span>, <span class="number">0x2225</span>, <span class="number">0x2291</span>, <span class="number">0x22fd</span>, <span class="number">0x2369</span>, <span class="number">0x27be</span>, <span class="number">0x282a</span>, <span class="number">0x2896</span>, <span class="number">0x2902</span>, <span class="number">0x296e</span>, <span class="number">0x29da</span>, <span class="number">0x2a46</span>, <span class="number">0x2ab2</span>, <span class="number">0x2b1e</span>, <span class="number">0x2c8c</span>, <span class="number">0x2fcd</span></span><br><span class="line">]</span><br><span class="line">move        = &#123;</span><br><span class="line">    <span class="number">0</span> : <span class="string">&#x27;L&#x27;</span>,</span><br><span class="line">    <span class="number">1</span> : <span class="string">&#x27;D&#x27;</span>,</span><br><span class="line">    <span class="number">2</span> : <span class="string">&#x27;U&#x27;</span>,</span><br><span class="line">    <span class="number">3</span> : <span class="string">&#x27;R&#x27;</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">hook0</span>(<span class="params">uc : Uc, address, size, usr_data</span>):</span><br><span class="line">    <span class="keyword">global</span> STOP</span><br><span class="line">    <span class="keyword">if</span> STOP:</span><br><span class="line">        STOP = <span class="literal">False</span></span><br><span class="line">        uc.emu_stop()</span><br><span class="line">    code = uc.mem_read(address, size)</span><br><span class="line">    <span class="keyword">if</span> code[<span class="number">0</span>] == <span class="number">0xE8</span>:</span><br><span class="line">        uc.reg_write(UC_X86_REG_RIP, address + size)</span><br><span class="line">        STOP = <span class="literal">True</span></span><br><span class="line"></span><br><span class="line">hook0_handle = uc.hook_add(UC_HOOK_CODE, hook0)</span><br><span class="line">uc.emu_start(CODE + start, end)</span><br></pre></td></tr></table></figure>
+
+<h5 id="emu-stop无法终止模拟执行的bug"><a href="#emu-stop无法终止模拟执行的bug" class="headerlink" title="emu_stop无法终止模拟执行的bug"></a>emu_stop无法终止模拟执行的bug</h5><p>代码中的hook不直接让模拟执行在遇到call时就停止的原因是目前unicorn 2.0.1.post1有bug 如果在回调函数中修改了IP寄存器那么<code>emu_stop()</code>会失效 只能记录停止信号并在下一次进入hook 即执行下一条指令前退出</p>
+<p>到这里为止就是让模拟执行来到第一个节点的位置的代码 此时就可以记录上下文进行对每个节点每种操作的模拟了:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">hook1</span>(<span class="params">uc : Uc, address, size, usr_data</span>):</span><br><span class="line">    <span class="keyword">global</span> STOP</span><br><span class="line">    <span class="keyword">if</span> STOP:</span><br><span class="line">        STOP = <span class="literal">False</span></span><br><span class="line">        uc.emu_stop()</span><br><span class="line">    <span class="keyword">global</span> visited, node_sym, node_op</span><br><span class="line">    <span class="keyword">if</span> PRINT:</span><br><span class="line">        code = uc.mem_read(address, size)</span><br><span class="line">        dm   = cs.disasm(code=code, offset=address)</span><br><span class="line">        <span class="keyword">for</span> line <span class="keyword">in</span> dm:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;<span class="subst">&#123;<span class="built_in">hex</span>(line.address)&#125;</span>\t<span class="subst">&#123;line.mnemonic&#125;</span> <span class="subst">&#123;line.op_str&#125;</span> R14D:<span class="subst">&#123;<span class="built_in">hex</span>(uc.reg_read(UC_X86_REG_R14D))&#125;</span> R15:<span class="subst">&#123;<span class="built_in">hex</span>(uc.reg_read(UC_X86_REG_R15))&#125;</span>&quot;</span>, end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">            <span class="built_in">print</span>()</span><br><span class="line">    <span class="keyword">if</span> address <span class="keyword">in</span> nodes:</span><br><span class="line">        visited.add((node_sym, <span class="built_in">hex</span>(address)[<span class="number">2</span>:], node_op))</span><br><span class="line">        uc.reg_write(UC_X86_REG_RIP, address + size)</span><br><span class="line">        STOP = <span class="literal">True</span></span><br><span class="line">    <span class="keyword">elif</span> address <span class="keyword">in</span> switchers <span class="keyword">and</span> <span class="keyword">not</span> node_sym.startswith(<span class="string">&#x27;S&#x27;</span>):</span><br><span class="line">        visited.add((node_sym, <span class="string">f&quot;S<span class="subst">&#123;switchers.index(address)&#125;</span>&quot;</span>, node_op))</span><br><span class="line">        STOP = <span class="literal">True</span></span><br><span class="line">    <span class="keyword">elif</span> address == success:</span><br><span class="line">        visited.add((node_sym, <span class="string">&#x27;win&#x27;</span>, node_op))</span><br><span class="line">        STOP = <span class="literal">True</span></span><br><span class="line">    <span class="keyword">elif</span> address == fail:</span><br><span class="line">        STOP = <span class="literal">True</span></span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">uc.hook_del(hook0_handle)</span><br><span class="line">hook1_handle = uc.hook_add(UC_HOOK_CODE, hook1)</span><br><span class="line">ctx = uc.context_save()</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> node <span class="keyword">in</span> nodes:</span><br><span class="line">    node_sym = <span class="built_in">hex</span>(node)[<span class="number">2</span>:]</span><br><span class="line">    <span class="keyword">for</span> o <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>):</span><br><span class="line">        node_op = move[o]</span><br><span class="line">        uc.context_restore(ctx)</span><br><span class="line">        uc.reg_write(UC_X86_REG_RIP, CODE + node + <span class="number">0xC</span>)</span><br><span class="line">        uc.reg_write(UC_X86_REG_EAX, o)</span><br><span class="line">        uc.emu_start(CODE + node + <span class="number">0xC</span>, end)</span><br></pre></td></tr></table></figure>
+
+<p>至此<code>visited</code>中就保存了所有节点在没有经过任何一个开关时的连接状态 后续就是模拟各个开关打开后节点间的状态 hook的实现和hook1基本相同 只不过要排除掉原本就存在的节点关系:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">hook2</span>(<span class="params">uc : Uc, address, size, usr_data</span>):</span><br><span class="line">    <span class="keyword">global</span> STOP</span><br><span class="line">    <span class="keyword">if</span> STOP:</span><br><span class="line">        STOP = <span class="literal">False</span></span><br><span class="line">        uc.emu_stop()</span><br><span class="line">    <span class="keyword">global</span> visited, node_sym, node_op</span><br><span class="line">    <span class="keyword">if</span> PRINT:</span><br><span class="line">        code = uc.mem_read(address, size)</span><br><span class="line">        dm   = cs.disasm(code=code, offset=address)</span><br><span class="line">        <span class="keyword">for</span> line <span class="keyword">in</span> dm:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;<span class="subst">&#123;<span class="built_in">hex</span>(line.address)&#125;</span>\t<span class="subst">&#123;line.mnemonic&#125;</span> <span class="subst">&#123;line.op_str&#125;</span> R14D:<span class="subst">&#123;<span class="built_in">hex</span>(uc.reg_read(UC_X86_REG_R14D))&#125;</span> R15:<span class="subst">&#123;<span class="built_in">hex</span>(uc.reg_read(UC_X86_REG_R15))&#125;</span>&quot;</span>, end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">            <span class="built_in">print</span>()</span><br><span class="line">    <span class="keyword">if</span> address <span class="keyword">in</span> nodes:</span><br><span class="line">        uc.reg_write(UC_X86_REG_RIP, address + size)</span><br><span class="line">        <span class="keyword">if</span> (node_sym, <span class="built_in">hex</span>(address)[<span class="number">2</span>:], node_op) <span class="keyword">not</span> <span class="keyword">in</span> visited:</span><br><span class="line">            visited.add((node_sym, <span class="built_in">hex</span>(address)[<span class="number">2</span>:], <span class="string">f&#x27;<span class="subst">&#123;switcheron&#125;</span>-<span class="subst">&#123;node_op&#125;</span>&#x27;</span>))</span><br><span class="line">        STOP = <span class="literal">True</span></span><br><span class="line">    <span class="keyword">elif</span> address <span class="keyword">in</span> switchers <span class="keyword">and</span> <span class="keyword">not</span> node_sym.startswith(<span class="string">&#x27;S&#x27;</span>):</span><br><span class="line">        <span class="keyword">if</span> (node_sym, <span class="string">f&quot;S<span class="subst">&#123;switchers.index(address)&#125;</span>&quot;</span>, <span class="string">f&#x27;<span class="subst">&#123;node_op&#125;</span>&#x27;</span>) <span class="keyword">not</span> <span class="keyword">in</span> visited:</span><br><span class="line">            visited.add((node_sym, <span class="string">f&quot;S<span class="subst">&#123;switchers.index(address)&#125;</span>&quot;</span>, <span class="string">f&#x27;<span class="subst">&#123;switcheron&#125;</span>-<span class="subst">&#123;node_op&#125;</span>&#x27;</span>))</span><br><span class="line">        STOP = <span class="literal">True</span></span><br><span class="line">    <span class="keyword">elif</span> address == success:</span><br><span class="line">        <span class="keyword">if</span> (node_sym, <span class="string">&#x27;win&#x27;</span>, node_op) <span class="keyword">not</span> <span class="keyword">in</span> visited:</span><br><span class="line">            visited.add((node_sym, <span class="string">&#x27;win&#x27;</span>, <span class="string">f&#x27;<span class="subst">&#123;switcheron&#125;</span>-<span class="subst">&#123;node_op&#125;</span>&#x27;</span>))</span><br><span class="line">        STOP = <span class="literal">True</span></span><br><span class="line">    <span class="keyword">elif</span> address == fail:</span><br><span class="line">        STOP = <span class="literal">True</span></span><br><span class="line">       </span><br><span class="line">hook2_handle = <span class="literal">None</span></span><br><span class="line"><span class="keyword">for</span> idx <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(switchers)):</span><br><span class="line">    <span class="keyword">if</span> hook2_handle:</span><br><span class="line">        uc.hook_del(hook2_handle)</span><br><span class="line">        hook1_handle = uc.hook_add(UC_HOOK_CODE, hook1)</span><br><span class="line">    node_sym    = <span class="string">f&quot;S<span class="subst">&#123;idx&#125;</span>&quot;</span></span><br><span class="line">    switcheron  = <span class="string">f&#x27;S<span class="subst">&#123;idx&#125;</span>&#x27;</span></span><br><span class="line">    node_op     = <span class="string">&#x27;-&#x27;</span></span><br><span class="line">    uc.context_restore(ctx)</span><br><span class="line">    uc.reg_write(UC_X86_REG_RIP, CODE + switchers[idx])</span><br><span class="line">    uc.mem_write(CODE, <span class="built_in">open</span>(<span class="string">&#x27;.\\labyrinth&#x27;</span>, <span class="string">&#x27;rb&#x27;</span>).read())</span><br><span class="line">    uc.emu_start(CODE + switchers[idx], end)</span><br><span class="line">    uc.hook_del(hook1_handle)</span><br><span class="line">    hook2_handle = uc.hook_add(UC_HOOK_CODE, hook2)</span><br><span class="line">    uc.mem_write(STACK, <span class="string">b&#x27;\x00&#x27;</span> * PAGE)</span><br><span class="line">    new_ctx  = uc.context_save()</span><br><span class="line">    <span class="keyword">for</span> node <span class="keyword">in</span> nodes:</span><br><span class="line">        node_sym = <span class="built_in">hex</span>(node)[<span class="number">2</span>:]</span><br><span class="line">        <span class="keyword">for</span> o <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>):</span><br><span class="line">            node_op = move[o]</span><br><span class="line">            uc.context_restore(new_ctx)</span><br><span class="line">            uc.reg_write(UC_X86_REG_RIP, CODE + node + <span class="number">0xC</span>)</span><br><span class="line">            uc.reg_write(UC_X86_REG_EAX, o)</span><br><span class="line">            uc.emu_start(CODE + node + <span class="number">0xC</span>, end)</span><br></pre></td></tr></table></figure>
+
+<p>后面还用networkx画出了图 但是因为节点和边太多看起来还是很抽象 而且写完的时候发现大哥已经出了(</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>1K0CT B14s
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ikoct.com/2025/04/23/Unicorn%E5%BC%95%E6%93%8E%E5%AD%A6%E4%B9%A0/" title="Unicorn引擎学习">https://ikoct.com/2025/04/23/Unicorn引擎学习/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Reverse/" rel="tag"># Reverse</a>
+              <a href="/tags/Unicorn/" rel="tag"># Unicorn</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/04/10/%E8%B7%9F%E7%9D%802024%E5%B9%B4%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B-%E5%86%B3%E8%B5%9B-%E5%89%8D3%E9%97%AE-%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%AD%A6Windows%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8Hook/" rel="prev" title="跟着2024年腾讯游戏安全竞赛(决赛(前3问))从零开始学Windows内核驱动Hook">
+      <i class="fa fa-chevron-left"></i> 跟着2024年腾讯游戏安全竞赛(决赛(前3问))从零开始学Windows内核驱动Hook
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E6%8B%9F%E6%89%A7%E8%A1%8C%E7%9A%84%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">1.</span> <span class="nav-text">模拟执行的准备工作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E5%A7%8B-%E7%BB%93%E6%9D%9F%E6%A8%A1%E6%8B%9F%E6%89%A7%E8%A1%8C"><span class="nav-number">2.</span> <span class="nav-text">开始&#x2F;结束模拟执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hook-Unhook%E4%BB%A3%E7%A0%81"><span class="nav-number">3.</span> <span class="nav-text">Hook&#x2F;Unhook代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0Hook"><span class="nav-number">3.1.</span> <span class="nav-text">添加Hook</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A0%E9%99%A4Hook"><span class="nav-number">3.2.</span> <span class="nav-text">删除Hook</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%9D%E5%AD%98-%E6%81%A2%E5%A4%8D%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-number">4.</span> <span class="nav-text">保存&#x2F;恢复上下文</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E6%88%98"><span class="nav-number">5.</span> <span class="nav-text">实战</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#b01lersCTF-2025-labyrinth"><span class="nav-number">5.1.</span> <span class="nav-text">[b01lersCTF 2025] labyrinth</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90"><span class="nav-number">5.1.1.</span> <span class="nav-text">程序分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E6%89%80%E6%9C%89%E8%8A%82%E7%82%B9"><span class="nav-number">5.1.2.</span> <span class="nav-text">获取所有节点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E8%8A%82%E7%82%B9%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">5.1.3.</span> <span class="nav-text">获取节点间的关系</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#emu-stop%E6%97%A0%E6%B3%95%E7%BB%88%E6%AD%A2%E6%A8%A1%E6%8B%9F%E6%89%A7%E8%A1%8C%E7%9A%84bug"><span class="nav-number">5.1.3.1.</span> <span class="nav-text">emu_stop无法终止模拟执行的bug</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="1K0CT B14s"
+      src="/images/myavatar.gif">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description">残りの人生、私にくれませんか？</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">540k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">8:11</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>-->
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
