@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-corner-indicator.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ikoct.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="强度好大">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NepCTF2025逆向方向Writeups">
+<meta property="og:url" content="https://ikoct.com/2025/07/28/NepCTF2025%E9%80%86%E5%90%91%E6%96%B9%E5%90%91Writeups/">
+<meta property="og:site_name" content="Ikoct的饮冰室">
+<meta property="og:description" content="强度好大">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-234102.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-234449.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-234659.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-235001.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-235033.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-235138.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-235432.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-235532.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-000052.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-000158.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-000225.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-001408.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-002531.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-002548.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-002834.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-003230.png">
+<meta property="article:published_time" content="2025-07-28T09:47:55.000Z">
+<meta property="article:modified_time" content="2025-07-28T09:47:56.008Z">
+<meta property="article:author" content="1K0CT B14s">
+<meta property="article:tag" content="Reverse">
+<meta property="article:tag" content="Writeups">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-234102.png">
+
+<link rel="canonical" href="https://ikoct.com/2025/07/28/NepCTF2025%E9%80%86%E5%90%91%E6%96%B9%E5%90%91Writeups/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>NepCTF2025逆向方向Writeups | Ikoct的饮冰室</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ikoct的饮冰室</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">你愿意和我学一辈子二进制吗?</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ikoct.com/2025/07/28/NepCTF2025%E9%80%86%E5%90%91%E6%96%B9%E5%90%91Writeups/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myavatar.gif">
+      <meta itemprop="name" content="1K0CT B14s">
+      <meta itemprop="description" content="残りの人生、私にくれませんか？">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ikoct的饮冰室">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          NepCTF2025逆向方向Writeups
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-07-28 17:47:55 / 修改时间：17:47:56" itemprop="dateCreated datePublished" datetime="2025-07-28T17:47:55+08:00">2025-07-28</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/" itemprop="url" rel="index"><span itemprop="name">二进制</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6/Reverse/" itemprop="url" rel="index"><span itemprop="name">Reverse</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>19k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>18 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>强度好大</p>
+<span id="more"></span>
+
+<h2 id="realme"><a href="#realme" class="headerlink" title="realme"></a>realme</h2><p>初步静态看的话是输入和密钥流进行取模操作, 但是很明显这是不可逆的:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">size_t</span> __cdecl <span class="title function_">sub_401C90</span><span class="params">(_BYTE *a1, <span class="type">char</span> *in, <span class="type">size_t</span> i_2)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">size_t</span> i_1; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">char</span> v4; <span class="comment">// [esp+D3h] [ebp-35h]</span></span><br><span class="line">  <span class="type">size_t</span> i; <span class="comment">// [esp+DCh] [ebp-2Ch]</span></span><br><span class="line">  <span class="type">int</span> v6; <span class="comment">// [esp+F4h] [ebp-14h]</span></span><br><span class="line">  <span class="type">int</span> v7; <span class="comment">// [esp+100h] [ebp-8h]</span></span><br><span class="line"></span><br><span class="line">  __CheckForDebuggerJustMyCode(&amp;unk_41200F);</span><br><span class="line">  v7 = <span class="number">0</span>;</span><br><span class="line">  v6 = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; ; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    i_1 = i;</span><br><span class="line">    <span class="keyword">if</span> ( i &gt;= i_2 )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    v7 = (v7 + <span class="number">1</span>) % <span class="number">256</span>;</span><br><span class="line">    v6 = (v6 + (<span class="type">unsigned</span> __int8)a1[v7]) % <span class="number">256</span>;</span><br><span class="line">    v4 = a1[v7];</span><br><span class="line">    a1[v7] = a1[v6];</span><br><span class="line">    a1[v6] = v4;</span><br><span class="line">    in[i] = (<span class="type">unsigned</span> __int8)in[i]</span><br><span class="line">          % (__int16)(<span class="type">unsigned</span> __int8)a1[((<span class="type">unsigned</span> __int8)a1[v6] + (<span class="type">unsigned</span> __int8)a1[v7]) % <span class="number">256</span>];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> i_1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后就开始翻全局构造函数, 发现了这个:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-234102.png" alt="image-20250727234055232"></p>
+<p>有反调试, 被检测到了就不会修改程序的控制流, 改zf标志位调试就能bypass, 目前已知inline hook了输入函数, 修改了加密函数, 调试进一步看看还有什么修改, 结果在被hook代码里发现了经典的关闭无效句柄反调试, 直接改EIP来bypass:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-234449.png" alt="image-20250727234449250"></p>
+<p>此时就能进入真正的加密控制流:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-234659.png" alt="image-20250727234659555"></p>
+<p>分别在运算的时候下两个条件断点来获取密钥流:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> ida_dbg <span class="keyword">import</span> get_reg_val <span class="keyword">as</span> regs</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;-<span class="subst">&#123;regs(<span class="string">&quot;ecx&quot;</span>):#02x&#125;</span>&#x27;</span>,end=<span class="string">&#x27;, &#x27;</span>)    <span class="comment">#for sub</span></span><br><span class="line"><span class="keyword">from</span> ida_dbg <span class="keyword">import</span> get_reg_val <span class="keyword">as</span> regs</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;<span class="subst">&#123;regs(<span class="string">&quot;ecx&quot;</span>):#02x&#125;</span>&#x27;</span>,end=<span class="string">&#x27;, &#x27;</span>)    <span class="comment">#for add</span></span><br></pre></td></tr></table></figure>
+
+<p>解密脚本:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">PY = [<span class="number">0</span>] * <span class="number">35</span></span><br><span class="line">PY[<span class="number">0</span>] = <span class="string">b&#x27;P&#x27;</span>[<span class="number">0</span>]</span><br><span class="line">PY[<span class="number">1</span>] = <span class="string">b&#x27;Y&#x27;</span>[<span class="number">0</span>]</span><br><span class="line">PY[<span class="number">2</span>] = -<span class="number">94</span></span><br><span class="line">PY[<span class="number">3</span>] = -<span class="number">108</span></span><br><span class="line">PY[<span class="number">4</span>] = <span class="number">46</span></span><br><span class="line">PY[<span class="number">5</span>] = -<span class="number">114</span></span><br><span class="line">PY[<span class="number">6</span>] = <span class="number">92</span></span><br><span class="line">PY[<span class="number">7</span>] = -<span class="number">107</span></span><br><span class="line">PY[<span class="number">8</span>] = <span class="number">121</span></span><br><span class="line">PY[<span class="number">9</span>] = <span class="number">22</span></span><br><span class="line">PY[<span class="number">10</span>] = -<span class="number">27</span></span><br><span class="line">PY[<span class="number">11</span>] = <span class="number">54</span></span><br><span class="line">PY[<span class="number">12</span>] = <span class="number">96</span></span><br><span class="line">PY[<span class="number">13</span>] = -<span class="number">57</span></span><br><span class="line">PY[<span class="number">14</span>] = -<span class="number">24</span></span><br><span class="line">PY[<span class="number">15</span>] = <span class="number">6</span></span><br><span class="line">PY[<span class="number">16</span>] = <span class="number">51</span></span><br><span class="line">PY[<span class="number">17</span>] = <span class="number">120</span></span><br><span class="line">PY[<span class="number">18</span>] = -<span class="number">16</span></span><br><span class="line">PY[<span class="number">19</span>] = -<span class="number">48</span></span><br><span class="line">PY[<span class="number">20</span>] = <span class="number">54</span></span><br><span class="line">PY[<span class="number">21</span>] = -<span class="number">56</span></span><br><span class="line">PY[<span class="number">22</span>] = <span class="number">115</span></span><br><span class="line">PY[<span class="number">23</span>] = <span class="number">27</span></span><br><span class="line">PY[<span class="number">24</span>] = <span class="number">101</span></span><br><span class="line">PY[<span class="number">25</span>] = <span class="number">64</span></span><br><span class="line">PY[<span class="number">26</span>] = -<span class="number">75</span></span><br><span class="line">PY[<span class="number">27</span>] = -<span class="number">44</span></span><br><span class="line">PY[<span class="number">28</span>] = -<span class="number">24</span></span><br><span class="line">PY[<span class="number">29</span>] = -<span class="number">100</span></span><br><span class="line">PY[<span class="number">30</span>] = <span class="number">101</span></span><br><span class="line">PY[<span class="number">31</span>] = -<span class="number">12</span></span><br><span class="line">PY[<span class="number">32</span>] = -<span class="number">70</span></span><br><span class="line">PY[<span class="number">33</span>] = <span class="number">98</span></span><br><span class="line">PY[<span class="number">34</span>] = -<span class="number">48</span></span><br><span class="line"></span><br><span class="line">key = [-<span class="number">0xfe</span>, <span class="number">0xf4</span>, -<span class="number">0xce</span>, <span class="number">0x51</span>, -<span class="number">0x26</span>, <span class="number">0x48</span>, -<span class="number">0x1f</span>, <span class="number">0x3c</span>, -<span class="number">0xb7</span>, <span class="number">0xa1</span>, -<span class="number">0x7a</span>, <span class="number">0xf0</span>, -<span class="number">0x9</span>, <span class="number">0x79</span>, -<span class="number">0x49</span>, <span class="number">0x93</span>, -<span class="number">0x15</span>, <span class="number">0x19</span>, -<span class="number">0x64</span>, <span class="number">0x68</span>, -<span class="number">0xfb</span>, <span class="number">0x55</span>, -<span class="number">0xec</span>, <span class="number">0xd6</span>, -<span class="number">0xce</span>, <span class="number">0xcd</span>, -<span class="number">0xc4</span>, <span class="number">0x75</span>, -<span class="number">0x6b</span>, <span class="number">0x2f</span>, -<span class="number">0xfe</span>, <span class="number">0xd3</span>, -<span class="number">0x67</span>, <span class="number">0x41</span>, -<span class="number">0xad</span>, <span class="number">0xb</span>, -<span class="number">0x7f</span>, <span class="number">0x68</span>, -<span class="number">0x69</span>, <span class="number">0x25</span>, -<span class="number">0xdf</span>, <span class="number">0x6</span>, -<span class="number">0x1d</span>, <span class="number">0x80</span>, -<span class="number">0x18</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> e, k <span class="keyword">in</span> <span class="built_in">zip</span>(PY, key):</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">chr</span>((e - k) % <span class="number">256</span>), end=<span class="string">&#x27;&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="crackme"><a href="#crackme" class="headerlink" title="crackme"></a>crackme</h2><p>通过字符串交叉引用可以发现验证流程在<code>4021C0</code>, 第一处会引发错误提示的点:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-235001.png" alt="image-20250727235001348"></p>
+<p>看起来是输入格式的要求, 要求十六进制字符串</p>
+<p>第二处:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-235033.png" alt="image-20250727235032995"></p>
+<p>看起来是长度, 一开始以为是16个字符, 但是调试可以发现是输入的十六进制字符串转化成字节串后要16个字节, 也就是32个字符</p>
+<p>第三处:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-235138.png" alt="image-20250727235138472"></p>
+<p>这里看起来就是最后校验的部分了, 直接开调分析校验过程, 用到的第一个变量来自从<code>libcrypto.dll</code>导出的<code>sign</code>, 根据调用前一刻的寄存器分析, 第一个参数应该是要签名的数据, 第二个参数是长度:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-235432.png" alt="image-20250727235432318"></p>
+<p>第一次签名获取了用户名的签名, 第二次获取了用户名拼接<code>&quot;Showmaker11&quot;</code>的签名:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F27%2F20250727-235532.png" alt="image-20250727235532190"></p>
+<blockquote>
+<p><del>哎我, 许哥是区</del></p>
+</blockquote>
+<p>然后貌似是将第一个签名当作key对密钥进行AES加密然后和第二个签名对比, 但是直接上<code>Cyberchef</code>会发现解不出正确密钥, 再加上这个导出的AES加密被平坦化, 合理怀疑是魔改了AES, 首先猜测是修改了加密的轮数(逆向手看到魔改AES就走不动道了还是平坦化的 球球别在逆向出这种了), 然后准备找一处进行测试, 其他的一堆位移换位操作看不懂, 一眼相中这个异或:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-000052.png" alt="image-20250728000052508"></p>
+<p>然后拷打Gemini这是AES的哪一步, 会执行多少次:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-000158.png" alt="image-20250728000158841"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-000225.png" alt="image-20250728000225811"></p>
+<p>标准的AES加密就是没有这个异或0x55? 一眼就给我盯真了? 直接下个条件断点记录:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">last = <span class="built_in">open</span>(<span class="string">&#x27;log.txt&#x27;</span>, <span class="string">&#x27;r&#x27;</span>).read().strip()</span><br><span class="line">last = <span class="built_in">int</span>(last)</span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;log.txt&#x27;</span>, <span class="string">&#x27;w&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    f.write(<span class="built_in">str</span>(last + <span class="number">1</span>))</span><br></pre></td></tr></table></figure>
+
+<p>结果得到记录还真是144次, 开始拷打Gemini写加解密脚本验证:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Constants for AES</span></span><br><span class="line"><span class="comment"># S-box (Substitution Box)</span></span><br><span class="line">S_BOX = [</span><br><span class="line">    <span class="number">0x63</span>, <span class="number">0x7C</span>, <span class="number">0x77</span>, <span class="number">0x7B</span>, <span class="number">0xF2</span>, <span class="number">0x6B</span>, <span class="number">0x6F</span>, <span class="number">0xC5</span>, <span class="number">0x30</span>, <span class="number">0x01</span>, <span class="number">0x67</span>, <span class="number">0x2B</span>, <span class="number">0xFE</span>, <span class="number">0xD7</span>, <span class="number">0xAB</span>, <span class="number">0x76</span>,</span><br><span class="line">    <span class="number">0xCA</span>, <span class="number">0x82</span>, <span class="number">0xC9</span>, <span class="number">0x7D</span>, <span class="number">0xFA</span>, <span class="number">0x59</span>, <span class="number">0x47</span>, <span class="number">0xF0</span>, <span class="number">0xAD</span>, <span class="number">0xD4</span>, <span class="number">0xA2</span>, <span class="number">0xAF</span>, <span class="number">0x9C</span>, <span class="number">0xA4</span>, <span class="number">0x72</span>, <span class="number">0xC0</span>,</span><br><span class="line">    <span class="number">0xB7</span>, <span class="number">0xFD</span>, <span class="number">0x93</span>, <span class="number">0x26</span>, <span class="number">0x36</span>, <span class="number">0x3F</span>, <span class="number">0xF7</span>, <span class="number">0xCC</span>, <span class="number">0x34</span>, <span class="number">0xA5</span>, <span class="number">0xE5</span>, <span class="number">0xF1</span>, <span class="number">0x71</span>, <span class="number">0xD8</span>, <span class="number">0x31</span>, <span class="number">0x15</span>,</span><br><span class="line">    <span class="number">0x04</span>, <span class="number">0xC7</span>, <span class="number">0x23</span>, <span class="number">0xC3</span>, <span class="number">0x18</span>, <span class="number">0x96</span>, <span class="number">0x05</span>, <span class="number">0x9A</span>, <span class="number">0x07</span>, <span class="number">0x12</span>, <span class="number">0x80</span>, <span class="number">0xE2</span>, <span class="number">0xEB</span>, <span class="number">0x27</span>, <span class="number">0xB2</span>, <span class="number">0x75</span>,</span><br><span class="line">    <span class="number">0x09</span>, <span class="number">0x83</span>, <span class="number">0x2C</span>, <span class="number">0x1A</span>, <span class="number">0x1B</span>, <span class="number">0x6E</span>, <span class="number">0x5A</span>, <span class="number">0xA0</span>, <span class="number">0x52</span>, <span class="number">0x3B</span>, <span class="number">0xD6</span>, <span class="number">0xB3</span>, <span class="number">0x29</span>, <span class="number">0xE3</span>, <span class="number">0x2F</span>, <span class="number">0x84</span>,</span><br><span class="line">    <span class="number">0x53</span>, <span class="number">0xD1</span>, <span class="number">0x00</span>, <span class="number">0xED</span>, <span class="number">0x20</span>, <span class="number">0xFC</span>, <span class="number">0xB1</span>, <span class="number">0x5B</span>, <span class="number">0x6A</span>, <span class="number">0xCB</span>, <span class="number">0xBE</span>, <span class="number">0x39</span>, <span class="number">0x4A</span>, <span class="number">0x4C</span>, <span class="number">0x58</span>, <span class="number">0xCF</span>,</span><br><span class="line">    <span class="number">0xD0</span>, <span class="number">0xEF</span>, <span class="number">0xAA</span>, <span class="number">0xFB</span>, <span class="number">0x43</span>, <span class="number">0x4D</span>, <span class="number">0x33</span>, <span class="number">0x85</span>, <span class="number">0x45</span>, <span class="number">0xF9</span>, <span class="number">0x02</span>, <span class="number">0x7F</span>, <span class="number">0x50</span>, <span class="number">0x3C</span>, <span class="number">0x9F</span>, <span class="number">0xA8</span>,</span><br><span class="line">    <span class="number">0x51</span>, <span class="number">0xA3</span>, <span class="number">0x40</span>, <span class="number">0x8F</span>, <span class="number">0x92</span>, <span class="number">0x9D</span>, <span class="number">0x38</span>, <span class="number">0xF5</span>, <span class="number">0xBC</span>, <span class="number">0xB6</span>, <span class="number">0xDA</span>, <span class="number">0x21</span>, <span class="number">0x10</span>, <span class="number">0xFF</span>, <span class="number">0xF3</span>, <span class="number">0xD2</span>,</span><br><span class="line">    <span class="number">0xCD</span>, <span class="number">0x0C</span>, <span class="number">0x13</span>, <span class="number">0xEC</span>, <span class="number">0x5F</span>, <span class="number">0x97</span>, <span class="number">0x44</span>, <span class="number">0x17</span>, <span class="number">0xC4</span>, <span class="number">0xA7</span>, <span class="number">0x7E</span>, <span class="number">0x3D</span>, <span class="number">0x64</span>, <span class="number">0x5D</span>, <span class="number">0x19</span>, <span class="number">0x73</span>,</span><br><span class="line">    <span class="number">0x60</span>, <span class="number">0x81</span>, <span class="number">0x4F</span>, <span class="number">0xDC</span>, <span class="number">0x22</span>, <span class="number">0x2A</span>, <span class="number">0x90</span>, <span class="number">0x88</span>, <span class="number">0x46</span>, <span class="number">0xEE</span>, <span class="number">0xB8</span>, <span class="number">0x14</span>, <span class="number">0xDE</span>, <span class="number">0x5E</span>, <span class="number">0x0B</span>, <span class="number">0xDB</span>,</span><br><span class="line">    <span class="number">0xE0</span>, <span class="number">0x32</span>, <span class="number">0x3A</span>, <span class="number">0x0A</span>, <span class="number">0x49</span>, <span class="number">0x06</span>, <span class="number">0x24</span>, <span class="number">0x5C</span>, <span class="number">0xC2</span>, <span class="number">0xD3</span>, <span class="number">0xAC</span>, <span class="number">0x62</span>, <span class="number">0x91</span>, <span class="number">0x95</span>, <span class="number">0xE4</span>, <span class="number">0x79</span>,</span><br><span class="line">    <span class="number">0xE7</span>, <span class="number">0xC8</span>, <span class="number">0x37</span>, <span class="number">0x6D</span>, <span class="number">0x8D</span>, <span class="number">0xD5</span>, <span class="number">0x4E</span>, <span class="number">0xA9</span>, <span class="number">0x6C</span>, <span class="number">0x56</span>, <span class="number">0xF4</span>, <span class="number">0xEA</span>, <span class="number">0x65</span>, <span class="number">0x7A</span>, <span class="number">0xAE</span>, <span class="number">0x08</span>,</span><br><span class="line">    <span class="number">0xBA</span>, <span class="number">0x78</span>, <span class="number">0x25</span>, <span class="number">0x2E</span>, <span class="number">0x1C</span>, <span class="number">0xA6</span>, <span class="number">0xB4</span>, <span class="number">0xC6</span>, <span class="number">0xE8</span>, <span class="number">0xDD</span>, <span class="number">0x74</span>, <span class="number">0x1F</span>, <span class="number">0x4B</span>, <span class="number">0xBD</span>, <span class="number">0x8B</span>, <span class="number">0x8A</span>,</span><br><span class="line">    <span class="number">0x70</span>, <span class="number">0x3E</span>, <span class="number">0xB5</span>, <span class="number">0x66</span>, <span class="number">0x48</span>, <span class="number">0x03</span>, <span class="number">0xF6</span>, <span class="number">0x0E</span>, <span class="number">0x61</span>, <span class="number">0x35</span>, <span class="number">0x57</span>, <span class="number">0xB9</span>, <span class="number">0x86</span>, <span class="number">0xC1</span>, <span class="number">0x1D</span>, <span class="number">0x9E</span>,</span><br><span class="line">    <span class="number">0xE1</span>, <span class="number">0xF8</span>, <span class="number">0x98</span>, <span class="number">0x11</span>, <span class="number">0x69</span>, <span class="number">0xD9</span>, <span class="number">0x8E</span>, <span class="number">0x94</span>, <span class="number">0x9B</span>, <span class="number">0x1E</span>, <span class="number">0x87</span>, <span class="number">0xE9</span>, <span class="number">0xCE</span>, <span class="number">0x55</span>, <span class="number">0x28</span>, <span class="number">0xDF</span>,</span><br><span class="line">    <span class="number">0x8C</span>, <span class="number">0xA1</span>, <span class="number">0x89</span>, <span class="number">0x0D</span>, <span class="number">0xBF</span>, <span class="number">0xE6</span>, <span class="number">0x42</span>, <span class="number">0x68</span>, <span class="number">0x41</span>, <span class="number">0x99</span>, <span class="number">0x2D</span>, <span class="number">0x0F</span>, <span class="number">0xB0</span>, <span class="number">0x54</span>, <span class="number">0xBB</span>, <span class="number">0x16</span></span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">INV_S_BOX = [</span><br><span class="line">    <span class="number">0x52</span>, <span class="number">0x09</span>, <span class="number">0x6A</span>, <span class="number">0xD5</span>, <span class="number">0x30</span>, <span class="number">0x36</span>, <span class="number">0xA5</span>, <span class="number">0x38</span>, <span class="number">0xBF</span>, <span class="number">0x40</span>, <span class="number">0xA3</span>, <span class="number">0x9E</span>, <span class="number">0x81</span>, <span class="number">0xF3</span>, <span class="number">0xD7</span>, <span class="number">0xFB</span>,</span><br><span class="line">    <span class="number">0x7C</span>, <span class="number">0xE3</span>, <span class="number">0x39</span>, <span class="number">0x82</span>, <span class="number">0x9B</span>, <span class="number">0x2F</span>, <span class="number">0xFF</span>, <span class="number">0x87</span>, <span class="number">0x34</span>, <span class="number">0x8E</span>, <span class="number">0x43</span>, <span class="number">0x44</span>, <span class="number">0xC4</span>, <span class="number">0xDE</span>, <span class="number">0xE9</span>, <span class="number">0xCB</span>,</span><br><span class="line">    <span class="number">0x54</span>, <span class="number">0x7B</span>, <span class="number">0x94</span>, <span class="number">0x32</span>, <span class="number">0xA6</span>, <span class="number">0xC2</span>, <span class="number">0x23</span>, <span class="number">0x3D</span>, <span class="number">0xEE</span>, <span class="number">0x4C</span>, <span class="number">0x95</span>, <span class="number">0x0B</span>, <span class="number">0x42</span>, <span class="number">0xFA</span>, <span class="number">0xC3</span>, <span class="number">0x4E</span>,</span><br><span class="line">    <span class="number">0x08</span>, <span class="number">0x2E</span>, <span class="number">0xA1</span>, <span class="number">0x66</span>, <span class="number">0x28</span>, <span class="number">0xD9</span>, <span class="number">0x24</span>, <span class="number">0xB2</span>, <span class="number">0x76</span>, <span class="number">0x5B</span>, <span class="number">0xA2</span>, <span class="number">0x49</span>, <span class="number">0x6D</span>, <span class="number">0x8B</span>, <span class="number">0xD1</span>, <span class="number">0x25</span>,</span><br><span class="line">    <span class="number">0x72</span>, <span class="number">0xF8</span>, <span class="number">0xF6</span>, <span class="number">0x64</span>, <span class="number">0x86</span>, <span class="number">0x68</span>, <span class="number">0x98</span>, <span class="number">0x16</span>, <span class="number">0xD4</span>, <span class="number">0xA4</span>, <span class="number">0x5C</span>, <span class="number">0xCC</span>, <span class="number">0x5D</span>, <span class="number">0x65</span>, <span class="number">0xB6</span>, <span class="number">0x92</span>,</span><br><span class="line">    <span class="number">0x6C</span>, <span class="number">0x70</span>, <span class="number">0x48</span>, <span class="number">0x50</span>, <span class="number">0xFD</span>, <span class="number">0xED</span>, <span class="number">0xB9</span>, <span class="number">0xDA</span>, <span class="number">0x5E</span>, <span class="number">0x15</span>, <span class="number">0x46</span>, <span class="number">0x57</span>, <span class="number">0xA7</span>, <span class="number">0x8D</span>, <span class="number">0x9D</span>, <span class="number">0x84</span>,</span><br><span class="line">    <span class="number">0x90</span>, <span class="number">0xD8</span>, <span class="number">0xAB</span>, <span class="number">0x00</span>, <span class="number">0x8C</span>, <span class="number">0xBC</span>, <span class="number">0xD3</span>, <span class="number">0x0A</span>, <span class="number">0xF7</span>, <span class="number">0xE4</span>, <span class="number">0x58</span>, <span class="number">0x05</span>, <span class="number">0xB8</span>, <span class="number">0xB3</span>, <span class="number">0x45</span>, <span class="number">0x06</span>,</span><br><span class="line">    <span class="number">0xD0</span>, <span class="number">0x2C</span>, <span class="number">0x1E</span>, <span class="number">0x8F</span>, <span class="number">0xCA</span>, <span class="number">0x3F</span>, <span class="number">0x0F</span>, <span class="number">0x02</span>, <span class="number">0xC1</span>, <span class="number">0xAF</span>, <span class="number">0xBD</span>, <span class="number">0x03</span>, <span class="number">0x01</span>, <span class="number">0x13</span>, <span class="number">0x8A</span>, <span class="number">0x6B</span>,</span><br><span class="line">    <span class="number">0x3A</span>, <span class="number">0x91</span>, <span class="number">0x11</span>, <span class="number">0x41</span>, <span class="number">0x4F</span>, <span class="number">0x67</span>, <span class="number">0xDC</span>, <span class="number">0xEA</span>, <span class="number">0x97</span>, <span class="number">0xF2</span>, <span class="number">0xCF</span>, <span class="number">0xCE</span>, <span class="number">0xF0</span>, <span class="number">0xB4</span>, <span class="number">0xE6</span>, <span class="number">0x73</span>,</span><br><span class="line">    <span class="number">0x96</span>, <span class="number">0xAC</span>, <span class="number">0x74</span>, <span class="number">0x22</span>, <span class="number">0xE7</span>, <span class="number">0xAD</span>, <span class="number">0x35</span>, <span class="number">0x85</span>, <span class="number">0xE2</span>, <span class="number">0xF9</span>, <span class="number">0x37</span>, <span class="number">0xE8</span>, <span class="number">0x1C</span>, <span class="number">0x75</span>, <span class="number">0xDF</span>, <span class="number">0x6E</span>,</span><br><span class="line">    <span class="number">0x47</span>, <span class="number">0xF1</span>, <span class="number">0x1A</span>, <span class="number">0x71</span>, <span class="number">0x1D</span>, <span class="number">0x29</span>, <span class="number">0xC5</span>, <span class="number">0x89</span>, <span class="number">0x6F</span>, <span class="number">0xB7</span>, <span class="number">0x62</span>, <span class="number">0x0E</span>, <span class="number">0xAA</span>, <span class="number">0x18</span>, <span class="number">0xBE</span>, <span class="number">0x1B</span>,</span><br><span class="line">    <span class="number">0xFC</span>, <span class="number">0x56</span>, <span class="number">0x3E</span>, <span class="number">0x4B</span>, <span class="number">0xC6</span>, <span class="number">0xD2</span>, <span class="number">0x79</span>, <span class="number">0x20</span>, <span class="number">0x9A</span>, <span class="number">0xDB</span>, <span class="number">0xC0</span>, <span class="number">0xFE</span>, <span class="number">0x78</span>, <span class="number">0xCD</span>, <span class="number">0x5A</span>, <span class="number">0xF4</span>,</span><br><span class="line">    <span class="number">0x1F</span>, <span class="number">0xDD</span>, <span class="number">0xA8</span>, <span class="number">0x33</span>, <span class="number">0x88</span>, <span class="number">0x07</span>, <span class="number">0xC7</span>, <span class="number">0x31</span>, <span class="number">0xB1</span>, <span class="number">0x12</span>, <span class="number">0x10</span>, <span class="number">0x59</span>, <span class="number">0x27</span>, <span class="number">0x80</span>, <span class="number">0xEC</span>, <span class="number">0x5F</span>,</span><br><span class="line">    <span class="number">0x60</span>, <span class="number">0x51</span>, <span class="number">0x7F</span>, <span class="number">0xA9</span>, <span class="number">0x19</span>, <span class="number">0xB5</span>, <span class="number">0x4A</span>, <span class="number">0x0D</span>, <span class="number">0x2D</span>, <span class="number">0xE5</span>, <span class="number">0x7A</span>, <span class="number">0x9F</span>, <span class="number">0x93</span>, <span class="number">0xC9</span>, <span class="number">0x9C</span>, <span class="number">0xEF</span>,</span><br><span class="line">    <span class="number">0xA0</span>, <span class="number">0xE0</span>, <span class="number">0x3B</span>, <span class="number">0x4D</span>, <span class="number">0xAE</span>, <span class="number">0x2A</span>, <span class="number">0xF5</span>, <span class="number">0xB0</span>, <span class="number">0xC8</span>, <span class="number">0xEB</span>, <span class="number">0xBB</span>, <span class="number">0x3C</span>, <span class="number">0x83</span>, <span class="number">0x53</span>, <span class="number">0x99</span>, <span class="number">0x61</span>,</span><br><span class="line">    <span class="number">0x17</span>, <span class="number">0x2B</span>, <span class="number">0x04</span>, <span class="number">0x7E</span>, <span class="number">0xBA</span>, <span class="number">0x77</span>, <span class="number">0xD6</span>, <span class="number">0x26</span>, <span class="number">0xE1</span>, <span class="number">0x69</span>, <span class="number">0x14</span>, <span class="number">0x63</span>, <span class="number">0x55</span>, <span class="number">0x21</span>, <span class="number">0x0C</span>, <span class="number">0x7D</span></span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="comment"># Round Constant (Rcon) values</span></span><br><span class="line">RCON = [</span><br><span class="line">    <span class="number">0x8d</span>, <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x04</span>, <span class="number">0x08</span>, <span class="number">0x10</span>, <span class="number">0x20</span>, <span class="number">0x40</span>, <span class="number">0x80</span>, <span class="number">0x1b</span>, <span class="number">0x36</span>, <span class="number">0x6c</span>, <span class="number">0xd8</span>, <span class="number">0xab</span>, <span class="number">0x4d</span>, <span class="number">0x9a</span>,</span><br><span class="line">    <span class="number">0x2f</span>, <span class="number">0x5e</span>, <span class="number">0xbc</span>, <span class="number">0x63</span>, <span class="number">0xc6</span>, <span class="number">0x97</span>, <span class="number">0x35</span>, <span class="number">0x6a</span>, <span class="number">0xd4</span>, <span class="number">0xb3</span>, <span class="number">0x7d</span>, <span class="number">0xfa</span>, <span class="number">0xef</span>, <span class="number">0xc5</span>, <span class="number">0x91</span>, <span class="number">0x39</span></span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="comment"># Galois Field (GF(2^8)) multiplication by 0x02</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">gmul_2</span>(<span class="params">byte</span>):</span><br><span class="line">    <span class="keyword">if</span> byte &amp; <span class="number">0x80</span>:</span><br><span class="line">        <span class="keyword">return</span> (byte &lt;&lt; <span class="number">1</span>) ^ <span class="number">0x1B</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> byte &lt;&lt; <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Galois Field (GF(2^8)) multiplication by 0x03</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">gmul_3</span>(<span class="params">byte</span>):</span><br><span class="line">    <span class="keyword">return</span> gmul_2(byte) ^ byte</span><br><span class="line"></span><br><span class="line"><span class="comment"># Galois Field (GF(2^8)) multiplication for InvMixColumns</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">gmul_e</span>(<span class="params">byte</span>): <span class="comment"># 0x0E</span></span><br><span class="line">    <span class="keyword">return</span> gmul_2(gmul_2(gmul_2(byte))) ^ gmul_2(gmul_2(byte)) ^ gmul_2(byte)</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">gmul_b</span>(<span class="params">byte</span>): <span class="comment"># 0x0B</span></span><br><span class="line">    <span class="keyword">return</span> gmul_2(gmul_2(gmul_2(byte))) ^ gmul_2(byte) ^ byte</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">gmul_d</span>(<span class="params">byte</span>): <span class="comment"># 0x0D</span></span><br><span class="line">    <span class="keyword">return</span> gmul_2(gmul_2(gmul_2(byte))) ^ gmul_2(gmul_2(byte)) ^ byte</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">gmul_9</span>(<span class="params">byte</span>): <span class="comment"># 0x09</span></span><br><span class="line">    <span class="keyword">return</span> gmul_2(gmul_2(gmul_2(byte))) ^ byte</span><br><span class="line"></span><br><span class="line"><span class="comment"># Key Expansion</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">key_expansion</span>(<span class="params">key</span>):</span><br><span class="line">    <span class="comment"># Nk is the key length in 32-bit words (16 bytes = 4 words)</span></span><br><span class="line">    <span class="comment"># Nr is the number of rounds (10 for 128-bit key)</span></span><br><span class="line">    <span class="comment"># Nb is the block size in 32-bit words (128 bits = 4 words)</span></span><br><span class="line">    Nk = <span class="number">4</span></span><br><span class="line">    Nr = <span class="number">10</span></span><br><span class="line">    Nb = <span class="number">4</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># Convert key to a list of 32-bit words</span></span><br><span class="line">    key_words = [<span class="built_in">int</span>.from_bytes(key[i:i+<span class="number">4</span>], <span class="string">&#x27;big&#x27;</span>) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="built_in">len</span>(key), <span class="number">4</span>)]</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># Initialize the expanded key list</span></span><br><span class="line">    expanded_key = <span class="built_in">list</span>(key_words)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(Nk, Nb * (Nr + <span class="number">1</span>)):</span><br><span class="line">        temp = expanded_key[i-<span class="number">1</span>]</span><br><span class="line">        <span class="keyword">if</span> i % Nk == <span class="number">0</span>:</span><br><span class="line">            <span class="comment"># RotWord: Cyclic shift left by one byte</span></span><br><span class="line">            temp = ((temp &lt;&lt; <span class="number">8</span>) &amp; <span class="number">0xFFFFFFFF</span>) | (temp &gt;&gt; <span class="number">24</span>)</span><br><span class="line">            <span class="comment"># SubWord: Apply S-box to each byte of the word</span></span><br><span class="line">            temp = (S_BOX[(temp &gt;&gt; <span class="number">24</span>) &amp; <span class="number">0xFF</span>] &lt;&lt; <span class="number">24</span>) | \</span><br><span class="line">                   (S_BOX[(temp &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xFF</span>] &lt;&lt; <span class="number">16</span>) | \</span><br><span class="line">                   (S_BOX[(temp &gt;&gt; <span class="number">8</span>) &amp; <span class="number">0xFF</span>] &lt;&lt; <span class="number">8</span>) | \</span><br><span class="line">                   (S_BOX[temp &amp; <span class="number">0xFF</span>])</span><br><span class="line">            <span class="comment"># Rcon: XOR with round constant</span></span><br><span class="line">            temp ^= (RCON[i // Nk] &lt;&lt; <span class="number">24</span>)</span><br><span class="line">        </span><br><span class="line">        expanded_key.append(expanded_key[i - Nk] ^ temp)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># Convert expanded key words back to bytes for easier access in rounds</span></span><br><span class="line">    <span class="comment"># Each round key is 16 bytes (4 words)</span></span><br><span class="line">    round_keys = []</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(Nr + <span class="number">1</span>):</span><br><span class="line">        round_key_bytes = <span class="built_in">bytearray</span>()</span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(Nb):</span><br><span class="line">            word = expanded_key[i * Nb + j]</span><br><span class="line">            round_key_bytes.extend(word.to_bytes(<span class="number">4</span>, <span class="string">&#x27;big&#x27;</span>))</span><br><span class="line">        round_keys.append(round_key_bytes)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> round_keys</span><br><span class="line"></span><br><span class="line"><span class="comment"># AddRoundKey</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add_round_key</span>(<span class="params">state, round_key</span>):</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">16</span>):</span><br><span class="line">        state[i] ^= round_key[i]</span><br><span class="line"></span><br><span class="line"><span class="comment"># SubBytes</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">sub_bytes</span>(<span class="params">state</span>):</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">16</span>):</span><br><span class="line">        state[i] = S_BOX[state[i]]</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">inv_sub_bytes</span>(<span class="params">state</span>):</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">16</span>):</span><br><span class="line">        state[i] = INV_S_BOX[state[i]]</span><br><span class="line"></span><br><span class="line"><span class="comment"># ShiftRows</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">shift_rows</span>(<span class="params">state</span>):</span><br><span class="line">    new_state = <span class="built_in">bytearray</span>(<span class="number">16</span>)</span><br><span class="line">    <span class="comment"># Row 0: No shift</span></span><br><span class="line">    new_state[<span class="number">0</span>] = state[<span class="number">0</span>]</span><br><span class="line">    new_state[<span class="number">4</span>] = state[<span class="number">4</span>]</span><br><span class="line">    new_state[<span class="number">8</span>] = state[<span class="number">8</span>]</span><br><span class="line">    new_state[<span class="number">12</span>] = state[<span class="number">12</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Row 1: Left shift by 1 byte</span></span><br><span class="line">    new_state[<span class="number">1</span>] = state[<span class="number">5</span>]</span><br><span class="line">    new_state[<span class="number">5</span>] = state[<span class="number">9</span>]</span><br><span class="line">    new_state[<span class="number">9</span>] = state[<span class="number">13</span>]</span><br><span class="line">    new_state[<span class="number">13</span>] = state[<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Row 2: Left shift by 2 bytes</span></span><br><span class="line">    new_state[<span class="number">2</span>] = state[<span class="number">10</span>]</span><br><span class="line">    new_state[<span class="number">6</span>] = state[<span class="number">14</span>]</span><br><span class="line">    new_state[<span class="number">10</span>] = state[<span class="number">2</span>]</span><br><span class="line">    new_state[<span class="number">14</span>] = state[<span class="number">6</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Row 3: Left shift by 3 bytes</span></span><br><span class="line">    new_state[<span class="number">3</span>] = state[<span class="number">15</span>]</span><br><span class="line">    new_state[<span class="number">7</span>] = state[<span class="number">3</span>]</span><br><span class="line">    new_state[<span class="number">11</span>] = state[<span class="number">7</span>]</span><br><span class="line">    new_state[<span class="number">15</span>] = state[<span class="number">11</span>]</span><br><span class="line">    </span><br><span class="line">    state[:] = new_state[:] <span class="comment"># Update the original state bytearray</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">inv_shift_rows</span>(<span class="params">state</span>):</span><br><span class="line">    new_state = <span class="built_in">bytearray</span>(<span class="number">16</span>)</span><br><span class="line">    <span class="comment"># Row 0: No shift</span></span><br><span class="line">    new_state[<span class="number">0</span>] = state[<span class="number">0</span>]</span><br><span class="line">    new_state[<span class="number">4</span>] = state[<span class="number">4</span>]</span><br><span class="line">    new_state[<span class="number">8</span>] = state[<span class="number">8</span>]</span><br><span class="line">    new_state[<span class="number">12</span>] = state[<span class="number">12</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Row 1: Right shift by 1 byte</span></span><br><span class="line">    new_state[<span class="number">1</span>] = state[<span class="number">13</span>]</span><br><span class="line">    new_state[<span class="number">5</span>] = state[<span class="number">1</span>]</span><br><span class="line">    new_state[<span class="number">9</span>] = state[<span class="number">5</span>]</span><br><span class="line">    new_state[<span class="number">13</span>] = state[<span class="number">9</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Row 2: Right shift by 2 bytes</span></span><br><span class="line">    new_state[<span class="number">2</span>] = state[<span class="number">10</span>]</span><br><span class="line">    new_state[<span class="number">6</span>] = state[<span class="number">14</span>]</span><br><span class="line">    new_state[<span class="number">10</span>] = state[<span class="number">2</span>]</span><br><span class="line">    new_state[<span class="number">14</span>] = state[<span class="number">6</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Row 3: Right shift by 3 bytes</span></span><br><span class="line">    new_state[<span class="number">3</span>] = state[<span class="number">7</span>]</span><br><span class="line">    new_state[<span class="number">7</span>] = state[<span class="number">11</span>]</span><br><span class="line">    new_state[<span class="number">11</span>] = state[<span class="number">15</span>]</span><br><span class="line">    new_state[<span class="number">15</span>] = state[<span class="number">3</span>]</span><br><span class="line">    </span><br><span class="line">    state[:] = new_state[:] <span class="comment"># Update the original state bytearray</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MixColumns (Modified with XOR 0x55)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">mix_columns</span>(<span class="params">state</span>):</span><br><span class="line">    new_state = <span class="built_in">bytearray</span>(<span class="number">16</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>): <span class="comment"># Iterate through columns</span></span><br><span class="line">        s0 = state[i * <span class="number">4</span> + <span class="number">0</span>]</span><br><span class="line">        s1 = state[i * <span class="number">4</span> + <span class="number">1</span>]</span><br><span class="line">        s2 = state[i * <span class="number">4</span> + <span class="number">2</span>]</span><br><span class="line">        s3 = state[i * <span class="number">4</span> + <span class="number">3</span>]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Standard MixColumns calculations</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">0</span>] = (gmul_2(s0) ^ gmul_3(s1) ^ s2 ^ s3) &amp; <span class="number">0xFF</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">1</span>] = (s0 ^ gmul_2(s1) ^ gmul_3(s2) ^ s3) &amp; <span class="number">0xFF</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">2</span>] = (s0 ^ s1 ^ gmul_2(s2) ^ gmul_3(s3)) &amp; <span class="number">0xFF</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">3</span>] = (gmul_3(s0) ^ s1 ^ s2 ^ gmul_2(s3)) &amp; <span class="number">0xFF</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># --- MODIFICATION: Add XOR 0x55 to each calculated byte ---</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">0</span>] ^= <span class="number">0x55</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">1</span>] ^= <span class="number">0x55</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">2</span>] ^= <span class="number">0x55</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">3</span>] ^= <span class="number">0x55</span></span><br><span class="line">        <span class="comment"># ---------------------------------------------------------</span></span><br><span class="line"></span><br><span class="line">    state[:] = new_state[:] <span class="comment"># Update the original state bytearray</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">inv_mix_columns</span>(<span class="params">state</span>):</span><br><span class="line">    new_state = <span class="built_in">bytearray</span>(<span class="number">16</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>): <span class="comment"># Iterate through columns</span></span><br><span class="line">        <span class="comment"># --- MODIFICATION: Reverse the XOR 0x55 and apply AND 0xFF ---</span></span><br><span class="line">        <span class="comment"># Apply XOR 0x55 first to reverse the encryption&#x27;s modification</span></span><br><span class="line">        <span class="comment"># Then apply AND 0xFF as per user&#x27;s instruction</span></span><br><span class="line">        s0 = (state[i * <span class="number">4</span> + <span class="number">0</span>] ^ <span class="number">0x55</span>) &amp; <span class="number">0xFF</span></span><br><span class="line">        s1 = (state[i * <span class="number">4</span> + <span class="number">1</span>] ^ <span class="number">0x55</span>) &amp; <span class="number">0xFF</span></span><br><span class="line">        s2 = (state[i * <span class="number">4</span> + <span class="number">2</span>] ^ <span class="number">0x55</span>) &amp; <span class="number">0xFF</span></span><br><span class="line">        s3 = (state[i * <span class="number">4</span> + <span class="number">3</span>] ^ <span class="number">0x55</span>) &amp; <span class="number">0xFF</span></span><br><span class="line">        <span class="comment"># ---------------------------------------------------------------</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># Standard InvMixColumns calculations</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">0</span>] = (gmul_e(s0) ^ gmul_b(s1) ^ gmul_d(s2) ^ gmul_9(s3)) &amp; <span class="number">0xFF</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">1</span>] = (gmul_9(s0) ^ gmul_e(s1) ^ gmul_b(s2) ^ gmul_d(s3)) &amp; <span class="number">0xFF</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">2</span>] = (gmul_d(s0) ^ gmul_9(s1) ^ gmul_e(s2) ^ gmul_b(s3)) &amp; <span class="number">0xFF</span></span><br><span class="line">        new_state[i * <span class="number">4</span> + <span class="number">3</span>] = (gmul_b(s0) ^ gmul_d(s1) ^ gmul_9(s2) ^ gmul_e(s3)) &amp; <span class="number">0xFF</span></span><br><span class="line"></span><br><span class="line">    state[:] = new_state[:] <span class="comment"># Update the original state bytearray</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># AES ECB Encryption Function</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">aes_ecb_encrypt_modified</span>(<span class="params">plaintext, key</span>):</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(plaintext) != <span class="number">16</span> <span class="keyword">or</span> <span class="built_in">len</span>(key) != <span class="number">16</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;Plaintext and key must be 16 bytes long for this AES-ECB implementation.&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Convert plaintext to a mutable bytearray (the state)</span></span><br><span class="line">    state = <span class="built_in">bytearray</span>(plaintext)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Generate all round keys</span></span><br><span class="line">    round_keys = key_expansion(key)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Initial Round</span></span><br><span class="line">    add_round_key(state, round_keys[<span class="number">0</span>])</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Main Rounds (9 rounds for 128-bit key)</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="number">10</span>): <span class="comment"># Rounds 1 to 9</span></span><br><span class="line">        sub_bytes(state)</span><br><span class="line">        shift_rows(state)</span><br><span class="line">        mix_columns(state) <span class="comment"># This is where the 0x55 XOR modification is</span></span><br><span class="line">        add_round_key(state, round_keys[i])</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Final Round (Round 10 for 128-bit key) - No MixColumns</span></span><br><span class="line">    sub_bytes(state)</span><br><span class="line">    shift_rows(state)</span><br><span class="line">    add_round_key(state, round_keys[<span class="number">10</span>])</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">bytes</span>(state)</span><br><span class="line"></span><br><span class="line"><span class="comment"># AES ECB Decryption Function</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">aes_ecb_decrypt_modified</span>(<span class="params">ciphertext, key</span>):</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(ciphertext) != <span class="number">16</span> <span class="keyword">or</span> <span class="built_in">len</span>(key) != <span class="number">16</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;Ciphertext and key must be 16 bytes long for this AES-ECB implementation.&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Convert ciphertext to a mutable bytearray (the state)</span></span><br><span class="line">    state = <span class="built_in">bytearray</span>(ciphertext)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Generate all round keys</span></span><br><span class="line">    round_keys = key_expansion(key)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Initial Round (Decryption&#x27;s first round is encryption&#x27;s last round)</span></span><br><span class="line">    add_round_key(state, round_keys[<span class="number">10</span>]) <span class="comment"># Use the last round key</span></span><br><span class="line">    inv_shift_rows(state)</span><br><span class="line">    inv_sub_bytes(state)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Main Rounds (9 rounds for 128-bit key)</span></span><br><span class="line">    <span class="comment"># Iterate from round 9 down to 1</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">9</span>, <span class="number">0</span>, -<span class="number">1</span>):</span><br><span class="line">        add_round_key(state, round_keys[i])</span><br><span class="line">        inv_mix_columns(state) <span class="comment"># This is where the 0x55 XOR and 0xFF AND modification is</span></span><br><span class="line">        inv_shift_rows(state)</span><br><span class="line">        inv_sub_bytes(state)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Final Round (Decryption&#x27;s last round)</span></span><br><span class="line">    add_round_key(state, round_keys[<span class="number">0</span>]) <span class="comment"># Use the first round key</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">bytes</span>(state)</span><br><span class="line"></span><br><span class="line"><span class="comment"># --- Usage Example ---</span></span><br><span class="line"><span class="comment"># Example Plaintext (16 bytes)</span></span><br><span class="line">plaintext_hex = <span class="string">&quot;c20b9ab583f9cb629880a7648b15904f&quot;</span></span><br><span class="line"><span class="comment"># Example Key (16 bytes)</span></span><br><span class="line">key_hex = <span class="string">&quot;24 25 8A 5B 6A 20 62 5D D2 71 64 32 FD E7 5E C4&quot;</span></span><br><span class="line"></span><br><span class="line">plaintext = <span class="built_in">bytes</span>.fromhex(plaintext_hex)</span><br><span class="line">key = <span class="built_in">bytes</span>.fromhex(key_hex)</span><br><span class="line">ciphertext = <span class="string">b&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;Plaintext: <span class="subst">&#123;plaintext.<span class="built_in">hex</span>().upper()&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;Key:       <span class="subst">&#123;key.<span class="built_in">hex</span>().upper()&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    ciphertext = aes_ecb_encrypt_modified(plaintext, key)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Ciphertext: <span class="subst">&#123;ciphertext.<span class="built_in">hex</span>().upper()&#125;</span>&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> ValueError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Error: <span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># You can now use this script to encrypt a known plaintext with a known key</span></span><br><span class="line"><span class="comment"># and compare the output with the one from the original modified binary.</span></span><br><span class="line"><span class="comment"># If they match, it strongly suggests that the only modification was indeed</span></span><br><span class="line"><span class="comment"># the XOR 0x55 in the MixColumns step.</span></span><br><span class="line">enc = <span class="built_in">bytes</span>.fromhex(<span class="string">&#x27;22 EB B5 40 91 62 9C F7 E2 13 FF A8 8C 54 D9 80&#x27;</span>)</span><br><span class="line"><span class="comment"># enc = ciphertext  # Use the ciphertext from the encryption step</span></span><br><span class="line">key = <span class="built_in">bytes</span>.fromhex(key_hex)</span><br><span class="line">decrypted = aes_ecb_decrypt_modified(enc, key)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;Decrypted: <span class="subst">&#123;decrypted.<span class="built_in">hex</span>().upper()&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>结果还真就是, 那还说啥了直接开解! 但是打开网页天塌了, 要填100个人的, 只能自动化完成签名外加生成用户名密钥对的解密然后继续拷打Gemini写个自动填表单的Js脚本了:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    <span class="keyword">from</span> subprocess <span class="keyword">import</span> run, PIPE</span><br><span class="line">    usr_key = &#123;&#125;</span><br><span class="line"></span><br><span class="line">    to_gen_key = <span class="built_in">open</span>(<span class="string">&#x27;.\\to_decrypt.txt&#x27;</span>, <span class="string">&#x27;r&#x27;</span>).read().split()</span><br><span class="line">    <span class="comment"># print(to_gen_key)</span></span><br><span class="line">    <span class="keyword">for</span> usr_name <span class="keyword">in</span> to_gen_key:</span><br><span class="line">        res = run([<span class="string">&#x27;.\\autosign.exe&#x27;</span>, usr_name], stdout=PIPE, stderr=PIPE).stdout.strip().decode()</span><br><span class="line">        <span class="comment"># print(res)</span></span><br><span class="line">        res = res.split(<span class="string">&#x27; -&#x27;</span>)</span><br><span class="line">        key = res[<span class="number">0</span>]</span><br><span class="line">        enc = res[<span class="number">1</span>]</span><br><span class="line">        decrypted = aes_ecb_decrypt_modified(<span class="built_in">bytes</span>.fromhex(enc), <span class="built_in">bytes</span>.fromhex(key))</span><br><span class="line">        usr_key[usr_name] = decrypted.<span class="built_in">hex</span>()</span><br><span class="line">    <span class="built_in">print</span>(usr_key)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span> <span class="comment">// Required for LoadLibrary, GetProcAddress, FreeLibrary</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">const</span> <span class="type">char</span> * XuGeShiQu = <span class="string">&quot;Showmaker11\x00&quot;</span>;</span><br><span class="line"><span class="keyword">typedef</span> <span class="title function_">int</span> <span class="params">(__cdecl *SIGN_FUNCTION)</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* data, <span class="type">int</span> data_len, <span class="type">char</span>* signature_buffer, <span class="type">int</span> buffer_len)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span> &#123;</span><br><span class="line">    <span class="keyword">if</span>(argc != <span class="number">2</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    HMODULE hDll;</span><br><span class="line">    SIGN_FUNCTION signFunc;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span>* s_key = argv[<span class="number">1</span>];</span><br><span class="line">    <span class="comment">// printf(&quot;Message to sign: \&quot;%s\&quot;\nlength: %d\n&quot;, s_key, (int)strlen(s_key));</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> key[<span class="number">16</span>] = &#123;<span class="number">0</span>&#125;; <span class="comment">// Buffer to store the signature</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> enc[<span class="number">16</span>] = &#123;<span class="number">0</span>&#125;; <span class="comment">// Buffer for the encrypted signature</span></span><br><span class="line">    <span class="type">int</span> signature_len = <span class="keyword">sizeof</span>(key);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// printf(&quot;Attempting to load libcrypto.dll...\n&quot;);</span></span><br><span class="line">    hDll = LoadLibrary(<span class="string">&quot;libcrypto.dll&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (hDll == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Error: Could not load libcrypto.dll. GetLastError: %lu\n&quot;</span>, GetLastError());</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// printf(&quot;libcrypto.dll loaded successfully. Attempting to get &#x27;sign&#x27; function address...\n&quot;);</span></span><br><span class="line"></span><br><span class="line">    signFunc = (SIGN_FUNCTION)GetProcAddress(hDll, <span class="string">&quot;sign&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (signFunc == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Error: Could not find function &#x27;sign&#x27; in libcrypto.dll. GetLastError: %lu\n&quot;</span>, GetLastError());</span><br><span class="line">        FreeLibrary(hDll); <span class="comment">// Free the DLL before exiting</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// printf(&quot;Function &#x27;sign&#x27; found. Calling the function...\n&quot;);</span></span><br><span class="line">    signFunc(s_key, <span class="built_in">strlen</span>(s_key), key, signature_len);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// printf(&quot;Sign function returned: %d\n&quot;, result);</span></span><br><span class="line">    <span class="comment">// printf(&quot;Message to sign: \&quot;%s\&quot;\n&quot;, s_key);</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">0x10</span>; ++i) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%02X &quot;</span>, key[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;-&quot;</span>);</span><br><span class="line">    <span class="type">char</span> *s_enc = <span class="built_in">malloc</span>(<span class="built_in">strlen</span>(s_key) + <span class="built_in">strlen</span>(XuGeShiQu) + <span class="number">1</span>);</span><br><span class="line">    <span class="built_in">strcpy</span>(s_enc, s_key);</span><br><span class="line">    <span class="built_in">strcat</span>(s_enc, XuGeShiQu);</span><br><span class="line">    signFunc(s_enc, <span class="built_in">strlen</span>(s_enc), enc, <span class="keyword">sizeof</span>(enc));</span><br><span class="line">    <span class="comment">// printf(&quot;Encrypted signature: &quot;);</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">0x10</span>; ++i) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%02X &quot;</span>, enc[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Free the loaded DLL</span></span><br><span class="line">    FreeLibrary(hDll);</span><br><span class="line">    <span class="comment">// printf(&quot;libcrypto.dll unloaded.\n&quot;);</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>把用户名都复制下来存放在<code>to_decrypt.txt</code>编译好自动签名程序运行python脚本就能生成用户名密钥对了, 最后是自动填表脚本:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> userPasswords = ...;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Function to display messages in the message box</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">showMessage</span>(<span class="params">message, type = <span class="string">&#x27;info&#x27;</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> messageBox = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;messageBox&#x27;</span>);</span><br><span class="line">    messageBox.<span class="property">textContent</span> = message;</span><br><span class="line">    messageBox.<span class="property">classList</span>.<span class="title function_">remove</span>(<span class="string">&#x27;hidden&#x27;</span>, <span class="string">&#x27;bg-green-100&#x27;</span>, <span class="string">&#x27;text-green-800&#x27;</span>, <span class="string">&#x27;bg-red-100&#x27;</span>, <span class="string">&#x27;text-red-800&#x27;</span>, <span class="string">&#x27;bg-yellow-100&#x27;</span>, <span class="string">&#x27;text-yellow-800&#x27;</span>);</span><br><span class="line">    <span class="keyword">if</span> (type === <span class="string">&#x27;success&#x27;</span>) &#123;</span><br><span class="line">        messageBox.<span class="property">classList</span>.<span class="title function_">add</span>(<span class="string">&#x27;bg-green-100&#x27;</span>, <span class="string">&#x27;text-green-800&#x27;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (type === <span class="string">&#x27;error&#x27;</span>) &#123;</span><br><span class="line">        messageBox.<span class="property">classList</span>.<span class="title function_">add</span>(<span class="string">&#x27;bg-red-100&#x27;</span>, <span class="string">&#x27;text-red-800&#x27;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123; <span class="comment">// info or default</span></span><br><span class="line">        messageBox.<span class="property">classList</span>.<span class="title function_">add</span>(<span class="string">&#x27;bg-yellow-100&#x27;</span>, <span class="string">&#x27;text-yellow-800&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Function to automatically fill the form</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">autoFillForm</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> filledCount = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">let</span> notFoundCount = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">const</span> form = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;userForm&#x27;</span>); <span class="comment">// Changed ID to userForm</span></span><br><span class="line">    <span class="keyword">const</span> inputFields = form.<span class="title function_">querySelectorAll</span>(<span class="string">&#x27;input[type=&quot;password&quot;]&#x27;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="title class_">Object</span>.<span class="title function_">keys</span>(userPasswords).<span class="property">length</span> === <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="title function_">showMessage</span>(<span class="string">&quot;密码字典为空，无法自动填写。&quot;</span>, <span class="string">&#x27;error&#x27;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (inputFields.<span class="property">length</span> === <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="title function_">showMessage</span>(<span class="string">&quot;页面上没有找到密码输入框。&quot;</span>, <span class="string">&#x27;info&#x27;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    inputFields.<span class="title function_">forEach</span>(<span class="function"><span class="params">input</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> username = input.<span class="property">id</span>; <span class="comment">// The id of the input is the username</span></span><br><span class="line">        <span class="keyword">if</span> (userPasswords.<span class="title function_">hasOwnProperty</span>(username)) &#123;</span><br><span class="line">            input.<span class="property">value</span> = userPasswords[username];</span><br><span class="line">            filledCount++;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">warn</span>(<span class="string">`Password for user &#x27;<span class="subst">$&#123;username&#125;</span>&#x27; not found in the dictionary.`</span>);</span><br><span class="line">            notFoundCount++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (filledCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="title function_">showMessage</span>(<span class="string">`成功填写了 <span class="subst">$&#123;filledCount&#125;</span> 个密码。`</span>, <span class="string">&#x27;success&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (notFoundCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// If all fields were not found, it&#x27;s an error. Otherwise, it&#x27;s an info/warning.</span></span><br><span class="line">        <span class="title function_">showMessage</span>(<span class="string">`有 <span class="subst">$&#123;notFoundCount&#125;</span> 个用户密码未找到。`</span>, notFoundCount === inputFields.<span class="property">length</span> ? <span class="string">&#x27;error&#x27;</span> : <span class="string">&#x27;info&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (filledCount === <span class="number">0</span> &amp;&amp; notFoundCount === <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="title function_">showMessage</span>(<span class="string">&quot;没有找到密码输入框或字典为空。&quot;</span>, <span class="string">&#x27;info&#x27;</span>); <span class="comment">// Should be caught by earlier checks, but as a fallback</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="QRS"><a href="#QRS" class="headerlink" title="QRS"></a>QRS</h2><p>运行发现起了个HTTP服务, 直接搜索字符串无果, 加上不熟悉什么Web框架, 只知道是个rust程序, 遂决定调试</p>
+<p>一调就发现程序不见了还没办法结束调试, 一眼剥离调试器, 交叉引用<code>NtSetInformationThread</code>发现果然是, 直接patch成NOP来bypass:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-001408.png" alt="image-20250728001408355"></p>
+<p>接下来就是找路由了(是叫这个吗, 咱也不是学Web的咱也不懂), 但是因为没有任何开发相关经验所以根本找不到, 直接访问发现需要一个<code>&#39;input&#39;</code>参数, 然后拷打Gemini这个框架用什么API来解析参数结果根本没找到这个API, 然后直接搜索缺少参数的提示直接搜到了:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-002531.png" alt="image-20250728002531067"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-002548.png" alt="image-20250728002548060"></p>
+<p>在函数头下个断点看看什么时候能获得输入, 带参发送GET请求果然在函数头断下, 接下来我直接在内存中搜索我的GET请求然后下硬件断点看看什么时候被用到:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-002834.png" alt="image-20250728002834391"></p>
+<p>经过API对参数一通处理最后终于进了个memcpy, 最后再在拷贝出来的数据上下硬件断点并定位到了输入在何处被加密:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2025%2F07%2F28%2F20250728-003230.png" alt="image-20250728003230335"></p>
+<p>TEA加密, <code>GetTickCount</code>点进去就会发现被hook成返回固定值, 调试获得key, 据此写出解密脚本:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">uint32_t</span> enc[] = &#123;<span class="number">0x83EA621</span>, <span class="number">0xC745973C</span>, <span class="number">0xE3B77AE8</span>, <span class="number">0xCDEE8146</span>, <span class="number">0x7DC86B96</span>, <span class="number">0x6B8C9D3B</span>, <span class="number">0x79B14342</span>, <span class="number">0x2ECF0F0D</span>&#125;;</span><br><span class="line">    <span class="type">uint32_t</span> key[] = &#123;<span class="number">0x1234567</span>, <span class="number">0x89ABCDEF</span>, <span class="number">0xFEDCBA98</span>, <span class="number">0x76543210</span>&#125;;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">8</span>; i += <span class="number">2</span>)&#123;</span><br><span class="line">        <span class="type">uint32_t</span> delta = <span class="number">0x68547369</span>, round = <span class="number">48</span>, sum = delta * round, v0 = enc[i], v1 = enc[i + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>; j &lt; round; j++)&#123;</span><br><span class="line">            sum -= delta;</span><br><span class="line">            v1 -= (v0 + ((<span class="number">16</span> * v0) ^ (v0 &gt;&gt; <span class="number">5</span>))) ^ (sum + delta + *(<span class="type">uint32_t</span> *)((<span class="type">char</span> *)key + (((sum + delta) &gt;&gt; <span class="number">9</span>) &amp; <span class="number">0xC</span>)));</span><br><span class="line">            v0 -= (v1 + ((<span class="number">16</span> * v1) ^ (v1 &gt;&gt; <span class="number">5</span>))) ^ (key[sum &amp; <span class="number">3</span>] + sum);</span><br><span class="line">        &#125;</span><br><span class="line">        enc[i] = v0;</span><br><span class="line">        enc[i + <span class="number">1</span>] = v1;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">32</span>; i++)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%02X &quot;</span>, ((<span class="type">uint8_t</span> *)&amp;enc[i / <span class="number">4</span>])[(i % <span class="number">4</span>)]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>剩下一道内核把能想到的反调试全都试了一遍全都过不了, 拦截跳板只能看出多次在ntoskrnl.exe导出函数表里找几个看起来很像用来反调试的API, 但是看起来都没有调用过, 似了</p>
+<p>还有一道魔改lua, IDA调试有问题用CE调的前面拦截输入什么的都挺简单, 到最后输入转成浮点数之后的操作即使跟着硬件断点走也看不懂到底怎么操作那些数据的, 似了</p>
+<p>等有wp再复现吧</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>1K0CT B14s
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ikoct.com/2025/07/28/NepCTF2025%E9%80%86%E5%90%91%E6%96%B9%E5%90%91Writeups/" title="NepCTF2025逆向方向Writeups">https://ikoct.com/2025/07/28/NepCTF2025逆向方向Writeups/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Reverse/" rel="tag"># Reverse</a>
+              <a href="/tags/Writeups/" rel="tag"># Writeups</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/05/19/2025%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8-PC%E7%AB%AF%E5%86%B3%E8%B5%9B%E9%A2%98%E8%A7%A3-%E5%A4%8D%E7%8E%B0/" rel="prev" title="2025腾讯游戏安全 PC端决赛题解+复现">
+      <i class="fa fa-chevron-left"></i> 2025腾讯游戏安全 PC端决赛题解+复现
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#realme"><span class="nav-number">1.</span> <span class="nav-text">realme</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#crackme"><span class="nav-number">2.</span> <span class="nav-text">crackme</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#QRS"><span class="nav-number">3.</span> <span class="nav-text">QRS</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="1K0CT B14s"
+      src="/images/myavatar.gif">
+  <p class="site-author-name" itemprop="name">1K0CT B14s</p>
+  <div class="site-description" itemprop="description">残りの人生、私にくれませんか？</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        <!--
+-->
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">1K0CT B14s</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">604k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">9:09</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>-->
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
