@@ -6127,6 +6127,8 @@
     <content><![CDATA[<blockquote>
 <p>测试环境: Windows 10.0.18363</p>
 </blockquote>
+<span id="more"></span>
+
 <h3 id="Ring-3-环境检测"><a href="#Ring-3-环境检测" class="headerlink" title="Ring-3 环境检测"></a>Ring-3 环境检测</h3><h4 id="内核代码完整性以及测试模式"><a href="#内核代码完整性以及测试模式" class="headerlink" title="内核代码完整性以及测试模式"></a>内核代码完整性以及测试模式</h4><p>测试模式和内核完整性校验是否开启:</p>
 <p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2026%2F05%2F09%2F20260509-211144.png" alt="image-20260509211137878"></p>
 <p><code>nixxeBase.dll</code>使用动态解析出的 shellcode 来执行直接 syscall:</p>
@@ -6144,7 +6146,7 @@
 <p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2026%2F05%2F19%2F20260519-211441.png" alt="image-20260519211441313"></p>
 <h3 id="Ring-0-环境检测"><a href="#Ring-0-环境检测" class="headerlink" title="Ring-0 环境检测"></a>Ring-0 环境检测</h3><p>过完上面的检测之后大概就进入了驱动的部分, 因为直接蓝屏了(</p>
 <p>首要怀疑它检测了内核调试环境, 换了一个纯净环境再启动, 果然就弹出了另一个版本的虚拟机环境警告</p>
-<h4 id="内核调试环境"><a href="#内核调试环境" class="headerlink" title="内核调试环境"></a>内核调试环境</h4><p>那么大概可以确定它确实检测了内核调试器, 直接 trace 找到标志位读取点位不太现实, 估计得跑一万年, 想用<code>KA〇E</code>模拟执行但是这个驱动显然不可能独立加载, 于是只能找可能的上游点位, 第一个想到的就是它可能要读取内核导出的<code>KdDebuggerEnabled</code>或<code>KdDebuggerNotPresent</code>, 绕不过的一点就是通过符号名找到这两个标志位的地址(我就不信它编码了所有系统的版本号和对应偏移直接定位到), 并且<code>A〇E_BASE.sys</code>中确实导入了<code>MmGetSystemRoutineAddress</code>, 不得不 hook 看看了, 于是得到了一个污点:</p>
+<h4 id="内核调试环境"><a href="#内核调试环境" class="headerlink" title="内核调试环境"></a>内核调试环境</h4><p>那么大概可以确定它确实检测了内核调试器, 直接 trace 找到标志位读取点位不太现实, 估计得跑一万年, 想用<code>KACE</code>模拟执行但是这个驱动显然不可能独立加载, 于是只能找可能的上游点位, 第一个想到的就是它可能要读取内核导出的<code>KdDebuggerEnabled</code>或<code>KdDebuggerNotPresent</code>, 绕不过的一点就是通过符号名找到这两个标志位的地址(我就不信它编码了所有系统的版本号和对应偏移直接定位到), 并且<code>A〇E_BASE.sys</code>中确实导入了<code>MmGetSystemRoutineAddress</code>, 不得不 hook 看看了, 于是得到了一个污点:</p>
 <p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2026%2F05%2F20%2F20260520-184034.png" alt="image-20260520184034447"></p>
 <p>得到两个标志位的地址后立马就触发了蓝屏, 很难不深究了</p>
 <p>交叉引用它得到的调试标志位可以找到它们被用于对比的点位分别在<code>A〇E_BASE+0000000000442F4F</code>和<code>A〇E_BASE+0000000000442FD8</code>, 先浅浅地通过 hook 交换它得到的两个标志位地址, 实际上应该可以直接返回两个指向自己模块的恒真和恒假的指针, 但是我怕它还检测解析符号得到的地址是否在 nt 模块范围内就直接交换了一下得到的两个标志位地址</p>
@@ -6159,7 +6161,7 @@
 <p>接下来就是常规抹除 VMware 的进程和驱动痕迹, 但是依然报警告, 安装注册表访问回调后找到了以下可疑键值访问:</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[Registry] PreOpenKey: SCSI\DISK&amp;VEN_NVME&amp;PROD_VMWARE_VIRTUAL_N\5&amp;25A13950&amp;0&amp;000000</span><br><span class="line">[Registry] QueryValue: HardwareID</span><br><span class="line">[Registry] PreOpenKey: SCSI\DISK&amp;VEN_NVME&amp;PROD_VMWARE_VIRTUAL_N\5&amp;25A13950&amp;0&amp;000000</span><br><span class="line">[Registry] QueryValue: HardwareID</span><br><span class="line">[Registry] PreOpenKey: SCSI\DISK&amp;VEN_NVME&amp;PROD_VMWARE_VIRTUAL_N\5&amp;25A13950&amp;0&amp;000000</span><br><span class="line">[Registry] QueryValue: HardwareID</span><br><span class="line">[Registry] PreOpenKey: SCSI\DISK&amp;VEN_NVME&amp;PROD_VMWARE_VIRTUAL_N\5&amp;25A13950&amp;0&amp;000000</span><br></pre></td></tr></table></figure>
 
-<p>经典检测 VMware 虚拟磁盘标识, 这里可以直接修改<code>.vmx</code>来绕过, 顺手把<code>cpuid</code>的结果也给抹除掉, 我们来到了下一个蓝屏, 蓝屏代码为 0x50, 后续按照<code>VMAware</code>项目的检测方法绕过了除了时间差检测的所有检测, 可惜都没绕过, 也没有人可以问, 遂放弃(</p>
+<p>经典检测 VMware 虚拟磁盘标识, 这里可以直接修改<code>.vmx</code>来绕过, 顺手把<code>cpuid</code>的结果也给抹除掉, 但是依然没能绕过 后续按照<code>VMAware</code>项目的检测方法绕过了除了时间差检测的所有检测, 可惜都没绕过, 也没有人可以问, 遂放弃(</p>
 <h3 id="nixxeBase-dll-导入表修复"><a href="#nixxeBase-dll-导入表修复" class="headerlink" title="nixxeBase.dll 导入表修复"></a>nixxeBase.dll 导入表修复</h3><p>导入表长得非常抽象, 槽位存放的是一个分配出的 rwx 内存的地址, 这个地址存放了跳到目标API的 jmp 跳板, 跳板用的是相对地址解引用跳转, 这个相对地址也在这块 rwx 内存之内, 最后得到的甚至还不是这个 API, 而是这个 API 的 Stub 槽位, 它本身也是一个跳板, 跳到对应的 API</p>
 <p>要恢复比较好的方法就是将这块原始<code>IAT</code>和分配出的 rwx 内存全都在运行时恢复后 dump 下来, 然后进行两次映射恢复<code>IAT</code> </p>
 ]]></content>
