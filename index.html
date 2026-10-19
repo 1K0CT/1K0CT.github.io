@@ -212,8 +212,9 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2026-10-19 15:00:52" itemprop="dateCreated datePublished" datetime="2026-10-19T15:00:52+08:00">2026-10-19</time>
+              <time title="创建时间：2026-10-19 15:00:52 / 修改时间：15:34:53" itemprop="dateCreated datePublished" datetime="2026-10-19T15:00:52+08:00">2026-10-19</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -262,80 +263,14 @@
 <li>模拟器设计 ( 不包括VCPU, VCPU直接使用<code>unicron-engine</code>提供的<code>qemu</code>核心 )</li>
 </ol>
 </blockquote>
-<h2 id="纯-unicorn-模拟到什么时候会退出"><a href="#纯-unicorn-模拟到什么时候会退出" class="headerlink" title="纯 unicorn 模拟到什么时候会退出?"></a>纯 unicorn 模拟到什么时候会退出?</h2><p>模拟一个可执行文件时, 在已经分配映射主 PE 和栈空间的情况下大概率是一次<code>IAT</code>调用导致了退出, 本质上是一次未映射内存访问.</p>
-<p>模拟执行入口在实际的模块加载过程中不算最早期的那一批, 被跳过的流程包括了一步<strong>导入表解析</strong>. 在操作系统解析导入表并填充<code>IAT</code>之前其中的地址是没有意义的 ( 实际上和<code>.bss</code>一样属于虚拟段, 无对应的文件内存, 在被使用前不映射 ), 此时<code>call [IAT]</code>相当于解引用无效指针导致退出.</p>
-<h3 id="导入表解析"><a href="#导入表解析" class="headerlink" title="导入表解析"></a>导入表解析</h3><p>导入目录中包含多个导入描述器, 以导入的模块 (<code>.dll</code>) 为单位, 每个描述器包含该导入模块的</p>
-<ul>
-<li>模块名</li>
-<li>(时间戳, 转发串)</li>
-<li>导入名称表地址</li>
-<li>模块的导入表地址 ( 这意味着同一个模块的导入函数是连片的 )</li>
-</ul>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2026%2F10%2F19%2F20261019-145917.png" alt="QQ_1792135733693"></p>
-<p>其中的转发串字段在现代Windows上已经废弃</p>
-<p>实际导入的过程就是加载器通过模块名找到模块并加载 ( 然后递归该模块依赖的模块 ), 在它的导出目录中搜索拿到真正的地址填入<code>IAT</code></p>
-<h3 id="导出表解析"><a href="#导出表解析" class="headerlink" title="导出表解析"></a>导出表解析</h3><p>导出目录包含的信息和导入表对应:</p>
-<ul>
-<li>…</li>
-<li>本模块名</li>
-<li>导出函数数量 ( 只是字段名, 导出实际全局变量也并列, 并且不是导出函数数量而是通过最大序号来限制导出目录范围 )</li>
-<li>导出函数数量</li>
-<li>导出符号名偏移表</li>
-<li>导出符号名索引 &#x3D;&gt; <code>EAT</code>索引映射表</li>
-<li>导出函数偏移表 ( i.e. 导出表, <code>EAT</code> )</li>
-</ul>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2026%2F10%2F19%2F20261019-145928.png" alt="QQ_1792142628210"></p>
-<blockquote>
-<p>为什么会出现映射表?</p>
-</blockquote>
-<p>作为最常用于索引导出函数用的符号名是严格字典排序的:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2026%2F10%2F19%2F20261019-145930.png" alt="QQ_1792145459729"></p>
-<p>这样一来大端序取待搜索的符号名字节就能够进行二分搜索提升效率了, 找到后拿着名下标映射到<code>EAT</code>下标, 这样就可以在导出表中找到想要的导出符号的<code>rva</code>了.</p>
-<p>问题来了, 为什么不直接<code>y = x</code>然后省掉映射表呢? 这涉及到先前提到的存在通过序号导出的符号. 就例如这个模块:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2026%2F10%2F19%2F20261019-145932.png" alt="QQ_1792144078078"></p>
-<p>而通过序号导出不一定保证导出的顺序上符号名还是严格字典序, 可能写这个动态链接库的人就这顺格或者胡闹编程:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2026%2F10%2F19%2F20261019-145940.png" alt="QQ_1792145695116"></p>
-<p>实际上逆向过程中确实遇到过很多直接通过序号来导入 API 的, 可能是这些序号在每个版本的库上都固定了相同的导出函数, 这个过程的伪代码如下:</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">name_idx</span> = address_of_names.<span class="title function_ invoke__">binsearch</span>(API_name)</span><br><span class="line"><span class="keyword">let</span> <span class="variable">ordinal</span> = address_of_name_ordinals[name_idx]</span><br><span class="line"><span class="keyword">let</span> <span class="variable">rva</span> = address_of_functions[ordinal + base - <span class="number">1</span>] <span class="comment">// EAT may not starts with effective RVA</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="转发导出"><a href="#转发导出" class="headerlink" title="转发导出"></a>转发导出</h4><p>导入表解析中提到导入表有已经被废弃的转发串模式, 而转发串在导出表中至今仍然经常应用, 例如<code>kernel32.dll</code>大量偷了<code>kernelbase.dll</code>的接口:</p>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2026%2F10%2F19%2F20261019-145946.png" alt="QQ_1792146107033"></p>
-<p>加载器区分转发导出的唯一方法就是在通过序号找到<code>rva</code>后发现落在了符号名表范围内时进行判定, 而这些转发串的<code>rva</code>是不会出现在符号名偏移表中的.</p>
-<p><strong>代理注入</strong>的原理就是转发受害者的所有导出函数然后改名替代受害者dll, 这样目标在加载依赖模块时就会自动加载待注入的dll ( 哇, 还有替身文学</p>
-<hr>
-<p>这部分的模拟器设计比较简单, 主要是 PE 文件解析, 而现在已经有很多相关的第三方库 ( e.g. pelite ) 可以使用了, 唯一难点是对加载模块入口的模拟, 加载器在完成模块加载的前置工作后会执行<code>DllEntry(DLL_PROCESS_ATTACH)</code>, 这也揭示了后续模拟器设计始终绕不过的一座大山:</p>
-<h3 id="注入一次-guest-call"><a href="#注入一次-guest-call" class="headerlink" title="注入一次 guest call?"></a>注入一次 guest call?</h3><p>这个功能的设计直接影响后续所有涉及到退出时模拟器的处理方法, 所以需要根据模拟器:</p>
-<ul>
-<li>是否从运行中退出</li>
-<li>跳转目标是否有完整函数序</li>
-<li>是否需要保留跳转前上下文</li>
-<li>跳转目标返回后继续执行 guest 逻辑还是模拟器逻辑</li>
-</ul>
-<p>来对注入的 call 进行分发, 对于先前的<code>IAT</code>就比较简单, 模拟器只充当转发层 &#x2F; 模拟 API 层, guest 退出仅用于监控 API 调用, 而这里对于模块加载时入口点的调用就有两种情况:</p>
-<ol>
-<li>通过导入表解析依赖进行导入, 此时模拟器还未启动, 入口点返回后需要继续模拟器逻辑</li>
-<li>运行过程中通过<code>LoadLibraryA/W[Ex]</code>导入, 此时模拟器已经启动, 入口点返回后继续 guest 逻辑</li>
-</ol>
-<p>为了一次性解决很多问题, 我们引入<code>Sentinel Poll</code>, 一个按地址增长的槽位表, 通过<code>BTreeMap</code>联系到带类型的 handler, 限制哨兵池对 guest 的执行权限, 这样一来所有进入哨兵池的<code>rip</code>都会因为访存异常退出由模拟器接管, 此时就可以对<code>rip</code>做分发, 即 <code>Page hook</code>思路.</p>
-<p>以较难的运行时导入的模块入口点调用为例:</p>
-<ol>
-<li>guest 踩中<code>IAT</code>中的哨兵, 退出到模拟器并根据踩中哨兵分发到<code>LoadLibrary</code>的模拟函数</li>
-<li>模拟器执行映射流程, 将映射基址压入一个模拟器状态变量中</li>
-<li>将<code>rip</code>和参数寄存器调整好后使用一个对应类型<code>Rewind</code>的 handler 替换<code>call</code>压入的返回地址并让模拟器返回 guest 继续执行</li>
-<li>guest 执行完模块入口点后返回踩中哨兵回到模拟器</li>
-<li>模拟器根据哨兵索引到一个<code>Rewind</code>类型的 handler, 进入分发器中对应分支</li>
-<li>从模拟器状态中寄存的模块基址弹出赋给 guest 的<code>rax</code>, 模拟器返回 guest 拿到<code>LoadLibrary</code>结果继续执行</li>
-</ol>
-<p><img src="https://cdn.jsdelivr.net/gh/1K0CT/BlogImage@main/img/2026%2F10%2F19%2F20261019-150008.svg" alt="rewindCall.drawio"></p>
-<p>这样的复杂乒乓流程在后面的异常处理中还会高频用到</p>
-<p>实际加载器处理加载模块还涉及<code>PEB</code>中<code>Ldr</code>等数据的变化, 这就是模拟器过度干涉执行的副作用, 如果只模拟最底层的系统调用就能让系统  dll 自动处理这些数据</p>
-<hr>
-<p>处理完<code>IAT</code>之后下一个退出点会出现在哪里呢? 大概率还是无效地址导致的访存异常, 因为当只加载了主PE和第一个 dll 两个模块的情况下静态的 guest 内存映射才能满足, 即大部分 <code>EXE / DLL</code> 选的默认基址<code>140000000 / 180000000</code>, 当再加载下一个模块时如果还是使用<code>NT Header</code>中的默认基址则大概率会覆盖掉先前映射的 dll, 那么就为模拟器新增一个状态变量表示使用的内存, 每次映射后新增映射的大小进行动态基址映射(<code>~ASLR</code>), 这带来了另一个问题, 我们模拟的加载器漏了<strong>重定位</strong>这一步</p>
-<h3 id="重定位"><a href="#重定位" class="headerlink" title="重定位"></a>重定位</h3><p>模块中被代码引用的数据大部分都不会被动态基址影响 – 它们大部分都不是绝对地址访问而是<code>rip</code>相对地址访问, 这样一来只要这些数据和代码的偏移不变就能正常访问, 而被数据引用的数据或代码则几乎必定会被影响 ( 除了通过<code>rva</code>访问的 ), 一个编译时就有值的指针是以<code>NT header</code>中的默认基址 + 偏移的方式计算出来的, 为了在不同的基址都能保证指向同一个地址编译器会构造这种数据的<strong>重定位表</strong>, </p>
-<p>重定位表以每个页为一级索引, 编译器收集该页中需要重定位的数据相对该页的偏移以及重定位的<code>Type</code>, x64上重定位类型基本上是<code>IMAGE_REL_BASED_DIR64 (Ah)</code>, 无论是哪种类型计算新地址的公式都相同, 只是数据类型有区别, 重定位伪代码如下:</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">delta</span> = mapped_base - image_base</span><br><span class="line"><span class="keyword">for</span> <span class="title class_">va</span>, blocks <span class="keyword">in</span> RelocTable:</span><br><span class="line">    <span class="keyword">for</span> <span class="title class_">offset</span>, tp <span class="keyword">in</span> blocks:</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">ptr</span> = mapped_base + va + offset</span><br><span class="line">        <span class="keyword">match</span> tp:</span><br><span class="line">            ...</span><br><span class="line">            IMAGE_REL_BASED_DIR64 =&gt; *(ptr) += delta</span><br></pre></td></tr></table></figure>
-
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/10/19/%E6%A8%A1%E6%8B%9F%E4%B8%80%E4%B8%AAPE64-%E6%A8%A1%E5%9D%97/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
